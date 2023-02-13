@@ -1,181 +1,217 @@
 <template>
-  <v-stepper
-    vertical
-    v-model="step"
-  >
-    <v-stepper-step
-      class="bck-clr-gray py-3"
-      :step="stepOrder.dataSource"
-      editable
-      :complete="!!dataSourceSelected"
+  <v-sheet>
+    <VcsWizard
+      v-model.number="pluginState.step"
     >
-      Choose data source to export
-    </v-stepper-step>
-    <v-stepper-content :step="stepOrder.dataSource">
-      <VcsSelect
-        :items="dataSourceOptions"
-        label="Select"
-        v-model="dataSourceSelected"
-        @input="increaseStepper(stepOrder.dataSource); setSelectionOptions();"
-      />
-    </v-stepper-content>
-    <v-stepper-step
-      v-show="highestStep >= stepOrder.selectionMode"
-      class="bck-clr-gray py-3"
-      :step="stepOrder.selectionMode"
-      editable
-      :complete="!!selectionSelected"
-    >
-      Define export selection by
-    </v-stepper-step>
-    <v-stepper-content
-      :step="stepOrder.selectionMode"
-      v-show="highestStep >= stepOrder.selectionMode"
-    >
-      <VcsSelect
-        :items="selectionOptions"
-        label="Select"
-        v-model="selectionSelected"
-        @change="increaseStepper(stepOrder.selectionMode)"
-      />
-    </v-stepper-content>
-    <v-stepper-step
-      v-show="highestStep >= stepOrder.selection"
-      class="bck-clr-gray py-3"
-      :step="stepOrder.selection"
-      editable
-      :complete="highestStep >= stepOrder.selection"
-    >
-      Select Objects
-    </v-stepper-step>
-    <v-stepper-content
-      v-show="highestStep >= stepOrder.selection"
-      :step="stepOrder.selection"
-    >
-      <v-sheet
-        v-if="selectionSelected === 'Selecting object'"
+      <VcsWizardStep
+        :step="stepOrder.DATASOURCE"
+        editable
+        :complete="!!pluginState.selectedDataSource"
+        heading="export.stepTitles.dataSources"
+        v-model.number="pluginState.step"
       >
-        Use Ctrl + left mouse click to select objects.
-        <p>Object Count: 0</p>
-        <div class="d-flex flex-row-reverse">
-          <VcsButton
-            @click="increaseStepper(stepOrder.selection);"
-          >
-            Continue
-          </VcsButton>
-        </div>
-      </v-sheet>
-      <v-sheet v-else>
-        Use drawing tool to define area or import polygon.
-        <p>
-          <VcsButton
-            icon="$vcsTriangle"
-            @click="increaseStepper(stepOrder.selection);"
+        <template #help>
+          <ul>
+            <li v-if="dataSourceItems.some(item => item.options.type === DataSourceOptions.CITY_MODEL)">
+              {{ $t('export.dataSources.cityModel') }}: {{ $t('export.help.dataSources.cityModel') }}
+            </li>
+            <li v-if="dataSourceItems.some(item => item.options.type === DataSourceOptions.OBLIQUE)">
+              {{ $t('export.dataSources.oblique') }}: {{ $t('export.help.dataSources.oblique') }}
+            </li>
+            <li
+              v-if="dataSourceItems.some(item => item.options.type === DataSourceOptions.GEOJSON)"
+              :set="geojsonItem = dataSourceItems.find(item => item.options.type === DataSourceOptions.GEOJSON)"
+            >
+              {{ $t(geojsonItem.text) }}: {{ $t(geojsonItem.options.help) }}
+            </li>
+          </ul>
+        </template>
+        <template #content>
+          <VcsSelect
+            class="my-2"
+            :items="dataSourceItems"
+            :item-value="item => item.options.type"
+            :label="$t('export.select')"
+            :value="pluginState.selectedDataSource"
+            @input="(selectedDataSource) => updateDataSource(selectedDataSource)"
           />
-          <VcsButton
-            icon="$vcsBoundingBox"
-          />
-          <VcsButton
-            icon="$vcsCircle"
-          />
-          <v-divider vertical />
-          <VcsButton
-            icon="$vcsImport"
-          />
-        </p>
-      </v-sheet>
-    </v-stepper-content>
-    <v-stepper-step
-      v-show="highestStep >= stepOrder.settings"
-      class="bck-clr-gray py-3"
-      :step="stepOrder.settings"
-      editable
-      :complete="highestStep >= stepOrder.settings"
-    >
-      Settings
-    </v-stepper-step>
-    <v-stepper-content
-      :step="stepOrder.settings"
-      v-show="highestStep >= stepOrder.settings"
-    >
-      <v-sheet
-        v-if="dataSourceSelected === '3D Models'"
+        </template>
+      </VcsWizardStep>
+      <VcsWizardStep
+        v-show="pluginState.highestStep >= stepOrder.SELECTION_MODE"
+        :step="stepOrder.SELECTION_MODE"
+        editable
+        :complete="!!pluginState.selectedSelectionType"
+        :rules="[v => !!stepValid.selectionMode]"
+        heading="export.stepTitles.selectionType"
+        v-model.number="pluginState.step"
+        :header-actions="pluginState.selectedSelectionType === SelectionTypes.OBJECT_SELECTION ?
+          [resetActions.objectSelection] : []"
       >
-        <v-container class="py-0 px-2">
-          <v-row
-            v-for="(value, name) in pluginSetup.cityModel"
-            :key="name"
-            no-gutters
-            align="center"
-          >
-            <v-col cols="7">
-              <VcsLabel :html-for="name + 'Select'" :dense="true">
-                {{ value.label }}
-              </VcsLabel>
-            </v-col>
-            <v-col>
-              <VcsSelect
-                :id="name + 'Select'"
-                :items="value.items"
-                v-model="pluginState.cityModel[name]"
+        <template #help>
+          <ul>
+            <li
+              v-for="(selectionType) in selectionTypeItems"
+              :key="selectionType"
+            >
+              {{ $t('export.selectionTypes.'+selectionType.value) }}:
+              {{ $t('export.help.selectionTypes.'+selectionType.value) }}
+            </li>
+          </ul>
+        </template>
+        <template #content>
+          <v-form v-model="stepValid.selectionMode" ref="formSelectionMode" lazy-validation>
+            <VcsSelect
+              class="my-2"
+              :items="selectionTypeItems"
+              :label="$t('export.select')"
+              v-model="pluginState.selectedSelectionType"
+              :rules="[v => !!v || $t('export.validation.selectField')]"
+            />
+            <SelectionObjects
+              v-if="pluginState.selectedSelectionType === SelectionTypes.OBJECT_SELECTION"
+              v-model="pluginState.selectedObjects"
+              :button-disabled="pluginState.selectedObjects.length === 0"
+              :button-show="pluginState.highestStep <= stepOrder.SELECTION_MODE"
+              @continue="increaseStep(stepOrder.SELECTION_MODE);"
+            />
+            <SelectionArea
+              v-else-if="pluginState.selectedSelectionType === SelectionTypes.AREA_SELECTION"
+              @sessionstart="handleSession($event, stepOrder.SELECTION_MODE)"
+            />
+            <!-- XXX checkbox is duplicate, but not sure how to avoid that. -->
+            <VcsCheckbox
+              v-else-if="pluginState.selectedSelectionType === SelectionTypes.CURRENT_IMAGE"
+              v-model="pluginState.termsConsented"
+              :rules="[v => !!v || $t('export.validation.termsOfUse')]"
+            >
+              {{ $t('export.accept') }}
+              <a target="_blank" :href="pluginSetup.termsOfUse" @click.stop>{{ $t('export.termsOfUse') }}</a>
+            </VcsCheckbox>
+          </v-form>
+        </template>
+      </VcsWizardStep>
+      <VcsWizardStep
+        v-show="pluginState.highestStep >= stepOrder.SETTINGS &&
+          pluginState.selectedDataSource !== DataSourceOptions.GEOJSON"
+        :step="stepOrder.SETTINGS"
+        editable
+        :complete="pluginState.highestStep >= stepOrder.SETTINGS"
+        :rules="[v => !!stepValid.settings]"
+        heading="export.stepTitles.settings"
+        v-model="pluginState.step"
+        :header-actions="pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL ?
+          [resetActions.settingsCityModel] : []"
+      >
+        <template #content>
+          <v-form v-model="stepValid.settings" ref="formSettings" lazy-validation>
+            <SettingsCityModel
+              v-if="pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL"
+              :setup="pluginSetup.settingsCityModel"
+              v-model="pluginState.settingsCityModel"
+              :button-disabled="!stepValid.settings"
+              :button-show="pluginState.highestStep <= stepOrder.SETTINGS"
+              @continue="increaseStep(stepOrder.SETTINGS);"
+            />
+            <SettingsOblique
+              v-else-if="pluginState.selectedDataSource === DataSourceOptions.OBLIQUE"
+              v-model="pluginState.settingsOblique"
+              @change="increaseStep(stepOrder.SETTINGS);"
+            />
+          </v-form>
+        </template>
+      </VcsWizardStep>
+      <VcsWizardStep
+        v-show="pluginState.highestStep >= stepOrder.EXPORT_DESTINATION"
+        :step="stepOrder.EXPORT_DESTINATION"
+        editable
+        :complete="pluginState.highestStep >= stepOrder.EXPORT_DESTINATION"
+        :rules="[v => !!stepValid.exportDestination]"
+        v-model="pluginState.step"
+        :header-actions="pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL ?
+          [resetActions.exportDestination] : []"
+      >
+        <template #header>
+          <span v-if="pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL">
+            {{ $t('export.stepTitles.exportDestination') }}</span>
+          <span v-else-if="pluginState.selectedDataSource === DataSourceOptions.OBLIQUE">
+            {{ $t('export.stepTitles.selectImages') }}</span>
+          <span v-else-if="pluginState.selectedDataSource === DataSourceOptions.GEOJSON">
+            {{ $t('export.stepTitles.selectFiles') }}</span>
+        </template>
+        <template #content>
+          <v-form v-model="stepValid.exportDestination" ref="formExportDestination" lazy-validation>
+            <div v-if="pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL">
+              <VcsTextField
                 :dense="true"
-                multiple
+                :label="undefined"
+                :placeholder="$t('export.enterMail')"
+                v-model="pluginState.email"
+                :rules="[v => !!v || $t('export.validation.provideEmail')]"
               />
-            </v-col>
-          </v-row>
-        </v-container>
-      </v-sheet>
-      <v-sheet v-else>
-        settings for schraegluftbild
-      </v-sheet>
-      <div class="d-flex flex-row-reverse">
-        <VcsButton
-          @click="increaseStepper(stepOrder.settings);"
-        >
-          Continue
-        </VcsButton>
-      </div>
-    </v-stepper-content>
-    <v-stepper-step
-      v-show="highestStep >= stepOrder.exportDestination"
-      class="bck-clr-gray py-3"
-      :step="stepOrder.exportDestination"
-      editable
-      :complete="highestStep >= stepOrder.exportDestination"
+              <VcsTextArea
+                :placeholder="$t('export.descriptionPlaceholder')"
+                class="pb-5"
+                rows="2"
+                v-model="pluginState.description"
+                v-if="pluginSetup.allowDescription"
+              />
+            </div>
+            <ResultList
+              v-else-if="pluginState.selectedDataSource === DataSourceOptions.OBLIQUE ||
+                pluginState.selectedDataSource === DataSourceOptions.GEOJSON"
+              :selection-layer-name="areaSelectionLayerName"
+              :selected-data-source="pluginState.selectedDataSource"
+              v-model="pluginState.selectedResultItems"
+              :active="pluginState.step === stepOrder.EXPORT_DESTINATION"
+              :max-selection-area="pluginSetup.maxSelectionArea"
+            />
+            <VcsCheckbox
+              v-if="pluginSetup.termsOfUse"
+              v-model="pluginState.termsConsented"
+              :rules="[v => !!v || $t('export.validation.termsOfUse')]"
+            >
+              <template #label>
+                {{ $t('export.accept') }}
+                <a target="_blank" :href="pluginSetup.termsOfUse" @click.stop>{{ $t('export.termsOfUse') }}</a>
+              </template>
+            </VcsCheckbox>
+          </v-form>
+        </template>
+      </VcsWizardStep>
+      <VcsWizardStep
+        :step="stepOrder.SEND_REQUEST"
+        :complete="pluginState.step > stepOrder.SEND_REQUEST"
+        v-model="pluginState.step"
+      >
+        <template #header>
+          <div class="d-flex">
+            <VcsButton
+              :disabled="!requestEnabled || running"
+              @click="sendRequest()"
+              :loading="running"
+            >
+              {{ $t('export.sendRequest') }}
+            </VcsButton>
+          </div>
+        </template>
+      </VcsWizardStep>
+    </VcsWizard>
+    <v-overlay
+      v-if="obliqueDownload.running"
+      absolute
+      :opacity="0.8"
     >
-      Define export destination
-    </v-stepper-step>
-    <v-stepper-content
-      :step="stepOrder.exportDestination"
-      v-show="highestStep >= stepOrder.exportDestination"
-    >
-      <VcsSelect
-        :items="exportOptions"
-        v-model="exportSelected"
-      />
-      <v-divider />
-      <VcsTextField
-        v-if="exportSelected === 'Send by E-Mail'"
-        :dense="true"
-        :label="undefined"
-        placeholder="Enter your email address"
-        v-model="email"
-      />
-    </v-stepper-content>
-    <v-stepper-step
-      :step="stepOrder.sendRequest"
-      :complete="step > stepOrder.sendRequest"
-      class="py-3"
-    >
-      <div class="d-flex flex-row-reverse">
-        <VcsButton
-          :disabled="!requestEnabled"
-        >
-          Send Request
-        </VcsButton>
-      </div>
-    </v-stepper-step>
-  </v-stepper>
+      <v-progress-linear
+        :value="obliqueDownload.progress"
+        height="20"
+        style="width: 200px;"
+      >
+        <strong>{{ obliqueDownload.progress }} %</strong>
+      </v-progress-linear>
+      <span>{{ obliqueDownload.queue[0] }} / {{ obliqueDownload.queue[1] }}</span>
+    </v-overlay>
+  </v-sheet>
 </template>
 
 <style>
@@ -189,107 +225,399 @@
 </style>
 <script>
   // @ts-check
-  import { inject, ref, reactive, computed } from 'vue';
-  import { VcsButton, VcsSelect, VcsLabel, VcsTextField, getPluginAssetUrl } from '@vcmap/ui';
+  import {
+    computed,
+    inject,
+    onUnmounted,
+    reactive,
+    ref,
+    watch,
+  } from 'vue';
+  import {
+    VSheet,
+    VForm,
+    VOverlay,
+    VProgressLinear,
+  } from 'vuetify/lib';
+  import {
+    VcsButton,
+    VcsSelect,
+    VcsTextField,
+    VcsCheckbox,
+    VcsTextArea,
+    VcsWizard,
+    VcsWizardStep,
+    NotificationType,
+  } from '@vcmap/ui';
+  import SelectionArea, { areaSelectionLayerName } from './selectionArea.vue';
+  import SelectionObjects from './selectionObjects.vue';
+  import SettingsCityModel from './settingsCityModel.vue';
+  import SettingsOblique from './settingsOblique.vue';
+  import { SelectionTypes, DataSourceOptions } from './configManager.js';
+  import { prepareQueryAndSend } from './exportHelper.js';
+  import ResultList from './resultList.vue';
+  import ObliqueDataSource from './dataSources/obliqueDataSource.js';
+  import { downloadCurrentImage } from './obliqueHelper.js';
   import { name } from '../package.json';
 
   export const windowId = 'export_window_id';
 
+  /**
+   * @description Main window of the export plugin. Base component is the VcsWizard wich guides through the different steps.
+   */
   export default {
     name: 'ExportWindow',
     components: {
+      VSheet,
+      VForm,
+      VOverlay,
+      VProgressLinear,
       VcsButton,
       VcsSelect,
-      VcsLabel,
       VcsTextField,
+      VcsTextArea,
+      VcsCheckbox,
+      VcsWizard,
+      VcsWizardStep,
+      SelectionArea,
+      SelectionObjects,
+      SettingsCityModel,
+      SettingsOblique,
+      ResultList,
     },
     setup() {
       const app = inject('vcsApp');
 
-      const step = ref(1);
-      const highestStep = ref(1);
+      const plugin = app.plugins.getByKey(name);
 
-      const selectionOptions = ref([]);
-      const selectionSelected = ref();
-      const dataSourceSelected = ref();
-      const exportOptions = ['Send by E-Mail'];
-      const exportSelected = ref('Send by E-Mail');
-      const email = ref();
+      /** @type import("./configManager").ExportState */
+      const pluginState = plugin.state;
+      /** @type import("./configManager").ExportSetup */
+      const pluginSetup = plugin.config;
 
+
+      const running = ref(false);
+      const obliqueDownload = reactive({
+        running: false,
+        progress: 0,
+        // shows how many images should be downloaded (second number) and which is currently downloading (first number).
+        queue: [1, 1],
+      });
+
+      /**
+       * step order of VcsWizard
+       * @enum {number}
+       */
       const stepOrder = {
-        dataSource: 1,
-        selectionMode: 2,
-        selection: 3,
-        settings: 4,
-        exportDestination: 5,
-        sendRequest: 6,
+        DATASOURCE: 1,
+        SELECTION_MODE: 2,
+        SETTINGS: 3,
+        EXPORT_DESTINATION: 4,
+        SEND_REQUEST: 5,
       };
 
-      const pluginSetup = {
-        cityModel: {
-          format: {
-            items: ['2D Shape', '3D Shape - Multipatch', '3D Shape - PolygonZ', '3DPDF', '3DS', 'COLLADA', 'CityGML', 'DWG', 'DXF', 'ESRI FGDB', 'FBX', 'FMEAR', 'GEOPACKAGE', 'GLTF', 'KMZ', 'OBJ', 'STEP', 'STL', 'SketchUp', 'VRML'],
-            label: 'Export Format',
-          },
-          lodLevel: {
-            items: ['LoD1', 'LoD2', 'LoD3'],
-            label: 'LoD Level',
-          },
-          thematicClasses: {
-            items: ['Building', 'Bridge', 'ReliefFeature', 'Railway'],
-            label: 'Thematic classes',
-          },
-        },
-      };
-
-      const pluginState = reactive({
-        cityModel: {
-          format: ref(['2D Shape']),
-          lodLevel: ref(['LoD1']),
-          thematicClasses: ref(['ReliefFeature']),
-        },
+      const stepValid = reactive({
+        selectionMode: false,
+        settings: false,
+        exportDestination: false,
       });
 
-      function increaseStepper(currentStep) {
-        if (typeof step.value !== 'number') {
-          step.value = Number(step.value);
+      const formSelectionMode = ref();
+      const formSettings = ref();
+      const formExportDestination = ref();
+
+      watch(() => pluginState.settingsOblique.directionFilter, () => {
+        if (plugin.dataSource && plugin.dataSource instanceof ObliqueDataSource) {
+          plugin.dataSource.viewDirectionFilter = pluginState.settingsOblique.directionFilter;
         }
-        step.value = currentStep + 1;
-        if (currentStep >= highestStep.value) {
-          highestStep.value = step.value;
+      });
+
+      /**
+       * Incereases the current step of VcsWizard. Makes sure to keep highest reached step updated.
+       * @param {number} currentStep The current step of the VcsWizard
+       */
+      function increaseStep(currentStep) {
+        pluginState.step = currentStep + 1;
+        if (currentStep >= pluginState.highestStep) {
+          pluginState.highestStep = pluginState.step;
         }
       }
 
-      function setSelectionOptions() {
-        if (dataSourceSelected.value === 'Schrägluftbilder') {
-          selectionOptions.value = ['Area selection'];
-        } else if (dataSourceSelected.value === '3D Models') {
-          selectionOptions.value = ['Selecting object', 'Area selection'];
-        } else {
-          throw new Error(`${dataSourceSelected.value} as datasource not allowed`);
-        }
-      }
+      const activeMapName = ref(app.maps.activeMap.className);
+      const listeners = [
+        app.maps.mapActivated.addEventListener((map) => {
+          activeMapName.value = map.className;
+          // map specific changes
+          if (
+            (pluginState.selectedSelectionType === SelectionTypes.OBJECT_SELECTION && map.className !== 'CesiumMap') ||
+            (pluginState.selectedSelectionType === SelectionTypes.CURRENT_IMAGE && map.className !== 'ObliqueMap')
+          ) {
+            pluginState.selectedSelectionType = undefined;
+          }
+        }),
+      ];
 
+      /**
+       * Creates dataSource items for the rendering in the vue component.
+       * @param {Array<import("./dataSources/abstractDataSource").AbstractDataSourceOptions>} dataSourceOptionsList List of dataSources to be available.
+       * @returns {Array<{options: import("./dataSources/abstractDataSource").AbstractDataSourceOptions, text: string }>} Array of dataSource items
+       */
+      const dataSourceItems = computed(() => {
+        return pluginSetup.dataSourceOptionsList.map((dataSourceOption) => {
+          let text;
+          if (dataSourceOption.type === DataSourceOptions.CITY_MODEL) {
+            text = 'export.dataSources.cityModel';
+          } else if (dataSourceOption.type === DataSourceOptions.OBLIQUE) {
+            text = 'export.dataSources.oblique';
+          } else if (dataSourceOption.type === DataSourceOptions.GEOJSON) {
+            text = dataSourceOption.title;
+          } else {
+            throw new Error(`The following datasource type is not supported: "${dataSourceOption.type}"`);
+          }
+          return {
+            options: dataSourceOption,
+            text,
+          };
+        });
+      });
+
+      /**
+       * Preprocessed selection types for the use in VcsSelect with value and i18n string/text.
+       */
+      const selectionTypeItems = computed(() => {
+        const items = [{
+          value: SelectionTypes.AREA_SELECTION,
+          text: 'export.selectionTypes.areaSelection',
+        }];
+        if (pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL) {
+          items.push({
+            value: SelectionTypes.OBJECT_SELECTION,
+            text: 'export.selectionTypes.objectSelection',
+            disabled: activeMapName.value !== 'CesiumMap',
+          });
+        }
+        if (pluginState.selectedDataSource === DataSourceOptions.OBLIQUE) {
+          items.push({
+            value: SelectionTypes.CURRENT_IMAGE,
+            text: 'export.selectionTypes.currentImage',
+            disabled: activeMapName.value !== 'ObliqueMap',
+          });
+        }
+        return items;
+      });
+
+      /**
+       * If the request button is enabled or disabled.
+       */
       const requestEnabled = computed(() => {
-        return !!email.value;
+        const termsAccepted = pluginSetup.termsOfUse ? pluginState.termsConsented : true;
+        if (pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL) {
+          return termsAccepted && !!pluginState.email;
+        } else if (pluginState.selectedDataSource === DataSourceOptions.OBLIQUE) {
+          if (pluginState.selectedSelectionType === SelectionTypes.AREA_SELECTION) {
+            return termsAccepted && pluginState.selectedResultItems.length > 0;
+          } else if (
+            pluginState.selectedSelectionType === SelectionTypes.CURRENT_IMAGE
+            // &&
+            // activeMapName === 'ObliqueMap'
+          ) {
+            return termsAccepted;
+          }
+        } else if (pluginState.selectedDataSource === DataSourceOptions.GEOJSON) {
+          return termsAccepted && pluginState.selectedResultItems.length > 0;
+        }
+        return false;
       });
+
+      /** Makes sure that area selections and object selections are removed when changing the selection type. */
+      watch(() => pluginState.selectedSelectionType, (selectedSelectionType, prevSelectionType) => {
+        if (prevSelectionType === SelectionTypes.AREA_SELECTION) {
+          app.layers.getByKey(String(areaSelectionLayerName))?.removeAllFeatures();
+        } else if (prevSelectionType === SelectionTypes.OBJECT_SELECTION) {
+          pluginState.selectedObjects = [];
+        }
+      });
+
+      /**
+       * Increases the step of VcsWizard if the feature create session was successful.
+       * @param {Promise<import("ol").Feature<import("ol/geom/Geometry").default> | null>} session The result of the area selection create feature session.
+       * @param {number} currentStep The current step of the VcsWizard.
+       */
+      async function handleSession(session, currentStep) {
+        const feature = await session;
+        if (feature) {
+          // if datasource is geojson no settings are availabe therefore this step has to be skipped.
+          const increaseBy = pluginState.selectedDataSource === DataSourceOptions.GEOJSON ?
+            currentStep + 1 : currentStep;
+          increaseStep(increaseBy);
+        }
+      }
+
+      /** Resets the state and all form validations. */
+      function resetExportWizard() {
+        plugin.resetState();
+        formSelectionMode.value.resetValidation();
+        formSettings.value.resetValidation();
+        formExportDestination.value.resetValidation();
+      }
+
+      /**
+       * Resets plugin in case datasource is changed.
+       * @param {import("./configManager").DataSourceOptions} selectedDataSource The selected data source option.
+       */
+      function updateDataSource(selectedDataSource) {
+        // if there was a previsouly selected datasource -> reset export wizard
+        if (pluginState.selectedDataSource) {
+          resetExportWizard();
+        }
+        plugin.dataSource?.clear();
+        pluginState.selectedDataSource = selectedDataSource;
+        plugin.updateDataSource(app, obliqueDownload);
+        increaseStep(stepOrder.DATASOURCE);
+      }
+
+      /**
+       * Sends the request with all the selected parameters.
+       */
+      async function sendRequest() {
+        if (
+          formSelectionMode.value.validate() &&
+          formSettings.value.validate() &&
+          formExportDestination.value.validate()
+        ) {
+          let promise;
+          running.value = true;
+          if (pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL) {
+            promise = prepareQueryAndSend(pluginSetup, pluginState, String(areaSelectionLayerName), app);
+          } else if (
+            pluginState.selectedDataSource === DataSourceOptions.OBLIQUE ||
+            pluginState.selectedDataSource === DataSourceOptions.GEOJSON
+          ) {
+            obliqueDownload.running = true;
+            // Ensures that ui does not freeze.
+            await new Promise((resolve) => {
+              setTimeout(resolve, 0);
+            });
+
+            if (pluginState.selectedSelectionType === SelectionTypes.CURRENT_IMAGE) {
+              if (plugin.dataSource instanceof ObliqueDataSource) {
+                promise = downloadCurrentImage(app, plugin.dataSource, obliqueDownload).catch((error) => {
+                  app.notifier.add({
+                    type: NotificationType.ERROR,
+                    message: error,
+                    timeout: 5000,
+                  });
+                });
+              } else {
+                throw new Error('AbstractDataSource is not instance of ObliqueDataSource');
+              }
+            } else if (pluginState.selectedSelectionType === SelectionTypes.AREA_SELECTION) {
+              const resultsToDownload = plugin.dataSource.results.flatMap(result => (
+                pluginState.selectedResultItems.some(item => item.title === result.title) ? [result] : []
+              ));
+              obliqueDownload.queue[1] = resultsToDownload.length;
+              for (let index = 0; index < resultsToDownload.length; index++) {
+                obliqueDownload.queue[0] = index + 1;
+                const result = resultsToDownload[index];
+                // eslint-disable-next-line no-await-in-loop
+                await result.download().catch((error) => {
+                  app.notifier.add({
+                    type: NotificationType.ERROR,
+                    message: error,
+                    timeout: 5000,
+                  });
+                });
+              }
+              promise = Promise.resolve();
+            } else {
+              throw new Error(`Selected SelectionType is not supported for ${pluginState.selectedDataSource} export.`);
+            }
+          } else {
+            promise = Promise.reject(new Error('No valid dataSource set.'));
+          }
+
+          promise.then(() => {
+            if (pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL) {
+              // assigns the default state to the actual state to achieve a reset.
+              app.notifier.add({
+                type: NotificationType.SUCCESS,
+                message: 'export.notification.success',
+                timeout: 5000,
+              });
+            }
+            resetExportWizard();
+          }).catch(() => {
+            app.notifier.add({
+              type: NotificationType.ERROR,
+              message: 'export.notification.error.standard',
+              timeout: 5000,
+            });
+          }).finally(() => {
+            running.value = false;
+            obliqueDownload.running = false;
+            obliqueDownload.queue = [1, 1];
+          });
+        } else {
+          app.notifier.add({
+            type: NotificationType.ERROR,
+            message: 'export.notification.error.validation',
+            timeout: 5000,
+          });
+        }
+      }
+
+      onUnmounted(() => {
+        app.toolboxManager.get(windowId).action.active = false;
+        listeners.forEach(listener => listener());
+      });
+
+      const resetActions = {
+        settingsCityModel: {
+          name: 'resetSettingsCityModel',
+          title: 'Reset Settings',
+          icon: '$vcsReturn',
+          callback() {
+            const copy = JSON.parse(JSON.stringify(plugin.defaultState.settingsCityModel));
+            Object.assign(pluginState.settingsCityModel, copy);
+          },
+        },
+        objectSelection: {
+          name: 'resetObjectSelection',
+          title: 'Reset object selection',
+          icon: '$vcsReturn',
+          callback() { pluginState.selectedObjects = []; },
+        },
+        exportDestination: {
+          name: 'resetExportDestination',
+          title: 'Reset export destination',
+          icon: '$vcsReturn',
+          callback() {
+            formExportDestination.value.reset();
+          },
+        },
+      };
 
       return {
         stepOrder,
-        step,
-        highestStep,
-        increaseStepper,
-        selectionOptions,
-        dataSourceOptions: ['3D Models', 'Schrägluftbilder'],
-        selectionSelected,
-        dataSourceSelected,
-        setSelectionOptions,
+        increaseStep,
         requestEnabled,
-        pluginState,
+        handleSession,
+        areaSelectionLayerName,
         pluginSetup,
-        exportOptions,
-        exportSelected,
-        email,
+        pluginState,
+        dataSourceItems,
+        selectionTypeItems,
+        SelectionTypes,
+        DataSourceOptions,
+        sendRequest,
+        stepValid,
+        formSelectionMode,
+        formSettings,
+        formExportDestination,
+        running,
+        obliqueDownload,
+        updateDataSource,
+        resetActions,
       };
     },
   };

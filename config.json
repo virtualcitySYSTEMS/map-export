@@ -1,3 +1,5 @@
 {
-  "name": "export"
+  "name": "@vcmap/export",
+  "fmeSecurityToken": "securityToken",
+  "fmeServerUrl": "serverUrl"
 }

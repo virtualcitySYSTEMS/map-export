@@ -74,6 +74,7 @@ bundle:
   script:
     - npm run build
 
+
 deployStaging:
   <<: *staging_build_template
   stage: deploy

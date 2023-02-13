@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Warehouse export plugin for VC Map",
   "main": "src/index.js",
+  "type": "module",
   "scripts": {
     "prepublishOnly": "vcmplugin build",
     "build": "vcmplugin build",
@@ -34,18 +35,27 @@
   ],
   "eslintConfig": {
     "root": true,
-    "extends": "@vcsuite/eslint-config/vue"
+    "extends": "@vcsuite/eslint-config/vue",
+    "rules": {
+      "jsdoc/check-tag-names": "off"
+    }
+  },
+  "dependencies": {
+    "@turf/boolean-disjoint": "~6.5.0"
   },
   "peerDependencies": {
-    "@vcmap/cesium": "~1.97.1",
-    "@vcmap/core": "~5.0.0-rc.22",
-    "@vcmap/ui": "^5.0.0-rc.14",
+    "@vcmap-cesium/engine": "~1.1.2",
+    "@vcmap/core": "~5.0.0-rc.26",
+    "@vcmap/ui": "^5.0.0-rc.21",
+    "@vcsuite/check": "^1.1.2",
+    "@vcsuite/logger": "^1.0.1",
+    "@vcsuite/parsers": "^1.0.1",
     "ol": "~7.1.0",
     "vue": "~2.7.3",
     "vuetify": "~2.6.7"
   },
   "devDependencies": {
-    "@vcmap/plugin-cli": "^2.0.10",
+    "@vcmap/plugin-cli": "^2.1.3",
     "@vcsuite/eslint-config": "^2.1.1"
   }
 }
