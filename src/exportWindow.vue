@@ -185,7 +185,7 @@
         v-model="pluginState.step"
       >
         <template #header>
-          <div class="d-flex">
+          <div class="d-flex flex-grow-1 flex-row-reverse">
             <VcsButton
               :disabled="!requestEnabled || running"
               @click="sendRequest()"
