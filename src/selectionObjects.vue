@@ -1,7 +1,7 @@
 <template>
-  <v-container>
-    <v-row align="center">
-      <v-col cols="12" class="px-0">
+  <v-container class="px-1 py-0">
+    <v-row no-gutters>
+      <v-col>
         {{ $t('export.selectionTypes.objectSelection1') }}
         <v-icon>$vcsPointSelect</v-icon>
         {{ $t('export.selectionTypes.objectSelection2') }}.
@@ -13,25 +13,25 @@
       color="error"
     >
       <template #activator="{ on, attrs }">
-        <v-row align="center" v-bind="attrs" v-on="on">
+        <v-row no-gutters v-bind="attrs" v-on="on">
           <v-input
             :value="count"
             :rules="[v => !!v]"
             hide-details
             @update:error="(errorState) => { isError = errorState }"
           >
-            <v-col cols="8" class="px-0">
+            <v-col cols="8" class="px-0 py-2">
               {{ $t('export.selectionTypes.objectCount') }}:
             </v-col>
-            <v-col cols="4" class="px-0 d-flex justify-end">
+            <v-col cols="4" class="px-0 py-2 d-flex justify-end">
               <span>{{ count }}</span>
             </v-col>
           </v-input>
         </v-row>
       </template>
     </VcsTooltip>
-    <v-row v-if="buttonShow">
-      <v-col cols="12" class="px-0 d-flex flex-row-reverse">
+    <v-row no-gutters v-if="buttonShow">
+      <v-col class="d-flex flex-row-reverse">
         <VcsButton
           @click="$emit('continue')"
           :disabled="buttonDisabled"

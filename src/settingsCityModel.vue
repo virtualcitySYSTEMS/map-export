@@ -96,7 +96,7 @@
       </v-col>
     </v-row>
     <v-row v-if="buttonShow" no-gutters>
-      <v-col cols="12" class="px-0 d-flex flex-row-reverse">
+      <v-col cols="12" class="px-1 d-flex flex-row-reverse">
         <VcsButton
           @click="$emit('continue')"
           :disabled="buttonDisabled"

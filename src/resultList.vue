@@ -1,5 +1,5 @@
 <template>
-  <v-sheet>
+  <v-sheet class="px-1">
     <!-- TODO: turn this into paginated list -->
     <div class="list-height">
       <VcsList

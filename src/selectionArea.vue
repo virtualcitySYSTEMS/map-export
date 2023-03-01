@@ -5,7 +5,7 @@
     color="error"
   >
     <template #activator="{ on, attrs }">
-      <v-sheet v-bind="attrs" v-on="on">
+      <v-sheet v-bind="attrs" v-on="on" class="px-1">
         <v-input
           :value="featureDrawn"
           :rules="[v => !!v]"
@@ -31,7 +31,7 @@
 
 <script>
   import { VSheet, VInput } from 'vuetify/lib';
-  import { VcsButton, VcsTooltip } from '@vcmap/ui';
+  import { VcsButton, VcsTooltip, getDefaultPrimaryColor } from '@vcmap/ui';
   import {
     VectorLayer,
     startCreateFeatureSession,
@@ -51,8 +51,7 @@
 
   export const areaSelectionLayerName = Symbol('areaSelection');
 
-  // TODO: Replace this by import from @vcmap/ui as soon as available
-  const defaultPrimaryColor = '#409D76';
+  const defaultPrimaryColor = getDefaultPrimaryColor();
 
   /**
    * Allowed geometry types for area selection. Key is the a value of {@link GeometryType}, value the corresponding VCS icon.

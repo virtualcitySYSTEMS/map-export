@@ -28,10 +28,10 @@
         </template>
         <template #content>
           <VcsSelect
-            class="my-2"
+            class="px-1 pb-3"
             :items="dataSourceItems"
             :item-value="item => item.options.type"
-            :label="$t('export.select')"
+            :placeholder="$t('export.select')"
             :value="pluginState.selectedDataSource"
             @input="(selectedDataSource) => updateDataSource(selectedDataSource)"
           />
@@ -52,7 +52,7 @@
           <ul>
             <li
               v-for="(selectionType) in selectionTypeItems"
-              :key="selectionType"
+              :key="selectionType.value"
             >
               {{ $t('export.selectionTypes.'+selectionType.value) }}:
               {{ $t('export.help.selectionTypes.'+selectionType.value) }}
@@ -60,35 +60,39 @@
           </ul>
         </template>
         <template #content>
-          <v-form v-model="stepValid.selectionMode" ref="formSelectionMode" lazy-validation>
-            <VcsSelect
-              class="my-2"
-              :items="selectionTypeItems"
-              :label="$t('export.select')"
-              v-model="pluginState.selectedSelectionType"
-              :rules="[v => !!v || $t('export.validation.selectField')]"
-            />
-            <SelectionObjects
-              v-if="pluginState.selectedSelectionType === SelectionTypes.OBJECT_SELECTION"
-              v-model="pluginState.selectedObjects"
-              :button-disabled="pluginState.selectedObjects.length === 0"
-              :button-show="pluginState.highestStep <= stepOrder.SELECTION_MODE"
-              @continue="increaseStep(stepOrder.SELECTION_MODE);"
-            />
-            <SelectionArea
-              v-else-if="pluginState.selectedSelectionType === SelectionTypes.AREA_SELECTION"
-              @sessionstart="handleSession($event, stepOrder.SELECTION_MODE)"
-            />
-            <!-- XXX checkbox is duplicate, but not sure how to avoid that. -->
-            <VcsCheckbox
-              v-else-if="pluginState.selectedSelectionType === SelectionTypes.CURRENT_IMAGE"
-              v-model="pluginState.termsConsented"
-              :rules="[v => !!v || $t('export.validation.termsOfUse')]"
-            >
-              {{ $t('export.accept') }}
-              <a target="_blank" :href="pluginSetup.termsOfUse" @click.stop>{{ $t('export.termsOfUse') }}</a>
-            </VcsCheckbox>
-          </v-form>
+          <div class="px-1">
+            <v-form v-model="stepValid.selectionMode" ref="formSelectionMode" lazy-validation>
+              <VcsSelect
+                :items="selectionTypeItems"
+                :placeholder="$t('export.select')"
+                v-model="pluginState.selectedSelectionType"
+                :rules="[v => !!v || $t('export.validation.selectField')]"
+                class="pb-2"
+              />
+              <SelectionObjects
+                v-if="pluginState.selectedSelectionType === SelectionTypes.OBJECT_SELECTION"
+                v-model="pluginState.selectedObjects"
+                :button-disabled="pluginState.selectedObjects.length === 0"
+                :button-show="pluginState.highestStep <= stepOrder.SELECTION_MODE"
+                @continue="increaseStep(stepOrder.SELECTION_MODE);"
+              />
+              <SelectionArea
+                v-else-if="pluginState.selectedSelectionType === SelectionTypes.AREA_SELECTION"
+                @sessionstart="handleSession($event, stepOrder.SELECTION_MODE)"
+              />
+              <!-- XXX checkbox is duplicate, but not sure how to avoid that. -->
+              <VcsCheckbox
+                v-else-if="pluginState.selectedSelectionType === SelectionTypes.CURRENT_IMAGE"
+                v-model="pluginState.termsConsented"
+                :rules="[v => !!v || $t('export.validation.termsOfUse')]"
+              >
+                <template #label>
+                  {{ $t('export.accept') }}
+                  <a target="_blank" :href="pluginSetup.termsOfUse" @click.stop>{{ $t('export.termsOfUse') }}</a>
+                </template>
+              </VcsCheckbox>
+            </v-form>
+          </div>
         </template>
       </VcsWizardStep>
       <VcsWizardStep
@@ -104,21 +108,23 @@
           [resetActions.settingsCityModel] : []"
       >
         <template #content>
-          <v-form v-model="stepValid.settings" ref="formSettings" lazy-validation>
-            <SettingsCityModel
-              v-if="pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL"
-              :setup="pluginSetup.settingsCityModel"
-              v-model="pluginState.settingsCityModel"
-              :button-disabled="!stepValid.settings"
-              :button-show="pluginState.highestStep <= stepOrder.SETTINGS"
-              @continue="increaseStep(stepOrder.SETTINGS);"
-            />
-            <SettingsOblique
-              v-else-if="pluginState.selectedDataSource === DataSourceOptions.OBLIQUE"
-              v-model="pluginState.settingsOblique"
-              @change="increaseStep(stepOrder.SETTINGS);"
-            />
-          </v-form>
+          <div class="px-1">
+            <v-form v-model="stepValid.settings" ref="formSettings" lazy-validation>
+              <SettingsCityModel
+                v-if="pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL"
+                :setup="pluginSetup.settingsCityModel"
+                v-model="pluginState.settingsCityModel"
+                :button-disabled="!stepValid.settings"
+                :button-show="pluginState.highestStep <= stepOrder.SETTINGS"
+                @continue="increaseStep(stepOrder.SETTINGS);"
+              />
+              <SettingsOblique
+                v-else-if="pluginState.selectedDataSource === DataSourceOptions.OBLIQUE"
+                v-model="pluginState.settingsOblique"
+                @change="increaseStep(stepOrder.SETTINGS);"
+              />
+            </v-form>
+          </div>
         </template>
       </VcsWizardStep>
       <VcsWizardStep
@@ -132,51 +138,53 @@
           [resetActions.exportDestination] : []"
       >
         <template #header>
-          <span v-if="pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL">
+          <span class="py-3" v-if="pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL">
             {{ $t('export.stepTitles.exportDestination') }}</span>
-          <span v-else-if="pluginState.selectedDataSource === DataSourceOptions.OBLIQUE">
+          <span class="py-3" v-else-if="pluginState.selectedDataSource === DataSourceOptions.OBLIQUE">
             {{ $t('export.stepTitles.selectImages') }}</span>
-          <span v-else-if="pluginState.selectedDataSource === DataSourceOptions.GEOJSON">
+          <span class="py-3" v-else-if="pluginState.selectedDataSource === DataSourceOptions.GEOJSON">
             {{ $t('export.stepTitles.selectFiles') }}</span>
         </template>
         <template #content>
-          <v-form v-model="stepValid.exportDestination" ref="formExportDestination" lazy-validation>
-            <div v-if="pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL">
-              <VcsTextField
-                :dense="true"
-                :label="undefined"
-                :placeholder="$t('export.enterMail')"
-                v-model="pluginState.email"
-                :rules="[v => !!v || $t('export.validation.provideEmail')]"
+          <div class="px-1">
+            <v-form v-model="stepValid.exportDestination" ref="formExportDestination" lazy-validation>
+              <div v-if="pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL">
+                <VcsTextField
+                  :dense="true"
+                  :label="undefined"
+                  :placeholder="$t('export.enterMail')"
+                  v-model="pluginState.email"
+                  :rules="[v => !!v || $t('export.validation.provideEmail')]"
+                />
+                <VcsTextArea
+                  :placeholder="$t('export.descriptionPlaceholder')"
+                  class="pb-2"
+                  rows="2"
+                  v-model="pluginState.description"
+                  v-if="pluginSetup.allowDescription"
+                />
+              </div>
+              <ResultList
+                v-else-if="pluginState.selectedDataSource === DataSourceOptions.OBLIQUE ||
+                  pluginState.selectedDataSource === DataSourceOptions.GEOJSON"
+                :selection-layer-name="areaSelectionLayerName"
+                :selected-data-source="pluginState.selectedDataSource"
+                v-model="pluginState.selectedResultItems"
+                :active="pluginState.step === stepOrder.EXPORT_DESTINATION"
+                :max-selection-area="pluginSetup.maxSelectionArea"
               />
-              <VcsTextArea
-                :placeholder="$t('export.descriptionPlaceholder')"
-                class="pb-5"
-                rows="2"
-                v-model="pluginState.description"
-                v-if="pluginSetup.allowDescription"
-              />
-            </div>
-            <ResultList
-              v-else-if="pluginState.selectedDataSource === DataSourceOptions.OBLIQUE ||
-                pluginState.selectedDataSource === DataSourceOptions.GEOJSON"
-              :selection-layer-name="areaSelectionLayerName"
-              :selected-data-source="pluginState.selectedDataSource"
-              v-model="pluginState.selectedResultItems"
-              :active="pluginState.step === stepOrder.EXPORT_DESTINATION"
-              :max-selection-area="pluginSetup.maxSelectionArea"
-            />
-            <VcsCheckbox
-              v-if="pluginSetup.termsOfUse"
-              v-model="pluginState.termsConsented"
-              :rules="[v => !!v || $t('export.validation.termsOfUse')]"
-            >
-              <template #label>
-                {{ $t('export.accept') }}
-                <a target="_blank" :href="pluginSetup.termsOfUse" @click.stop>{{ $t('export.termsOfUse') }}</a>
-              </template>
-            </VcsCheckbox>
-          </v-form>
+              <VcsCheckbox
+                v-if="pluginSetup.termsOfUse"
+                v-model="pluginState.termsConsented"
+                :rules="[v => !!v || $t('export.validation.termsOfUse')]"
+              >
+                <template #label>
+                  {{ $t('export.accept') }}
+                  <a target="_blank" :href="pluginSetup.termsOfUse" @click.stop>{{ $t('export.termsOfUse') }}</a>
+                </template>
+              </VcsCheckbox>
+            </v-form>
+          </div>
         </template>
       </VcsWizardStep>
       <VcsWizardStep
