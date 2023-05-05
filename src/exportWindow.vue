@@ -497,7 +497,8 @@
             value: SelectionTypes.OBJECT_SELECTION,
             text: 'export.selectionTypes.objectSelection',
             disabled:
-              activeMapName.value !== 'CesiumMap' || isObjectSelectionDisabled,
+              activeMapName.value !== 'CesiumMap' ||
+              isObjectSelectionDisabled(),
           });
         }
         if (pluginState.selectedDataSource === DataSourceOptions.OBLIQUE) {
