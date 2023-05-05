@@ -1,7 +1,7 @@
 import { ObliqueView, ObliqueImage, hasSameOrigin } from '@vcmap/core';
 import { checkMaybe, check } from '@vcsuite/check';
+import { downloadBlob } from '@vcmap/ui';
 import AbstractResult from './abstractResult.js';
-import { downloadURI } from './fileResult.js';
 
 /**
  * @param {string} fileExtension
@@ -29,7 +29,12 @@ function getMimeTypeForExtension(fileExtension) {
  * @export
  */
 // eslint-disable-next-line import/prefer-default-export
-export function downloadObliqueImage(obliqueImage, downloadState, resolution, fileExtension = 'jpg') {
+export function downloadObliqueImage(
+  obliqueImage,
+  downloadState,
+  resolution,
+  fileExtension = 'jpg',
+) {
   check(obliqueImage, ObliqueImage);
   checkMaybe(fileExtension, ['jpg', 'jpeg', 'png', 'tif', 'tiff']);
   checkMaybe(resolution, Number);
@@ -41,16 +46,18 @@ export function downloadObliqueImage(obliqueImage, downloadState, resolution, fi
     hideLevels: 0,
   });
   view.setImageName(obliqueImage.name);
-  const source = /** @type {import("ol/source").TileImage} */ (view.layer.getSource());
+  const source = /** @type {import("ol/source").TileImage} */ (
+    view.layer.getSource()
+  );
   const tileGrid = source.getTileGrid();
   if (!tileGrid) {
     throw new Error('tileGrid not available');
   }
   const tileUrlFunction = source.getTileUrlFunction();
 
-  const zoomLevel = resolution ?
-    tileGrid.getResolutions().indexOf(resolution) :
-    tileGrid.getMaxZoom();
+  const zoomLevel = resolution
+    ? tileGrid.getResolutions().indexOf(resolution)
+    : tileGrid.getMaxZoom();
 
   const { size } = obliqueImage.meta;
   const canvas = document.createElement('canvas');
@@ -74,39 +81,47 @@ export function downloadObliqueImage(obliqueImage, downloadState, resolution, fi
     if (!hasSameOrigin(obliqueImage.meta.url)) {
       img.crossOrigin = 'anonymous';
     }
-    imagePromises.push(new Promise((resolve, reject) => {
-      img.onload = () => {
-        context.drawImage(
-          img,
-          0,
-          0,
-          tileSize[0],
-          tileSize[1],
-          coord[1] * tileSize[0],
-          canvasSize[1] + ((coord[2]) * tileSize[1]),
-          tileSize[0],
-          tileSize[1],
-        );
-        completed += 1;
-        if (downloadState) {
-          downloadState.progress = Math.round((completed * 100) / imagePromises.length);
-        }
-        resolve();
-      };
+    imagePromises.push(
+      new Promise((resolve, reject) => {
+        img.onload = () => {
+          context.drawImage(
+            img,
+            0,
+            0,
+            tileSize[0],
+            tileSize[1],
+            coord[1] * tileSize[0],
+            canvasSize[1] + coord[2] * tileSize[1],
+            tileSize[0],
+            tileSize[1],
+          );
+          completed += 1;
+          if (downloadState) {
+            downloadState.progress = Math.round(
+              (completed * 100) / imagePromises.length,
+            );
+          }
+          resolve();
+        };
 
-      img.onerror = reject;
-      // @ts-ignore XXX ignored, since the typedef includes resolution and projection. something we dont support or need
-      img.src = tileUrlFunction(coord);
-    }));
+        img.onerror = reject;
+        // @ts-ignore XXX ignored, since the typedef includes resolution and projection. something we dont support or need
+        img.src = tileUrlFunction(coord);
+      }),
+    );
   });
 
   return new Promise((resolve, reject) => {
     Promise.all(imagePromises).then(() => {
       canvas.toBlob((blob) => {
         if (!blob) {
-          reject(new Error('Image conversion failed. If using Firefox try using Chrome or Edge.'));
+          reject(
+            new Error(
+              'Image conversion failed. If using Firefox try using Chrome or Edge.',
+            ),
+          );
         } else {
-          downloadURI(URL.createObjectURL(blob), `${obliqueImage.name}.${fileExtension}`);
+          downloadBlob(blob, `${obliqueImage.name}.${fileExtension}`);
           resolve();
         }
         downloadState.progress = 0;
@@ -114,7 +129,6 @@ export function downloadObliqueImage(obliqueImage, downloadState, resolution, fi
     });
   });
 }
-
 
 /**
  * @typedef {Object} ObliqueResultOptionAdditions
@@ -157,9 +171,16 @@ class ObliqueExportResult extends AbstractResult {
   }
 
   download() {
-    const obliqueCollection = this._app.obliqueCollections.getByKey(this.obliqueCollectionName);
+    const obliqueCollection = this._app.obliqueCollections.getByKey(
+      this.obliqueCollectionName,
+    );
     const obliqueImage = obliqueCollection.getImageByName(this.imageName);
-    return downloadObliqueImage(obliqueImage, this.downloadState, this.resolution, this.fileExtension);
+    return downloadObliqueImage(
+      obliqueImage,
+      this.downloadState,
+      this.resolution,
+      this.fileExtension,
+    );
   }
 }
 

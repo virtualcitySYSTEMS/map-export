@@ -4,8 +4,8 @@ import {
   ObliqueMap,
   TerrainLayer,
   TMSLayer,
-  WMSLayer,
   VectorLayer,
+  WMSLayer,
 } from '@vcmap/core';
 import { Polygon } from 'ol/geom';
 import { getArea } from 'ol/sphere';
@@ -21,7 +21,7 @@ export function getStringFileSizeFromkB(fileSize) {
   if (fileSize < 1000) {
     return `${fileSize} kB`;
   }
-  if (fileSize < (1000 * 1000)) {
+  if (fileSize < 1000 * 1000) {
     return `${fileSize / 1000} MB`;
   }
   return `${fileSize / (1000 * 1000)} GB`;
@@ -36,9 +36,10 @@ export function getStringFileSizeFromkB(fileSize) {
  * @throws {Error} - throws if the geometry is not a Polygon or the area is too large
  */
 export async function validatePolygonFeature(feature, app, maxSelectionArea) {
-  const geometry = (app.maps.activeMap instanceof ObliqueMap ?
-    await reprojectObliqueGeometry(feature, app) :
-    feature.getGeometry());
+  const geometry =
+    app.maps.activeMap instanceof ObliqueMap
+      ? await reprojectObliqueGeometry(feature, app)
+      : feature.getGeometry();
   if (!geometry || !(geometry instanceof Polygon) || geometry.getArea() === 0) {
     throw new Error('export.validation.polygonFeature');
   }
@@ -60,7 +61,12 @@ export async function validatePolygonFeature(feature, app, maxSelectionArea) {
  * @param {import("@vcmap/core").VcsApp} app
  * @returns {Promise<Response>} The promise of the fetch post request to the fme server.
  */
-export async function prepareQueryAndSend(pluginSetup, pluginState, selectionLayerName, app) {
+export async function prepareQueryAndSend(
+  pluginSetup,
+  pluginState,
+  selectionLayerName,
+  app,
+) {
   const {
     selectedCrs,
     selectedExportFormats,
@@ -76,7 +82,8 @@ export async function prepareQueryAndSend(pluginSetup, pluginState, selectionLay
     selectedTerrainAppearanceLayer,
   } = pluginState.settingsCityModel;
 
-  const { email, description, selectedSelectionType, selectedObjects } = pluginState;
+  const { email, description, selectedSelectionType, selectedObjects } =
+    pluginState;
 
   const {
     terrainUrl,
@@ -94,18 +101,35 @@ export async function prepareQueryAndSend(pluginSetup, pluginState, selectionLay
    * The query paramters for GET request to VC Warehouse.
    */
   const query = {
-    COORD_SYS: selectedCrs.startsWith('E') ? selectedCrs : `EPSG:${selectedCrs}`,
+    COORD_SYS: selectedCrs.startsWith('E')
+      ? selectedCrs
+      : `EPSG:${selectedCrs}`,
     OPT_SERVICEMODE: 'async',
     EXPORT_FORMAT: selectedExportFormats.join(','),
     THEM_CLASS: selectedThematicClasses, // TODO: Validation (at least 1 class) already in vue component
     LOD_SELECTION: selectedLod,
-    TEXTURE: textureExport &&
-      selectedExportFormats.some(formatType => exportFormats[formatType].texture) ? 'Yes' : 'No',
-    LOCAL: localCoordinates &&
-      selectedExportFormats.some(formatType => exportFormats[formatType].localCoordinates) ? 'Yes' : 'No',
+    TEXTURE:
+      textureExport &&
+      selectedExportFormats.some(
+        (formatType) => exportFormats[formatType].texture,
+      )
+        ? 'Yes'
+        : 'No',
+    LOCAL:
+      localCoordinates &&
+      selectedExportFormats.some(
+        (formatType) => exportFormats[formatType].localCoordinates,
+      )
+        ? 'Yes'
+        : 'No',
     TILE_OUTPUT: tiledExport ? 'Yes' : 'No',
-    GENERIC_ATTRIB: genericAttributes &&
-      selectedExportFormats.some(formatType => exportFormats[formatType].genericAttributes) ? 'Yes' : 'No',
+    GENERIC_ATTRIB:
+      genericAttributes &&
+      selectedExportFormats.some(
+        (formatType) => exportFormats[formatType].genericAttributes,
+      )
+        ? 'Yes'
+        : 'No',
     APP_THEME: selectedAppearanceTheme || 'none',
     HEIGHTMODE: !terrainExport ? selectedHeightMode : 'absolute',
     OPT_REQUESTEREMAIL: email, // TODO: Validate email in vue component
@@ -113,17 +137,26 @@ export async function prepareQueryAndSend(pluginSetup, pluginState, selectionLay
   };
 
   query.TERRAIN = 'No';
-  if (terrainExport && selectedExportFormats.some(formatType => formatType !== '2D Shape')) {
-    const activeTerrainLayer = [...app.layers].find(layer => layer instanceof TerrainLayer && layer.activate);
+  if (
+    terrainExport &&
+    selectedExportFormats.some((formatType) => formatType !== '2D Shape')
+  ) {
+    const activeTerrainLayer = [...app.layers].find(
+      (layer) => layer instanceof TerrainLayer && layer.activate,
+    );
     const baseUrl = new URL(window.location.href);
     if (terrainUrl) {
       query.TERRAIN = 'Yes';
       query.LAYER_JSON = terrainUrl;
     } else if (activeTerrainLayer) {
       query.TERRAIN = 'Yes';
-      const activeTerrainUrl = new URL(activeTerrainLayer.url, baseUrl).toString();
-      const terrainUrlWithLayerJson = /layer.json/.test(activeTerrainUrl) ? activeTerrainUrl : `${activeTerrainUrl}/layer.json`;
-      query.LAYER_JSON = terrainUrlWithLayerJson;
+      const activeTerrainUrl = new URL(
+        activeTerrainLayer.url,
+        baseUrl,
+      ).toString();
+      query.LAYER_JSON = /layer.json/.test(activeTerrainUrl)
+        ? activeTerrainUrl
+        : `${activeTerrainUrl}/layer.json`;
     }
     if (terrainZoomLevel >= 0) {
       query.ZOOM = terrainZoomLevel;
@@ -131,17 +164,23 @@ export async function prepareQueryAndSend(pluginSetup, pluginState, selectionLay
     if (textureExport && selectedTerrainAppearanceLayer) {
       const layer = app.layers.getByKey(selectedTerrainAppearanceLayer);
       if (!layer) {
-        throw new Error(`Selected terrain appearance layer "${selectedTerrainAppearanceLayer}" does not exist.`);
+        throw new Error(
+          `Selected terrain appearance layer "${selectedTerrainAppearanceLayer}" does not exist.`,
+        );
       }
       const textureUrl = new URL(layer.url, baseUrl);
       if (layer instanceof WMSLayer) {
         query.TEX_TYPE = 'WMS';
-        query.WMS_LEVEL = terrainAppearanceOptions[selectedTerrainAppearanceLayer] || layer.maxLevel;
+        query.WMS_LEVEL =
+          terrainAppearanceOptions[selectedTerrainAppearanceLayer] ||
+          layer.maxLevel;
         textureUrl.search = new URLSearchParams(layer.parameters).toString();
         query.WMS_URL = textureUrl.toString();
       } else if (layer instanceof TMSLayer) {
         query.TEX_TYPE = 'TMS';
-        query.TMS_LEVEL = terrainAppearanceOptions[selectedTerrainAppearanceLayer] || layer.maxLevel;
+        query.TMS_LEVEL =
+          terrainAppearanceOptions[selectedTerrainAppearanceLayer] ||
+          layer.maxLevel;
         query.TMS_URL = textureUrl.toString();
       }
     }
@@ -161,16 +200,20 @@ export async function prepareQueryAndSend(pluginSetup, pluginState, selectionLay
     }
 
     const feature = layer.getFeatures()[0];
-    const geometry = (await validatePolygonFeature(feature, app, maxSelectionArea)).clone();
+    const geometry = (
+      await validatePolygonFeature(feature, app, maxSelectionArea)
+    ).clone();
 
     geometry.transform(mercatorProjection.proj, dataProjection.proj);
 
     const coords = geometry.getCoordinates()[0];
 
-    query.POLYGON = coords.map((coord) => {
-      const [x, y] = coord;
-      return `${x},${y}`;
-    }).join(';');
+    query.POLYGON = coords
+      .map((coord) => {
+        const [x, y] = coord;
+        return `${x},${y}`;
+      })
+      .join(';');
     const bbox = new Extent({
       ...mercatorProjection.toJSON(),
       coordinates: feature.getGeometry()?.getExtent(),

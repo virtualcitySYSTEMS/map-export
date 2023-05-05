@@ -11,22 +11,13 @@
         :title="listTitle"
         :action-button-list-overflow-count="1"
       />
-      <v-icon v-else>
-        $vcsProgress
-      </v-icon>
+      <v-icon v-else> $vcsProgress </v-icon>
     </div>
   </v-sheet>
 </template>
 
 <script>
-  import {
-    computed,
-    inject,
-    onMounted,
-    onUnmounted,
-    ref,
-    watch,
-  } from 'vue';
+  import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue';
   import { VcsList, NotificationType } from '@vcmap/ui';
   import { VSheet, VIcon } from 'vuetify/lib';
   import { validatePolygonFeature } from './exportHelper.js';
@@ -37,26 +28,27 @@
     const { results } = dataSource;
     resultItems.value = results
       .sort((a, b) => (a.title < b.title ? -1 : 1))
-      .map(
-        (result) => {
-          return {
-            name: result.title,
-            title: result.title,
-            tooltip: 'Select to download',
-            selectionChanged: (selected) => {
-              if (selected) {
-                dataSource.resultLayer.featureVisibility.showObjects([result.featureId]);
-              } else {
-                dataSource.resultLayer.featureVisibility.hideObjects([result.featureId]);
-              }
-            },
-          };
-        },
-      );
+      .map((result) => {
+        return {
+          name: result.title,
+          title: result.title,
+          tooltip: 'export.selectToDownload',
+          selectionChanged: (selected) => {
+            if (selected) {
+              dataSource.resultLayer.featureVisibility.showObjects([
+                result.featureId,
+              ]);
+            } else {
+              dataSource.resultLayer.featureVisibility.hideObjects([
+                result.featureId,
+              ]);
+            }
+          },
+        };
+      });
     dataSource.resultLayer.activate();
     return Promise.resolve();
   }
-
 
   /**
    * @description Renders the results, e.g. the available oblique images for a specific area, in a VcsList. On selection the extend of the result is shown in the map.
@@ -103,18 +95,24 @@
       const resultItems = ref();
       const selectedResults = ref(props.value);
 
-      const listTitle = computed(
-        () => (props.selectedDataSource === 'geojson' ? plugin.dataSource.title : 'export.dataSources.oblique'),
+      const listTitle = computed(() =>
+        props.selectedDataSource === 'geojson'
+          ? plugin.dataSource.title
+          : 'export.dataSources.oblique',
       );
 
       function loadAreas() {
-        const selectionLayer = app.layers.getByKey(String(props.selectionLayerName));
+        const selectionLayer = app.layers.getByKey(
+          String(props.selectionLayerName),
+        );
         plugin.dataSource.clear();
         const feature = selectionLayer?.getFeatures()[0];
         if (feature && feature.getGeometry()) {
           // TODO: Why are there multiple validations throughout the code? wouldn't be one validation when drawing enough?
           validatePolygonFeature(feature, app, props.maxSelectionArea)
-            .then(() => createListItems(feature, plugin.dataSource, resultItems))
+            .then(() =>
+              createListItems(feature, plugin.dataSource, resultItems),
+            )
             .catch((error) => {
               app.notifier.add({
                 type: NotificationType.ERROR,
@@ -128,11 +126,14 @@
       }
 
       // loads list each time user views result list.
-      watch(() => props.active, () => {
-        if (props.active) {
-          loadAreas();
-        }
-      });
+      watch(
+        () => props.active,
+        () => {
+          if (props.active) {
+            loadAreas();
+          }
+        },
+      );
       onMounted(() => {
         if (props.active) {
           loadAreas();

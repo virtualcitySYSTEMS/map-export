@@ -183,7 +183,7 @@ function mapThematicClasses(classes) {
     9: true,
     4: true,
   };
-  return classes.map(key => ({
+  return classes.map((key) => ({
     value: key,
     text: titles[key],
     citygmlOnly: cityGmlOnly[key],
@@ -324,10 +324,13 @@ export function getSetupAndState(pluginConfig, defaultConfig) {
 
   // is put in an object so that if only one string is in the array/list, the array can be removed so the check of the default value works
   const stringListValidation = {
-    exportFormatList: pluginConfig.exportFormatList || defaultConfig.exportFormatList,
+    exportFormatList:
+      pluginConfig.exportFormatList || defaultConfig.exportFormatList,
     lodList: pluginConfig.lodList || defaultConfig.lodList,
-    thematicClassList: pluginConfig.thematicClassOptions || defaultConfig.thematicClassOptions,
-    appearanceThemeList: pluginConfig.appearanceThemeList || defaultConfig.appearanceThemeList,
+    thematicClassList:
+      pluginConfig.thematicClassOptions || defaultConfig.thematicClassOptions,
+    appearanceThemeList:
+      pluginConfig.appearanceThemeList || defaultConfig.appearanceThemeList,
   };
 
   Object.keys(stringListValidation).forEach((key) => {
@@ -339,24 +342,30 @@ export function getSetupAndState(pluginConfig, defaultConfig) {
 
   checkMaybe(pluginConfig.exportFormatList, [String]);
   if (pluginConfig.exportFormatDefault) {
-    pluginConfig.exportFormatDefault?.forEach(
-      exportFormat => check(exportFormat, stringListValidation.exportFormatList),
+    pluginConfig.exportFormatDefault?.forEach((exportFormat) =>
+      check(exportFormat, stringListValidation.exportFormatList),
     );
   } else {
-    defaultConfig.exportFormatDefault?.forEach(
-      exportFormat => checkMaybe(exportFormat, stringListValidation.exportFormatList),
+    defaultConfig.exportFormatDefault?.forEach((exportFormat) =>
+      checkMaybe(exportFormat, stringListValidation.exportFormatList),
     );
   }
   checkMaybe(pluginConfig.lodList, Object.values(LodOptions));
-  check(pluginConfig.lodDefault || defaultConfig.lodDefault, stringListValidation.lodList);
+  check(
+    pluginConfig.lodDefault || defaultConfig.lodDefault,
+    stringListValidation.lodList,
+  );
   checkMaybe(pluginConfig.thematicClassOptions, [Number]);
   if (pluginConfig.thematicClassDefault) {
-    pluginConfig.thematicClassDefault?.forEach(
-      thematicClass => check(thematicClass, stringListValidation.thematicClassList),
+    pluginConfig.thematicClassDefault?.forEach((thematicClass) =>
+      check(thematicClass, stringListValidation.thematicClassList),
     );
   } else {
-    defaultConfig.exportFormatDefault?.forEach(
-      exportFormat => checkMaybe(exportFormat, pluginConfig.exportFormatList || defaultConfig.exportFormatList),
+    defaultConfig.exportFormatDefault?.forEach((exportFormat) =>
+      checkMaybe(
+        exportFormat,
+        pluginConfig.exportFormatList || defaultConfig.exportFormatList,
+      ),
     );
   }
   checkMaybe(pluginConfig.dataSourceOptionsList, [{ type: String }]);
@@ -382,7 +391,8 @@ export function getSetupAndState(pluginConfig, defaultConfig) {
   checkMaybe(pluginConfig.dataProjection, Object);
   checkMaybe(pluginConfig.maxSelectionArea, Number);
 
-  const dataSourceOptionsList = pluginConfig.dataSourceOptionsList || defaultConfig.dataSourceOptionsList;
+  const dataSourceOptionsList =
+    pluginConfig.dataSourceOptionsList || defaultConfig.dataSourceOptionsList;
   dataSourceOptionsList.forEach((dataSourceOptions) => {
     if (dataSourceOptions.type === DataSourceOptions.GEOJSON) {
       if (dataSourceOptions.title) {
@@ -404,13 +414,20 @@ export function getSetupAndState(pluginConfig, defaultConfig) {
     }
   });
 
-  if (dataSourceOptionsList.some(dataSourceOption => dataSourceOption.type === DataSourceOptions.CITY_MODEL)) {
+  if (
+    dataSourceOptionsList.some(
+      (dataSourceOption) =>
+        dataSourceOption.type === DataSourceOptions.CITY_MODEL,
+    )
+  ) {
     check(pluginConfig.fmeSecurityToken, String);
     check(pluginConfig.fmeServerUrl, String);
   }
 
-  const exportFormatList = pluginConfig.exportFormatList || defaultConfig.exportFormatList;
-  const exportFormatDefault = pluginConfig.exportFormatDefault || defaultConfig.exportFormatDefault;
+  const exportFormatList =
+    pluginConfig.exportFormatList || defaultConfig.exportFormatList;
+  const exportFormatDefault =
+    pluginConfig.exportFormatDefault || defaultConfig.exportFormatDefault;
 
   const lodList = pluginConfig.lodList || defaultConfig.lodList;
   const lodDefault = pluginConfig.lodDefault || defaultConfig.lodDefault;
@@ -418,42 +435,72 @@ export function getSetupAndState(pluginConfig, defaultConfig) {
   const thematicClassList = mapThematicClasses(
     pluginConfig.thematicClassOptions || defaultConfig.thematicClassOptions,
   );
-  const thematicClassDefault = pluginConfig.thematicClassDefault || defaultConfig.thematicClassDefault;
+  const thematicClassDefault =
+    pluginConfig.thematicClassDefault || defaultConfig.thematicClassDefault;
 
   const termsOfUse = pluginConfig.termsOfUse || defaultConfig.termsOfUse;
 
-
-  const appearanceThemeList = pluginConfig.appearanceThemeList || defaultConfig.appearanceThemeList;
-  const appearanceThemeDefault = pluginConfig.appearanceThemeDefault || defaultConfig.appearanceThemeDefault;
+  const appearanceThemeList =
+    pluginConfig.appearanceThemeList || defaultConfig.appearanceThemeList;
+  const appearanceThemeDefault =
+    pluginConfig.appearanceThemeDefault || defaultConfig.appearanceThemeDefault;
 
   const terrainAppearanceOptions = pluginConfig.terrainAppearanceOptions || {};
 
-  const allowHeightMode = parseBoolean(pluginConfig.allowHeightMode, defaultConfig.allowHeightMode);
-  const heightModeDefault = pluginConfig.heightModeDefault || defaultConfig.heightModeDefault;
+  const allowHeightMode = parseBoolean(
+    pluginConfig.allowHeightMode,
+    defaultConfig.allowHeightMode,
+  );
+  const heightModeDefault =
+    pluginConfig.heightModeDefault || defaultConfig.heightModeDefault;
 
-  const allowCrsTextInput = parseBoolean(pluginConfig.allowCrsTextInput, defaultConfig.allowCrsTextInput);
-  const allowTextureExport = parseBoolean(pluginConfig.allowTextureExport, defaultConfig.allowTextureExport);
-  const allowAddGenericAttrs = parseBoolean(pluginConfig.allowAddGenericAttrs, defaultConfig.allowAddGenericAttrs);
-  const allowTiledExport = parseBoolean(pluginConfig.allowTiledExport, defaultConfig.allowTiledExport);
-  const allowTerrainExport = parseBoolean(pluginConfig.allowTerrainExport, defaultConfig.allowTerrainExport);
+  const allowCrsTextInput = parseBoolean(
+    pluginConfig.allowCrsTextInput,
+    defaultConfig.allowCrsTextInput,
+  );
+  const allowTextureExport = parseBoolean(
+    pluginConfig.allowTextureExport,
+    defaultConfig.allowTextureExport,
+  );
+  const allowAddGenericAttrs = parseBoolean(
+    pluginConfig.allowAddGenericAttrs,
+    defaultConfig.allowAddGenericAttrs,
+  );
+  const allowTiledExport = parseBoolean(
+    pluginConfig.allowTiledExport,
+    defaultConfig.allowTiledExport,
+  );
+  const allowTerrainExport = parseBoolean(
+    pluginConfig.allowTerrainExport,
+    defaultConfig.allowTerrainExport,
+  );
 
   const { terrainUrl } = pluginConfig;
   // terrainZoomLevel needs to be null, so it can be JSON stringified, but input of parseInteger has to be undefined.
-  const terrainZoomLevel = parseInteger(pluginConfig.terrainZoomLevel, defaultConfig.terrainZoomLevel || undefined) ||
-    null;
+  const terrainZoomLevel =
+    parseInteger(
+      pluginConfig.terrainZoomLevel,
+      defaultConfig.terrainZoomLevel || undefined,
+    ) || null;
 
-  const dataProjection = pluginConfig.dataProjection ?
-    new Projection(pluginConfig.dataProjection) : getDefaultProjection();
+  const dataProjection = pluginConfig.dataProjection
+    ? new Projection(pluginConfig.dataProjection)
+    : getDefaultProjection();
 
   const crs = pluginConfig.crs || dataProjection.epsg;
 
-  const allowDescription = parseBoolean(pluginConfig.allowDescription, defaultConfig.allowDescription);
+  const allowDescription = parseBoolean(
+    pluginConfig.allowDescription,
+    defaultConfig.allowDescription,
+  );
 
-  const fmeSecurityToken = pluginConfig.fmeSecurityToken || defaultConfig.fmeSecurityToken;
+  const fmeSecurityToken =
+    pluginConfig.fmeSecurityToken || defaultConfig.fmeSecurityToken;
 
   const fmeServerUrl = pluginConfig.fmeServerUrl || defaultConfig.fmeServerUrl;
 
-  const maxSelectionArea = pluginConfig.maxSelectionArea || defaultConfig.maxSelectionArea;
+  const maxSelectionArea =
+    pluginConfig.maxSelectionArea || defaultConfig.maxSelectionArea;
 
   let selectedCrs = null;
   if (Array.isArray(crs)) {

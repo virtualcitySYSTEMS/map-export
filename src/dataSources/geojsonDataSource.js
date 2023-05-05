@@ -14,7 +14,9 @@ export function validateGeoJSONOptions(options) {
   try {
     check(options.geojsonUrl, String);
   } catch (error) {
-    getLoggerByName('@vcmap/export/dataSources/GeoJSONDataSource').error(error.message);
+    getLoggerByName('@vcmap/export/dataSources/GeoJSONDataSource').error(
+      error.message,
+    );
     return false;
   }
   return abstractValidation;
@@ -73,7 +75,9 @@ class GeoJSONDataSource extends AbstractDataSource {
       href: `${this.url}/${props.url.replace(/^\//, '')}`,
       title: props.url,
       featureId: feature.getId(),
-      fileSize: props.fileSize ? getStringFileSizeFromkB(props.fileSize) : undefined,
+      fileSize: props.fileSize
+        ? getStringFileSizeFromkB(props.fileSize)
+        : undefined,
     });
   }
 
@@ -81,7 +85,9 @@ class GeoJSONDataSource extends AbstractDataSource {
    * @inheritDoc
    */
   async getFeaturesInExtent(extent) {
-    const layer = /** @type {import("@vcmap/core").GeoJSONLayer} */ (this._geojsonLayer);
+    const layer = /** @type {import("@vcmap/core").GeoJSONLayer} */ (
+      this._geojsonLayer
+    );
     if (layer) {
       await layer.fetchData();
       return layer.source.getFeaturesInExtent(extent.extent);

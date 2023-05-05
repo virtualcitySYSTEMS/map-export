@@ -19,11 +19,16 @@ export function validateObliqueOptions(options, app) {
 
   try {
     check(options.obliqueCollectionName, String);
-    check(app.obliqueCollections.getByKey(options.obliqueCollectionName), ObliqueCollection);
+    check(
+      app.obliqueCollections.getByKey(options.obliqueCollectionName),
+      ObliqueCollection,
+    );
     checkMaybe(options.fileExtension, String);
     checkMaybe(options.resolution, Number);
   } catch (e) {
-    getLoggerByName('@vcmap/export/dataSources/ObliqueDataSource').error(e.message);
+    getLoggerByName('@vcmap/export/dataSources/ObliqueDataSource').error(
+      e.message,
+    );
     return false;
   }
   return true;
@@ -91,22 +96,27 @@ class ObliqueDataSource extends AbstractDataSource {
       });
     }
 
-    return new ObliqueResult({
-      title: imageName,
-      featureId: imageName,
-      obliqueCollectionName: this.obliqueCollectionName,
-      imageName,
-      fileExtension: this.fileExtension,
-      resolution: this.resolution,
-      downloadState: this.downloadState,
-    }, this._app);
+    return new ObliqueResult(
+      {
+        title: imageName,
+        featureId: imageName,
+        obliqueCollectionName: this.obliqueCollectionName,
+        imageName,
+        fileExtension: this.fileExtension,
+        resolution: this.resolution,
+        downloadState: this.downloadState,
+      },
+      this._app,
+    );
   }
 
   /**
    * @inheritdoc
    */
   async getFeaturesInExtent(extent) {
-    const obliqueCollection = this._app.obliqueCollections.getByKey(this.obliqueCollectionName);
+    const obliqueCollection = this._app.obliqueCollections.getByKey(
+      this.obliqueCollectionName,
+    );
     if (obliqueCollection) {
       await obliqueCollection.load();
       await obliqueCollection.loadDataForExtent(extent.extent);
@@ -114,7 +124,9 @@ class ObliqueDataSource extends AbstractDataSource {
       const source = obliqueCollection.imageFeatureSource;
       const features = source.getFeaturesInExtent(extent.extent);
       if (this.viewDirectionFilter && this.viewDirectionFilter !== 5) {
-        return features.filter(f => f.get('viewDirection') === this.viewDirectionFilter);
+        return features.filter(
+          (f) => f.get('viewDirection') === this.viewDirectionFilter,
+        );
       }
       return features;
     } else {

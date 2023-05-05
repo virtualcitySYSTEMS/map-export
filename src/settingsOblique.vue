@@ -12,7 +12,7 @@
             :items="directionFilterItems"
             v-model="settingsState.directionFilter"
             dense
-            :rules="[v => !!v || 'Please select at least one option.']"
+            :rules="[(v) => !!v || 'Please select at least one option.']"
             :placeholder="$t('export.settingsOblique.directionPlaceholder')"
             @change="$emit('change')"
           />
@@ -52,12 +52,14 @@
       const settingsState = reactive(props.value);
 
       const { nadir, ...dirs } = obliqueViewDirectionNames;
-      const directionFilterItems = Object.keys({ nadir, ...dirs }).map((dir) => {
-        return {
-          value: obliqueViewDirectionNames[dir],
-          text: `export.settingsOblique.${dir}`,
-        };
-      });
+      const directionFilterItems = Object.keys({ nadir, ...dirs }).map(
+        (dir) => {
+          return {
+            value: obliqueViewDirectionNames[dir],
+            text: `export.settingsOblique.${dir}`,
+          };
+        },
+      );
 
       watch(settingsState, () => {
         emit('input', settingsState);

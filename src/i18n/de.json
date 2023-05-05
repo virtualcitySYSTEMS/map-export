@@ -1,0 +1,104 @@
+{
+  "export": {
+    "name": "Export",
+    "headerTitle": "Objekt Export Wizard",
+    "tooltip": "Export Plugin",
+    "stepTitles": {
+      "dataSources": "Datenquelle",
+      "selectionType": "Datenauswahl",
+      "settings": "Einstellungen",
+      "selectImages": "Bilder auswählen",
+      "selectFiles": "Dateien auswählen",
+      "exportDestination": "E-Mail Adresse"
+    },
+    "dataSources": {
+      "cityModel": "3D Objekte",
+      "oblique": "Schrägluftbild",
+      "geojson": "GeoJSON"
+    },
+    "selectionTypes": {
+      "areaSelection": "Flächen-Auswahl",
+      "objectSelection": "Objekt-Auswahl",
+      "currentImage": "Aktuelles Schrägluftbild",
+      "drawPolygon": "Zeichne ein Polygon",
+      "drawBBox": "Zeichne eine Bouding Box",
+      "objectCount": "Ausgewählte Objekte",
+      "selectableLayers": "Unterstützte Ebene(n)",
+      "layerNotSupportedWarning": "Objekte dieser Ebene werden nicht für den Export unterstützt.",
+      "objectSelection1": "Nutze",
+      "objectSelection2": "und halte die Strg-Taste gedrückt um Objekte auszuwählen"
+    },
+    "settingsCityModel": {
+      "exportFormat": "Exportformat",
+      "lod": "Level of Detail",
+      "thematicClasses": "Thematische Klassen",
+      "terrainExport": "Geländeexport",
+      "genericAttrs": "Generische Attribute anfügen",
+      "textureExport": "Texturen ausgeben",
+      "localCoordinates": "Lokale Koordinaten verwenden",
+      "tiledExport": "Gekachelter Export",
+      "terrainTexture": "Geländetextur",
+      "appearanceTheme": "Objekttextur",
+      "heightMode": "Höhenmodus",
+      "absolute": "absolute",
+      "ellipsoid": "ellipsoid",
+      "coordinateSystem": "Koordinatensystem"
+    },
+    "settingsOblique": {
+      "directionFilter": "Bildausrichtungsfilter",
+      "north": "Nord",
+      "east": "Ost",
+      "south": "Süd",
+      "west": "West",
+      "nadir": "Alle",
+      "directionPlaceholder": "Richtung"
+    },
+    "userData": {
+      "enterMail": "Hier E-Mail Adresse eingeben",
+      "descriptionPlaceholder": "Beschreibe den Datensatz, um ihn später zuordnen zu können.",
+      "accept": "Ich akzeptiere die",
+      "termsOfUse": "Nutzungsbedingungen"
+    },
+    "selectToDownload": "Zum Herunterladen auswählen",
+    "select": "Auswählen",
+    "continue": "Weiter",
+    "reset": "Zurücksetzen",
+    "sendRequest": "Anfrage senden",
+    "notification": {
+      "success": "Vielen Dank für Ihre Anfrage. Der Auftrag wurde angenommen. Sie erhalten eine Benachrichtigung, sobald die Daten zum Download bereit stehen. Dies kann je nach Datenmenge bis zu mehreren Stunden dauern.",
+      "error": {
+        "standard": "Bei der Bearbeitung Ihrer Anfrage ist ein Fehler aufgetreten. Bitte versuchen sie es zu einem anderen Zeitpunkt erneut.",
+        "validation": "Bitte stelle sicher, dass alle Eingabefelder valide sind."
+      }
+    },
+    "validation": {
+      "termsOfUse": "Um eine Anfrage abzusenden, muss den Nutzungsbedingungen zugestimmt werden.",
+      "selectField": "Bitte wähle eine Option.",
+      "selectFieldMultiple": "Bitte wähle mindestens eine Option.",
+      "provideEmail": "Gib bitte eine E-Mail Adresse an.",
+      "epsg": "Bitte stelle sicher, dass der EPSG Code valide ist. Z.B. EPSG:25832 oder 25832.",
+      "objectSelection": "Bitte wähle mindestens ein Objekt aus.",
+      "areaSelection": "Bitte zeichne eine Auswahlfläche.",
+      "polygonFeature": "Die Geometrie der Flächenauswahl ist nicht valide.",
+      "polygonFeatureArea": "Die maximale Größe der Auswahlfläche wurde überschritten."
+    },
+    "context": { "cityModel": "Objekt exportieren" },
+    "resetButtons": {
+      "settingsCityModel": "Einstellungen zurücksetzen",
+      "objectSelection": "Objekt-Auswahl zurücksetzen",
+      "userData": "Nutzerangaben zurücksetzen"
+    },
+    "help": {
+      "dataSources": {
+        "cityModel": "Exportiere Objekte des Stadtmodells wie z.B. Gebäude, Bäume oder Brücken.",
+        "oblique": "Exportiere hochaufgelöste Schrägluftbilder.",
+        "geojson": "Exportiere räumliche Daten mittels Gebietsauswahl."
+      },
+      "selectionTypes": {
+        "areaSelection": "Zeichne eine Geometrie um einen Bereich zu exportieren.",
+        "objectSelection": "Klicke auf Objekte des Stadtmodells um sie auszuwählen. Nur verfügbar in der 3D Karte.",
+        "currentImage": "Lade das aktuell sichtbare Schrägluftbild herunter. Nur verfügbar im Schrägluftbild Modus."
+      }
+    }
+  }
+}

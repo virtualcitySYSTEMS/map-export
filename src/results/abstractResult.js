@@ -29,7 +29,9 @@ class AbstractResult {
    * @returns {Promise<void>}
    */
   // eslint-disable-next-line class-methods-use-this
-  download() { return Promise.resolve(); }
+  download() {
+    return Promise.resolve();
+  }
 }
 
 export default AbstractResult;

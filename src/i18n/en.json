@@ -1,0 +1,106 @@
+{
+  "export": {
+    "name": "Export",
+    "headerTitle": "Object Export Wizard",
+    "tooltip": "Export Plugin",
+    "stepTitles": {
+      "dataSources": "Data source",
+      "selectionType": "Data selection",
+      "settings": "Settings",
+      "selectImages": "Select images",
+      "selectFiles": "Select files",
+      "exportDestination": "Email address"
+    },
+    "dataSources": {
+      "cityModel": "3D Objects",
+      "oblique": "Oblique images",
+      "geojson": "GeoJSON"
+    },
+    "selectionTypes": {
+      "areaSelection": "Area selection",
+      "objectSelection": "Object selection",
+      "currentImage": "Current image",
+      "drawPolygon": "Draw a polygon",
+      "drawBBox": "Draw a bounding box",
+      "objectCount": "Object count",
+      "selectableLayers": "Selectable layer(s)",
+      "layerNotSupportedWarning": "Objects of this layer are not supported for export.",
+      "objectSelection1": "Use",
+      "objectSelection2": "while holding down ctrl key to select objects"
+    },
+    "settingsCityModel": {
+      "exportFromat": "Export format",
+      "lod": "Level of Detail",
+      "thematicClasses": "Thematic classes",
+      "terrainExport": "Terrain export",
+      "genericAttrs": "Add generic attributes",
+      "textureExport": "Texture export",
+      "localCoordinates": "Use local coordinates",
+      "tiledExport": "Tiled export",
+      "terrainTexture": "Terrain appearence",
+      "appearanceTheme": "Object appearence",
+      "heightMode": "Height mode",
+      "absolute": "Absolute",
+      "ellipsoid": "Ellipsoid",
+      "coordinateSystem": "Coordinate system"
+    },
+    "settingsOblique": {
+      "directionFilter": "Image direction filter",
+      "north": "North",
+      "east": "East",
+      "south": "South",
+      "west": "West",
+      "nadir": "All",
+      "directionPlaceholder": "Direction"
+    },
+    "userData": {
+      "enterMail": "Enter your email address",
+      "descriptionPlaceholder": "Describe your data export so you can identify it later.",
+      "accept": "I accept the",
+      "termsOfUse": "terms of use"
+    },
+    "selectToDownload": "Select to download",
+    "select": "Select",
+    "continue": "Continue",
+    "reset": "Reset",
+    "sendRequest": "Send request",
+    "notification": {
+      "success": "Thank you for your request. The request has been accepted. You will get a response when the data export is done. This can take up to several hours, depending on the size of the data.",
+      "error": {
+        "standard": "There was an error processing your request. Please try again later.",
+        "validation": "Please ensure that all inputs are valid"
+      }
+    },
+    "validation": {
+      "termsOfUse": "You need to accept the terms of use.",
+      "selectField": "Please choose an option.",
+      "selectFieldMultiple": "Please select at least one option.",
+      "provideEmail": "Please provide an email address.",
+      "epsg": "Please make sure the EPSG code is valid. Eiter e.g. EPSG:25832 or just 25832.",
+      "objectSelection": "Please select at least one object.",
+      "areaSelection": "Please draw a selection area.",
+      "polygonFeature": "Geometry of area selection is not valid.",
+      "polygonFeatureArea": "Selection geometry exceeds max area."
+    },
+    "context": {
+      "cityModel": "Export object"
+    },
+    "resetButtons": {
+      "settingsCityModel": "Reset settings",
+      "objectSelection": "Reset object selection",
+      "userData": "Reset user data"
+    },
+    "help": {
+      "dataSources": {
+        "cityModel": "Export city model objects like 3D buildings, trees or bridges.",
+        "oblique": "Export high resolution oblique images.",
+        "geojson": "Export spatial data by area selection."
+      },
+      "selectionTypes": {
+        "areaSelection": "Select the area you want to export by drawing a geometry.",
+        "objectSelection": "Select city model objects by clicking on them. Only available in 3D view.",
+        "currentImage": "Download the currently visible oblique image. Only available in oblique view."
+      }
+    }
+  }
+}

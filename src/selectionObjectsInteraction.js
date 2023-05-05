@@ -3,18 +3,13 @@ import {
   EventType,
   ModificationKeyType,
   VcsEvent,
-  VectorStyleItem,
   vcsLayerName,
 } from '@vcmap/core';
-
-/** The highlight style for clicked features. */
-export const hightlightStyle = new VectorStyleItem({
-  fill: { color: '#ffcc66' },
-  stroke: {
-    color: '#ffaa00',
-    width: 1,
-  },
-});
+import {
+  getDefaultPrimaryColor,
+  getHighlightStyle,
+  NotificationType,
+} from '@vcmap/ui';
 
 /** @typedef {import("ol").Feature<import("ol/geom/Geometry").default>|import("@vcmap/cesium").Cesium3DTileFeature|import("@vcmap/cesium").Cesium3DTilePointFeature|import("@vcmap/cesium").Entity} FeatureType */
 
@@ -24,19 +19,23 @@ export const hightlightStyle = new VectorStyleItem({
  */
 class SelectionObjectInteraction extends AbstractInteraction {
   /**
-   * @param {Array<import("@vcmap/core").CesiumTilesetLayer>} layers All layers that are supported for export with object selection.
+   * @param {import("@vcmap/ui").VcsUiApp} app
+   * @param {Array<import("@vcmap/core"):CesiumTilesetLayer>} layers
    * @param {Array<string>} features Ids of selected features.
    */
-  constructor(layers, features) {
+  constructor(app, layers, features) {
     super(EventType.CLICK, ModificationKeyType.CTRL);
-
-    // TODO: Does not need to be highlighted on all layers. Thus the layers property can be removed, and the layer can be received from feature.
+    /**
+     * @type {import("@vcmap/ui").VcsUiApp}
+     * @private
+     */
+    this._app = app;
     /**
      * All layers that are supported for export with object selection.
      * @type {Array<import("@vcmap/core").CesiumTilesetLayer>}
      * @private
      */
-    this._selectableLayers = layers;
+    this.selectableLayers = layers;
     /**
      * Array with the ids of selected features.
      * @type {string[]}
@@ -53,7 +52,7 @@ class SelectionObjectInteraction extends AbstractInteraction {
 
   /**
    * Getter for featureClicked Event
-   * @returns {import("@vcmap/core").VcsEvent<Array<string>>}
+   * @type {import("@vcmap/core").VcsEvent<Array<string>>}
    */
   get featureClicked() {
     return this._featureClicked;
@@ -68,14 +67,23 @@ class SelectionObjectInteraction extends AbstractInteraction {
     const featureId = feature.getId();
     // TODO: Only hightlight feature on clicked layer.
     if (this._selectedFeatures.indexOf(featureId) !== -1) {
-      this._selectedFeatures = this._selectedFeatures.filter(selectedFeatureId => selectedFeatureId !== featureId);
-      this._selectableLayers.forEach((layer) => {
+      this._selectedFeatures = this._selectedFeatures.filter(
+        (selectedFeatureId) => selectedFeatureId !== featureId,
+      );
+      this.selectableLayers.forEach((layer) => {
         layer.featureVisibility.unHighlight([featureId]);
       });
     } else {
       this._selectedFeatures.push(featureId);
-      this._selectableLayers.forEach((layer) => {
-        layer.featureVisibility.highlight({ [featureId]: hightlightStyle });
+      this.selectableLayers.forEach((layer) => {
+        layer.featureVisibility.highlight({
+          [featureId]: getHighlightStyle(
+            feature,
+            layer,
+            this._app.uiConfig.config.value.primaryColor ??
+              getDefaultPrimaryColor(),
+          ),
+        });
       });
     }
   }
@@ -84,15 +92,30 @@ class SelectionObjectInteraction extends AbstractInteraction {
    * Highlights selected features.
    */
   _highlightSelectedFeatures() {
-    const toHighlight = this._selectedFeatures.reduce((prev, curr) => ({ ...prev, [curr]: hightlightStyle }), {});
-    this._selectableLayers.forEach(layer => layer.featureVisibility.highlight(toHighlight));
+    const toHighlight = this._selectedFeatures.reduce(
+      (prev, curr) => ({
+        ...prev,
+        [curr]: getHighlightStyle(
+          null,
+          null,
+          this._app.uiConfig.config.value.primaryColor ??
+            getDefaultPrimaryColor(),
+        ),
+      }),
+      {},
+    );
+    this.selectableLayers.forEach((layer) =>
+      layer.featureVisibility.highlight(toHighlight),
+    );
   }
 
   /**
    * Removes highlight from selected features.
    */
   clearHighlighting() {
-    this._selectableLayers.forEach(layer => layer.featureVisibility.unHighlight(this._selectedFeatures));
+    this.selectableLayers.forEach((layer) =>
+      layer.featureVisibility.unHighlight(this._selectedFeatures),
+    );
   }
 
   /**
@@ -119,11 +142,29 @@ class SelectionObjectInteraction extends AbstractInteraction {
    * @returns {Promise<import("@vcmap/core").InteractionEvent>}
    */
   async pipe(event) {
-    if (event.feature && this._selectableLayers.some(layer => layer.name === event.feature[vcsLayerName])) {
-      this._selectFeature(event.feature);
-      this._featureClicked.raiseEvent(this._selectedFeatures);
+    if (event.feature) {
+      if (
+        this.selectableLayers.some(
+          (layer) => layer.name === event.feature[vcsLayerName],
+        )
+      ) {
+        this._selectFeature(event.feature);
+        this._featureClicked.raiseEvent(this._selectedFeatures);
+      } else {
+        this._app.notifier.add({
+          type: NotificationType.WARNING,
+          message: 'export.selectionTypes.layerNotSupportedWarning',
+          timeout: 5000,
+        });
+      }
     }
     return event;
+  }
+
+  destroy() {
+    super.destroy();
+    this.clearSelection();
+    this._featureClicked.destroy();
   }
 }
 

@@ -1,8 +1,5 @@
-import {
-  VectorLayer,
-  imageGeometryToMercatorGeometry,
-} from '@vcmap/core';
-import { downloadURI } from './results/fileResult.js';
+import { VectorLayer, imageGeometryToMercatorGeometry } from '@vcmap/core';
+import { downloadURI } from '@vcmap/ui';
 import { downloadObliqueImage } from './results/obliqueResult.js';
 
 /**
@@ -14,7 +11,9 @@ export default async function reprojectObliqueGeometry(feature, app) {
   const imageGeometry = feature[VectorLayer.obliqueGeometry];
   if (imageGeometry) {
     const originalGeometry = imageGeometry.clone();
-    const obliqueMap = /** @type {import("@vcmap/core").ObliqueMap} */ (app.maps.activeMap);
+    const obliqueMap = /** @type {import("@vcmap/core").ObliqueMap} */ (
+      app.maps.activeMap
+    );
     const image = obliqueMap.currentImage;
     if (image) {
       return imageGeometryToMercatorGeometry(
@@ -35,7 +34,9 @@ export default async function reprojectObliqueGeometry(feature, app) {
  * @returns {Promise<void>}
  */
 export function downloadCurrentImage(app, obliqueDataSource, downloadState) {
-  const { currentImage } = /** @type {import("@vcmap/core").ObliqueMap} */ (app.maps.activeMap);
+  const { currentImage } = /** @type {import("@vcmap/core").ObliqueMap} */ (
+    app.maps.activeMap
+  );
   if (currentImage) {
     if (obliqueDataSource.dedicatedSource) {
       downloadURI(

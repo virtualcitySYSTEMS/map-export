@@ -1,5 +1,9 @@
-import GeoJSONDataSource, { validateGeoJSONOptions } from './geojsonDataSource.js';
-import ObliqueDataSource, { validateObliqueOptions } from './obliqueDataSource.js';
+import GeoJSONDataSource, {
+  validateGeoJSONOptions,
+} from './geojsonDataSource.js';
+import ObliqueDataSource, {
+  validateObliqueOptions,
+} from './obliqueDataSource.js';
 import { DataSourceOptions } from '../configManager.js';
 
 /**
@@ -11,14 +15,33 @@ import { DataSourceOptions } from '../configManager.js';
 export default function createDataSourceFromConfig(options, app) {
   if (
     options.type === DataSourceOptions.GEOJSON &&
-    validateGeoJSONOptions(/** @type {import("./geojsonDataSource").GeoJSONDataSourceOptions} */ (options))
+    validateGeoJSONOptions(
+      /** @type {import("./geojsonDataSource").GeoJSONDataSourceOptions} */ (
+        options
+      ),
+    )
   ) {
-    return new GeoJSONDataSource(/** @type {import("./geojsonDataSource").GeoJSONDataSourceOptions} */ (options), app);
+    return new GeoJSONDataSource(
+      /** @type {import("./geojsonDataSource").GeoJSONDataSourceOptions} */ (
+        options
+      ),
+      app,
+    );
   } else if (
     options.type === DataSourceOptions.OBLIQUE &&
-    validateObliqueOptions(/** @type {import("./obliqueDataSource").ObliqueDataSourceOptions} */ (options), app)
+    validateObliqueOptions(
+      /** @type {import("./obliqueDataSource").ObliqueDataSourceOptions} */ (
+        options
+      ),
+      app,
+    )
   ) {
-    return new ObliqueDataSource(/** @type {import("./obliqueDataSource").ObliqueDataSourceOptions} */ (options), app);
+    return new ObliqueDataSource(
+      /** @type {import("./obliqueDataSource").ObliqueDataSourceOptions} */ (
+        options
+      ),
+      app,
+    );
   } else if (options.type === DataSourceOptions.CITY_MODEL) {
     return null;
   } else {

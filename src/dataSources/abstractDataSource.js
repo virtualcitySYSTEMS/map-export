@@ -3,7 +3,12 @@ import Feature from 'ol/Feature';
 import GeoJSON from 'ol/format/GeoJSON.js';
 import { checkMaybe, check } from '@vcsuite/check';
 import { getLogger } from '@vcsuite/logger';
-import { Extent, mercatorProjection, ObliqueMap, VectorLayer } from '@vcmap/core';
+import {
+  Extent,
+  mercatorProjection,
+  ObliqueMap,
+  VectorLayer,
+} from '@vcmap/core';
 import reprojectObliqueGeometry from '../obliqueHelper.js';
 
 /**
@@ -58,7 +63,9 @@ class AbstractDataSource {
      * @type {import("@vcmap/core").VectorLayer}
      * @private
      */
-    this._resultLayer = /** @type {import("@vcmap/core").VectorLayer} */ (layer);
+    this._resultLayer = /** @type {import("@vcmap/core").VectorLayer} */ (
+      layer
+    );
     /**
      * the results of the last query
      * @type {Array<import("../results/abstractResult").default>}
@@ -84,9 +91,10 @@ class AbstractDataSource {
     check(feature, Feature);
     this.clear();
 
-    const geom = this._app.maps.activeMap instanceof ObliqueMap ?
-      await reprojectObliqueGeometry(feature, this._app) :
-      feature.getGeometry();
+    const geom =
+      this._app.maps.activeMap instanceof ObliqueMap
+        ? await reprojectObliqueGeometry(feature, this._app)
+        : feature.getGeometry();
 
     if (geom) {
       const extent = new Extent({
@@ -108,10 +116,12 @@ class AbstractDataSource {
             }
             return null;
           })
-          .filter(f => f);
+          .filter((f) => f);
 
         this._resultLayer.addFeatures(features);
-        this._resultLayer.featureVisibility.hideObjects(features.map(f => f.getId()));
+        this._resultLayer.featureVisibility.hideObjects(
+          features.map((f) => f.getId()),
+        );
       }
     }
   }

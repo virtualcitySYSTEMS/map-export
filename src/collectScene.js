@@ -39,7 +39,8 @@ const LayerType = {
  * @returns {SingleImageExport | null} An object with the necessary information for the export.
  */
 function exportSingleImageLayer(layer, bbox) {
-  const layerExtentWgs84 = layer.extent?.getCoordinatesInProjection(wgs84Projection);
+  const layerExtentWgs84 =
+    layer.extent?.getCoordinatesInProjection(wgs84Projection);
   const bboxWgs84 = bbox.getCoordinatesInProjection(wgs84Projection);
 
   if (!layerExtentWgs84 || !intersects(layerExtentWgs84, bboxWgs84)) {
@@ -93,14 +94,22 @@ function exportSingleImageLayer(layer, bbox) {
  * @param {import("@vcmap/core").StyleItem} defaultStyle
  * @returns {SceneFeature | null}
  */
-function convertFeatureToSceneFeature(olFeature, vectorProperties, defaultStyle) {
+function convertFeatureToSceneFeature(
+  olFeature,
+  vectorProperties,
+  defaultStyle,
+) {
   const geojsonFeature = writeGeoJSONFeature(olFeature, { asObject: true });
   const geometry = olFeature.getGeometry();
   if (!geometry) {
     return null;
   }
   const flatCoordinates = getFlatCoordinatesFromGeometry(geometry);
-  geojsonFeature.heightInfo = getHeightInfo(olFeature, vectorProperties, flatCoordinates);
+  geojsonFeature.heightInfo = getHeightInfo(
+    olFeature,
+    vectorProperties,
+    flatCoordinates,
+  );
   const model = vectorProperties.getModel(olFeature);
   if (model) {
     geojsonFeature.model = model;
@@ -133,7 +142,6 @@ function convertFeatureToSceneFeature(olFeature, vectorProperties, defaultStyle)
  * @property {Object<string, number> | undefined} hiddenObjects
  */
 
-
 /**
  * @param {import("@vcmap/core").VectorLayer} layer
  * @param {import("@vcmap/core").Extent} bbox
@@ -141,10 +149,19 @@ function convertFeatureToSceneFeature(olFeature, vectorProperties, defaultStyle)
  */
 function exportVectorLayer(layer, bbox) {
   const bboxMercator = bbox.getCoordinatesInProjection(mercatorProjection);
-  const sceneFeatures = layer.getFeatures()
-    .filter(feature => feature.getGeometry()?.intersectsExtent(bboxMercator) && !feature[hidden])
+  const sceneFeatures = layer
+    .getFeatures()
+    .filter(
+      (feature) =>
+        feature.getGeometry()?.intersectsExtent(bboxMercator) &&
+        !feature[hidden],
+    )
     .flatMap((feature) => {
-      const sceneFeature = convertFeatureToSceneFeature(feature, layer.vectorProperties, layer.style);
+      const sceneFeature = convertFeatureToSceneFeature(
+        feature,
+        layer.vectorProperties,
+        layer.style,
+      );
       return sceneFeature ? [sceneFeature] : [];
     });
 
@@ -173,9 +190,14 @@ async function exportVectorTileLayer(layer, bbox) {
   }
 
   const features = await layer.tileProvider.getFeaturesForExtent(bbox);
-  const sceneFeatures = features.filter(feature => !feature[hidden])
+  const sceneFeatures = features
+    .filter((feature) => !feature[hidden])
     .flatMap((feature) => {
-      const sceneFeature = convertFeatureToSceneFeature(feature, layer.vectorProperties, layer.style);
+      const sceneFeature = convertFeatureToSceneFeature(
+        feature,
+        layer.vectorProperties,
+        layer.style,
+      );
       return sceneFeature ? [sceneFeature] : [];
     });
 
@@ -202,14 +224,14 @@ export default async function collectScene(bbox, app) {
   // TODO: implement add drawing widget layer
   const { activeMap } = app.maps;
   const promises = [...app.layers]
-    .filter(layer => layer.active && layer.isSupported(activeMap))
+    .filter((layer) => layer.active && layer.isSupported(activeMap))
     .flatMap((layer) => {
       let promise;
       if (layer instanceof SingleImageLayer) {
         promise = exportSingleImageLayer(layer, bbox);
-      // TODO: Only necessary when planner is implemented?
-      // } else if (layer instanceof FeatureStoreLayer) {
-      //   promise = exportFeatureStoreLayer(layer, bbox);
+        // TODO: Only necessary when planner is implemented?
+        // } else if (layer instanceof FeatureStoreLayer) {
+        //   promise = exportFeatureStoreLayer(layer, bbox);
       } else if (layer instanceof VectorLayer) {
         if (
           // layer[configContentSymbol] || TODO: is this needed?
@@ -226,12 +248,11 @@ export default async function collectScene(bbox, app) {
   const layerExports = await Promise.all(promises);
   return {
     baseLayers: layerExports,
-    hiddenObjects: layerExports
-      .reduce((hiddenObjects, layerExport) => {
-        if (layerExport && layerExport.type === LayerType.GEOJSON) {
-          hiddenObjects.concat(Object.keys(layerExport.hiddenObjects));
-        }
-        return hiddenObjects;
-      }, []),
+    hiddenObjects: layerExports.reduce((hiddenObjects, layerExport) => {
+      if (layerExport && layerExport.type === LayerType.GEOJSON) {
+        hiddenObjects.concat(Object.keys(layerExport.hiddenObjects));
+      }
+      return hiddenObjects;
+    }, []),
   };
 }

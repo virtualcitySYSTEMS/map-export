@@ -1,7 +1,11 @@
 <template>
   <v-container class="pa-0">
     <!-- main settings -->
-    <v-row v-for="(mainSetting, name) in mainSettingsSetup" :key="name" no-gutters align="center">
+    <v-row
+      v-for="(mainSetting, name) in mainSettingsSetup"
+      :key="name"
+      no-gutters
+    >
       <v-col class="pa-0" cols="6">
         <VcsLabel :html-for="name + 'Select'" :dense="true">
           {{ $t(mainSetting.i18n) }}
@@ -14,13 +18,15 @@
           v-model="settingsState[mainSetting.stateName]"
           :dense="true"
           :multiple="mainSetting.multiple"
-          :rules="[v => !!v.length || $t('export.validation.selectFieldMultiple')]"
+          :rules="[
+            (v) => !!v.length || $t('export.validation.selectFieldMultiple'),
+          ]"
         />
       </v-col>
     </v-row>
     <!-- settings that depend on the selected formats -->
     <template v-for="(formatSetting, name) in formatSettingsSetup">
-      <v-row no-gutters align="center" :key="name">
+      <v-row no-gutters :key="name">
         <v-col class="pa-0">
           <VcsCheckbox
             :label="formatSetting.i18n"
@@ -33,7 +39,6 @@
         <v-row
           v-for="selectField in formatSetting.selectFields"
           no-gutter
-          align="center"
           :key="selectField.name"
           class="ma-0 pl-6"
         >
@@ -53,7 +58,7 @@
         </v-row>
       </template>
     </template>
-    <v-row v-if="showHeightMode" no-gutters align="center">
+    <v-row v-if="showHeightMode" no-gutters>
       <v-col class="pa-0" cols="6">
         <VcsLabel html-for="height-mode-select" :dense="true">
           {{ $t('export.settingsCityModel.heightMode') }}
@@ -64,12 +69,20 @@
           id="height-mode-select"
           v-model="settingsState.selectedHeightMode"
           :dense="true"
-          :items="[{value: 'absolute', text: $t('export.settingsCityModel.absolute')},
-                   {value: 'ellipsoid', text: $t('export.settingsCityModel.ellipsoid')}]"
+          :items="[
+            {
+              value: 'absolute',
+              text: $t('export.settingsCityModel.absolute'),
+            },
+            {
+              value: 'ellipsoid',
+              text: $t('export.settingsCityModel.ellipsoid'),
+            },
+          ]"
         />
       </v-col>
     </v-row>
-    <v-row v-if="crsInput" no-gutters align="center">
+    <v-row v-if="crsInput" no-gutters>
       <v-col class="pa-0" cols="6">
         <VcsLabel html-for="crs-input" :dense="true">
           {{ $t('export.settingsCityModel.coordinateSystem') }}
@@ -90,17 +103,15 @@
           dense
           placeholder="EPSG Code"
           v-model="settingsState.selectedCrs"
-          :rules="[v => /^(EPSG:)?\d{4,5}/.test(v) ||
-            $t('export.validation.epsg')]"
+          :rules="[
+            (v) => /^(EPSG:)?\d{4,5}/.test(v) || $t('export.validation.epsg'),
+          ]"
         />
       </v-col>
     </v-row>
     <v-row v-if="buttonShow" no-gutters>
       <v-col cols="12" class="px-1 d-flex flex-row-reverse">
-        <VcsButton
-          @click="$emit('continue')"
-          :disabled="buttonDisabled"
-        >
+        <VcsButton @click="$emit('continue')" :disabled="buttonDisabled">
           {{ $t('export.continue') }}
         </VcsButton>
       </v-col>
@@ -118,7 +129,13 @@
   // @ts-check
   import { TMSLayer, WMSLayer } from '@vcmap/core';
   import { VContainer, VRow, VCol } from 'vuetify/lib';
-  import { VcsLabel, VcsSelect, VcsCheckbox, VcsTextField, VcsButton } from '@vcmap/ui';
+  import {
+    VcsLabel,
+    VcsSelect,
+    VcsCheckbox,
+    VcsTextField,
+    VcsButton,
+  } from '@vcmap/ui';
   import { computed, inject, onBeforeMount, reactive, watch } from 'vue';
   import { exportFormats } from './configManager.js';
 
@@ -198,7 +215,9 @@
         if (Object.keys(props.setup.terrainAppearanceOptions).length === 0) {
           const app = inject('vcsApp');
           [...app.layers]
-            .filter(layer => layer instanceof TMSLayer || layer instanceof WMSLayer)
+            .filter(
+              (layer) => layer instanceof TMSLayer || layer instanceof WMSLayer,
+            )
             .forEach((layer) => {
               const { name, maxLevel } = layer;
               terrainAppearanceOptions[name] = maxLevel;
@@ -218,20 +237,29 @@
       const formatSettingsSetup = computed(() => {
         const settings = {
           showTerrainExport: {
-            render: props.setup.allowTerrainExport &&
-              settingsState.selectedExportFormats.some(formatType => formatType !== '2D Shape'),
+            render:
+              props.setup.allowTerrainExport &&
+              settingsState.selectedExportFormats.some(
+                (formatType) => formatType !== '2D Shape',
+              ),
             i18n: 'export.settingsCityModel.terrainExport',
             stateName: 'terrainExport',
           },
           showAddGenericAttr: {
-            render: props.setup.allowAddGenericAttrs &&
-              settingsState.selectedExportFormats.some(formatType => exportFormats[formatType].genericAttributes),
+            render:
+              props.setup.allowAddGenericAttrs &&
+              settingsState.selectedExportFormats.some(
+                (formatType) => exportFormats[formatType].genericAttributes,
+              ),
             i18n: 'export.settingsCityModel.genericAttrs',
             stateName: 'genericAttributes',
           },
           showTextureExport: {
-            render: props.setup.allowTextureExport &&
-              settingsState.selectedExportFormats.some(formatType => exportFormats[formatType].texture),
+            render:
+              props.setup.allowTextureExport &&
+              settingsState.selectedExportFormats.some(
+                (formatType) => exportFormats[formatType].texture,
+              ),
             i18n: 'export.settingsCityModel.textureExport',
             stateName: 'textureExport',
             selectFields: [
@@ -244,7 +272,9 @@
               },
               {
                 name: 'terrainAppearanceOptions',
-                render: Object.keys(terrainAppearanceOptions).length > 0 && settingsState.terrainExport,
+                render:
+                  Object.keys(terrainAppearanceOptions).length > 0 &&
+                  settingsState.terrainExport,
                 i18n: 'export.settingsCityModel.terrainTexture',
                 items: Object.keys(terrainAppearanceOptions),
                 stateName: 'selectedTerrainAppearanceLayer',
@@ -252,7 +282,9 @@
             ],
           },
           showUseLocalCoors: {
-            render: settingsState.selectedExportFormats.some(formatType => exportFormats[formatType].localCoordinates),
+            render: settingsState.selectedExportFormats.some(
+              (formatType) => exportFormats[formatType].localCoordinates,
+            ),
             i18n: 'export.settingsCityModel.localCoordinates',
             stateName: 'localCoordinates',
           },
@@ -265,13 +297,15 @@
         };
         // remove all format specific settings that should not be rendered.
         Object.keys(settings)
-          .filter(key => !settings[key].render)
-          .forEach(falsyKey => delete settings[falsyKey]);
+          .filter((key) => !settings[key].render)
+          .forEach((falsyKey) => delete settings[falsyKey]);
         // remove all select fields of a format specific setting that are empty or should not be rendered.
         Object.keys(settings)
-          .filter(key => settings[key].selectFields)
+          .filter((key) => settings[key].selectFields)
           .forEach((key) => {
-            const filteredFields = settings[key].selectFields.filter(selectField => selectField.render);
+            const filteredFields = settings[key].selectFields.filter(
+              (selectField) => selectField.render,
+            );
             if (filteredFields.length === 0) {
               delete settings[key].selectFields;
             } else {
@@ -284,14 +318,20 @@
 
       /** If heightmode should be displayed. */
       const showHeightMode = computed(() => {
-        return !settingsState.terrainExport &&
+        return (
+          !settingsState.terrainExport &&
           props.setup.allowHeightMode &&
-          settingsState.selectedExportFormats.some(formatType => exportFormats[formatType].heightMode);
+          settingsState.selectedExportFormats.some(
+            (formatType) => exportFormats[formatType].heightMode,
+          )
+        );
       });
 
       /** Manages crs input options. */
       const crsInput = computed(() => {
-        return settingsState.localCoordinates ? false : props.setup.allowCrsTextInput || Array.isArray(props.setup.crs);
+        return settingsState.localCoordinates
+          ? false
+          : props.setup.allowCrsTextInput || Array.isArray(props.setup.crs);
       });
 
       return {
