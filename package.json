@@ -1,6 +1,6 @@
 {
   "name": "@vcmap/export",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Warehouse export plugin for VC Map",
   "main": "src/index.js",
   "type": "module",
