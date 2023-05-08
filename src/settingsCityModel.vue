@@ -111,9 +111,9 @@
     </v-row>
     <v-row v-if="buttonShow" no-gutters>
       <v-col cols="12" class="px-1 d-flex flex-row-reverse">
-        <VcsButton @click="$emit('continue')" :disabled="buttonDisabled">
+        <VcsFormButton @click="$emit('continue')" :disabled="buttonDisabled">
           {{ $t('export.continue') }}
-        </VcsButton>
+        </VcsFormButton>
       </v-col>
     </v-row>
   </v-container>
@@ -134,7 +134,7 @@
     VcsSelect,
     VcsCheckbox,
     VcsTextField,
-    VcsButton,
+    VcsFormButton,
   } from '@vcmap/ui';
   import { computed, inject, onBeforeMount, reactive, watch } from 'vue';
   import { exportFormats } from './configManager.js';
@@ -156,7 +156,7 @@
       VcsSelect,
       VcsCheckbox,
       VcsTextField,
-      VcsButton,
+      VcsFormButton,
     },
     props: {
       setup: {

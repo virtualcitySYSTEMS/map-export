@@ -1,3 +1,11 @@
+# v1.0.5
+
+- change buttons to VcsFormButton
+
+# v1.0.4
+
+- fix object selection disabled
+
 # v1.0.3
 
 - add i18n for step reset buttons

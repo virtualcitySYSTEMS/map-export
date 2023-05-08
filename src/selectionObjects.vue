@@ -46,9 +46,9 @@
     </VcsTooltip>
     <v-row no-gutters v-if="buttonShow">
       <v-col class="d-flex flex-row-reverse">
-        <VcsButton @click="$emit('continue')" :disabled="buttonDisabled">
+        <VcsFormButton @click="$emit('continue')" :disabled="buttonDisabled">
           {{ $t('export.continue') }}
-        </VcsButton>
+        </VcsFormButton>
       </v-col>
     </v-row>
   </v-container>
@@ -56,7 +56,7 @@
 
 <script>
   import { CesiumTilesetLayer } from '@vcmap/core';
-  import { VcsButton, VcsTooltip } from '@vcmap/ui';
+  import { VcsFormButton, VcsTooltip } from '@vcmap/ui';
   import { computed, inject, onBeforeUnmount, ref, watch } from 'vue';
   import { VContainer, VRow, VCol, VIcon, VInput } from 'vuetify/lib';
   import { name } from '../package.json';
@@ -90,7 +90,7 @@
       VCol,
       VIcon,
       VInput,
-      VcsButton,
+      VcsFormButton,
       VcsTooltip,
     },
     props: {

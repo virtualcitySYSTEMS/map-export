@@ -297,13 +297,14 @@
       >
         <template #header>
           <div class="d-flex flex-grow-1 flex-row-reverse">
-            <VcsButton
+            <VcsFormButton
+              variant="filled"
               :disabled="!requestEnabled || running"
               @click="sendRequest()"
               :loading="running"
             >
               {{ $t('export.sendRequest') }}
-            </VcsButton>
+            </VcsFormButton>
           </div>
         </template>
       </VcsWizardStep>
@@ -337,7 +338,7 @@
   import { computed, inject, onUnmounted, reactive, ref, watch } from 'vue';
   import { VSheet, VForm, VOverlay, VProgressLinear } from 'vuetify/lib';
   import {
-    VcsButton,
+    VcsFormButton,
     VcsSelect,
     VcsTextField,
     VcsCheckbox,
@@ -368,7 +369,7 @@
       VForm,
       VOverlay,
       VProgressLinear,
-      VcsButton,
+      VcsFormButton,
       VcsSelect,
       VcsTextField,
       VcsTextArea,
