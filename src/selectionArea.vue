@@ -16,7 +16,7 @@
             }
           "
         >
-          <VcsButton
+          <VcsToolButton
             v-for="(value, name) in allowedGeometries"
             :key="name"
             :icon="value"
@@ -34,7 +34,7 @@
 
 <script>
   import { VSheet, VInput } from 'vuetify/lib';
-  import { VcsButton, VcsTooltip, getDefaultPrimaryColor } from '@vcmap/ui';
+  import { VcsToolButton, VcsTooltip, getDefaultPrimaryColor } from '@vcmap/ui';
   import {
     VectorLayer,
     startCreateFeatureSession,
@@ -84,7 +84,7 @@
    */
   export default {
     name: 'SelectionArea',
-    components: { VcsButton, VSheet, VInput, VcsTooltip },
+    components: { VcsToolButton, VSheet, VInput, VcsTooltip },
     emits: ['sessionstart'],
     setup(props, { emit }) {
       const app = inject('vcsApp');

@@ -1,3 +1,8 @@
+# v1.0.6
+
+- Updated Dependencies
+- Use VcsToolButton
+
 # v1.0.5
 
 - change buttons to VcsFormButton
