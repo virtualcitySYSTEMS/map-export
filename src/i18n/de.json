@@ -1,15 +1,15 @@
 {
   "export": {
-    "name": "Export",
+    "name": "Export Tool",
     "headerTitle": "Objekt Export Wizard",
-    "tooltip": "Export Plugin",
+    "tooltip": "Export Tool",
     "stepTitles": {
       "dataSources": "Datenquelle",
       "selectionType": "Datenauswahl",
       "settings": "Einstellungen",
       "selectImages": "Bilder auswählen",
       "selectFiles": "Dateien auswählen",
-      "exportDestination": "E-Mail Adresse"
+      "exportDestination": "E-Mailadresse"
     },
     "dataSources": {
       "cityModel": "3D Objekte",
@@ -17,14 +17,14 @@
       "geojson": "GeoJSON"
     },
     "selectionTypes": {
-      "areaSelection": "Flächen-Auswahl",
-      "objectSelection": "Objekt-Auswahl",
+      "areaSelection": "Flächenauswahl",
+      "objectSelection": "Objektauswahl",
       "currentImage": "Aktuelles Schrägluftbild",
-      "drawPolygon": "Zeichne ein Polygon",
-      "drawBBox": "Zeichne eine Bouding Box",
+      "drawPolygon": "Polygon zeichnen",
+      "drawBBox": "Bounding Box zeichnen",
       "objectCount": "Ausgewählte Objekte",
       "selectableLayers": "Unterstützte Ebene(n)",
-      "layerNotSupportedWarning": "Objekte dieser Ebene werden nicht für den Export unterstützt.",
+      "layerNotSupportedWarning": "Objekte dieser Ebene werden für den Export nicht unterstützt.",
       "objectSelection1": "Nutze",
       "objectSelection2": "und halte die Strg-Taste gedrückt um Objekte auszuwählen"
     },
@@ -40,8 +40,8 @@
       "terrainTexture": "Geländetextur",
       "appearanceTheme": "Objekttextur",
       "heightMode": "Höhenmodus",
-      "absolute": "absolute",
-      "ellipsoid": "ellipsoid",
+      "absolute": "Absolut",
+      "ellipsoid": "Ellipsoid",
       "coordinateSystem": "Koordinatensystem"
     },
     "settingsOblique": {
@@ -54,8 +54,8 @@
       "directionPlaceholder": "Richtung"
     },
     "userData": {
-      "enterMail": "Hier E-Mail Adresse eingeben",
-      "descriptionPlaceholder": "Beschreibe den Datensatz, um ihn später zuordnen zu können.",
+      "enterMail": "Hier E-Mailadresse eingeben",
+      "descriptionPlaceholder": "Beschreiben Sie den Datensatz, um ihn später zuordnen zu können.",
       "accept": "Ich akzeptiere die",
       "termsOfUse": "Nutzungsbedingungen"
     },
@@ -65,39 +65,39 @@
     "reset": "Zurücksetzen",
     "sendRequest": "Anfrage senden",
     "notification": {
-      "success": "Vielen Dank für Ihre Anfrage. Der Auftrag wurde angenommen. Sie erhalten eine Benachrichtigung, sobald die Daten zum Download bereit stehen. Dies kann je nach Datenmenge bis zu mehreren Stunden dauern.",
+      "success": "Vielen Dank für Ihre Anfrage. Diese wurde erfolgreich übermittelt. Sie erhalten eine Benachrichtigung, sobald Ihr Auftrag verarbeitet wurde. Dies kann je nach Datenmenge und Komplexität bis zu mehreren Stunden dauern.",
       "error": {
         "standard": "Bei der Bearbeitung Ihrer Anfrage ist ein Fehler aufgetreten. Bitte versuchen sie es zu einem anderen Zeitpunkt erneut.",
-        "validation": "Bitte stelle sicher, dass alle Eingabefelder valide sind."
+        "validation": "Bitte stellen Sie sicher, dass alle Eingabefelder korrekt ausgefüllt sind."
       }
     },
     "validation": {
       "termsOfUse": "Um eine Anfrage abzusenden, muss den Nutzungsbedingungen zugestimmt werden.",
-      "selectField": "Bitte wähle eine Option.",
-      "selectFieldMultiple": "Bitte wähle mindestens eine Option.",
-      "provideEmail": "Gib bitte eine E-Mail Adresse an.",
-      "epsg": "Bitte stelle sicher, dass der EPSG Code valide ist. Z.B. EPSG:25832 oder 25832.",
-      "objectSelection": "Bitte wähle mindestens ein Objekt aus.",
-      "areaSelection": "Bitte zeichne eine Auswahlfläche.",
+      "selectField": "Bitte wählen Sie eine Option.",
+      "selectFieldMultiple": "Bitte wählen Sie mindestens eine Option.",
+      "provideEmail": "Bitte geben Sie eine E-Mailadresse an.",
+      "epsg": "Bitte stellen Sie sicher, dass der EPSG Code valide ist (z.B. EPSG:25832 oder 25832).",
+      "objectSelection": "Bitte wählen Sie mindestens ein Objekt aus.",
+      "areaSelection": "Bitte zeichnen Sie eine Auswahlfläche.",
       "polygonFeature": "Die Geometrie der Flächenauswahl ist nicht valide.",
       "polygonFeatureArea": "Die maximale Größe der Auswahlfläche wurde überschritten."
     },
     "context": { "cityModel": "Objekt exportieren" },
     "resetButtons": {
       "settingsCityModel": "Einstellungen zurücksetzen",
-      "objectSelection": "Objekt-Auswahl zurücksetzen",
+      "objectSelection": "Objektauswahl zurücksetzen",
       "userData": "Nutzerangaben zurücksetzen"
     },
     "help": {
       "dataSources": {
-        "cityModel": "Exportiere Objekte des Stadtmodells wie z.B. Gebäude, Bäume oder Brücken.",
-        "oblique": "Exportiere hochaufgelöste Schrägluftbilder.",
-        "geojson": "Exportiere räumliche Daten mittels Gebietsauswahl."
+        "cityModel": "Exportieren Sie Objekte des Stadtmodells wie z.B. Gebäude, Bäume oder Brücken.",
+        "oblique": "Exportieren Sie hochaufgelöste Schrägluftbilder.",
+        "geojson": "Exportieren Sie räumliche Daten mittels Gebietsauswahl."
       },
       "selectionTypes": {
-        "areaSelection": "Zeichne eine Geometrie um einen Bereich zu exportieren.",
-        "objectSelection": "Klicke auf Objekte des Stadtmodells um sie auszuwählen. Nur verfügbar in der 3D Karte.",
-        "currentImage": "Lade das aktuell sichtbare Schrägluftbild herunter. Nur verfügbar im Schrägluftbild Modus."
+        "areaSelection": "Zeichnen Sie eine Geometrie, um einen Bereich zu exportieren.",
+        "objectSelection": "Klicken Sie auf Objekte des Stadtmodells, um sie auszuwählen. Nur verfügbar in der 3D Ansicht.",
+        "currentImage": "Lädt das aktuell sichtbare Schrägluftbild herunter. Nur verfügbar in der Ansicht \"Schrägluftbilder\"."
       }
     }
   }

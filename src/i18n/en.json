@@ -1,8 +1,8 @@
 {
   "export": {
-    "name": "Export",
+    "name": "Export Tool",
     "headerTitle": "Object Export Wizard",
-    "tooltip": "Export Plugin",
+    "tooltip": "Export Tool",
     "stepTitles": {
       "dataSources": "Data source",
       "selectionType": "Data selection",
@@ -12,7 +12,7 @@
       "exportDestination": "Email address"
     },
     "dataSources": {
-      "cityModel": "3D Objects",
+      "cityModel": "3D objects",
       "oblique": "Oblique images",
       "geojson": "GeoJSON"
     },
@@ -26,19 +26,19 @@
       "selectableLayers": "Selectable layer(s)",
       "layerNotSupportedWarning": "Objects of this layer are not supported for export.",
       "objectSelection1": "Use",
-      "objectSelection2": "while holding down ctrl key to select objects"
+      "objectSelection2": "while holding down Ctrl key to select objects"
     },
     "settingsCityModel": {
       "exportFromat": "Export format",
-      "lod": "Level of Detail",
+      "lod": "Level of detail",
       "thematicClasses": "Thematic classes",
       "terrainExport": "Terrain export",
       "genericAttrs": "Add generic attributes",
       "textureExport": "Texture export",
       "localCoordinates": "Use local coordinates",
       "tiledExport": "Tiled export",
-      "terrainTexture": "Terrain appearence",
-      "appearanceTheme": "Object appearence",
+      "terrainTexture": "Terrain appearance",
+      "appearanceTheme": "Object appearance",
       "heightMode": "Height mode",
       "absolute": "Absolute",
       "ellipsoid": "Ellipsoid",
@@ -65,10 +65,10 @@
     "reset": "Reset",
     "sendRequest": "Send request",
     "notification": {
-      "success": "Thank you for your request. The request has been accepted. You will get a response when the data export is done. This can take up to several hours, depending on the size of the data.",
+      "success": "Thank you for submitting your request. It has been transmitted successfully. You will receive a response once the request has been processed. This can take up to several hours, depending on the amount and complexity of the data.",
       "error": {
         "standard": "There was an error processing your request. Please try again later.",
-        "validation": "Please ensure that all inputs are valid"
+        "validation": "Please ensure that all inputs are valid."
       }
     },
     "validation": {
@@ -76,11 +76,11 @@
       "selectField": "Please choose an option.",
       "selectFieldMultiple": "Please select at least one option.",
       "provideEmail": "Please provide an email address.",
-      "epsg": "Please make sure the EPSG code is valid. Eiter e.g. EPSG:25832 or just 25832.",
+      "epsg": "Please make sure the EPSG code is valid (e.g. EPSG:25832 or simply 25832).",
       "objectSelection": "Please select at least one object.",
       "areaSelection": "Please draw a selection area.",
       "polygonFeature": "Geometry of area selection is not valid.",
-      "polygonFeatureArea": "Selection geometry exceeds max area."
+      "polygonFeatureArea": "Selection geometry exceeds maximum area."
     },
     "context": {
       "cityModel": "Export object"
