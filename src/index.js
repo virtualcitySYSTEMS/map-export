@@ -77,6 +77,9 @@ export default (config) => {
           state: {
             headerTitle: 'export.headerTitle',
             headerIcon: '$vcsImport',
+            infoUrlCallback: vcsUiApp.getHelpUrlCallback(
+              '/tools/exportTool.html',
+            ),
             styles: { width: '350px', height: 'auto' },
           },
         },

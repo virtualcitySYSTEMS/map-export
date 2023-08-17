@@ -48,18 +48,18 @@
     "@turf/boolean-disjoint": "~6.5.0"
   },
   "peerDependencies": {
-    "@vcmap-cesium/engine": "~2.4.1",
-    "@vcmap/core": "^5.0.0-rc.35",
-    "@vcmap/ui": "^5.0.0-rc.25",
+    "@vcmap-cesium/engine": "~2.4.3",
+    "@vcmap/core": "^5.0.0-rc.37",
+    "@vcmap/ui": "^5.0.0-rc.29",
     "@vcsuite/check": "^1.1.2",
     "@vcsuite/logger": "^1.0.1",
     "@vcsuite/parsers": "^1.0.3",
-    "ol": "~7.4.0",
+    "ol": "~7.5.1",
     "vue": "~2.7.3",
     "vuetify": "~2.6.7"
   },
   "devDependencies": {
-    "@vcmap/plugin-cli": "^2.1.9",
+    "@vcmap/plugin-cli": "^2.1.11",
     "@vcsuite/eslint-config": "^3.0.3"
   }
 }
