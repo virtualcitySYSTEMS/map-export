@@ -88,15 +88,7 @@
           {{ $t('export.settingsCityModel.coordinateSystem') }}
         </VcsLabel>
       </v-col>
-      <v-col class="pa-0" v-if="Array.isArray(setup.crs)" cols="6">
-        <VcsSelect
-          id="crs-input"
-          v-model="settingsState.selectedCrs"
-          :dense="true"
-          :items="setup.crs"
-        />
-      </v-col>
-      <v-col class="pa-0" v-else cols="6">
+      <v-col class="pa-0" v-if="setup.allowCrsTextInput" cols="6">
         <VcsTextField
           id="crs-input"
           clearable
@@ -106,6 +98,14 @@
           :rules="[
             (v) => /^(EPSG:)?\d{4,5}/.test(v) || $t('export.validation.epsg'),
           ]"
+        />
+      </v-col>
+      <v-col class="pa-0" v-else cols="6">
+        <VcsSelect
+          id="crs-input"
+          v-model="settingsState.selectedCrs"
+          :dense="true"
+          :items="setup.crs"
         />
       </v-col>
     </v-row>
@@ -137,7 +137,7 @@
     VcsFormButton,
   } from '@vcmap/ui';
   import { computed, inject, onBeforeMount, reactive, watch } from 'vue';
-  import { exportFormats } from './configManager.js';
+  import { exportFormats, mapThematicClasses } from './configManager.js';
 
   /**
    * @description Component with the settings for the city model export.
@@ -196,7 +196,7 @@
           stateName: 'selectedLod',
         },
         thematicClassList: {
-          items: props.setup.thematicClassList,
+          items: mapThematicClasses(props.setup.thematicClassList),
           i18n: 'export.settingsCityModel.thematicClasses',
           multiple: true,
           stateName: 'selectedThematicClasses',

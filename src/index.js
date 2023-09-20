@@ -1,10 +1,12 @@
 import { createToggleAction, ToolboxType, WindowSlot } from '@vcmap/ui';
 import { vcsLayerName } from '@vcmap/core';
 import { reactive } from 'vue';
-import { version, name } from '../package.json';
+import deepEqual from 'fast-deep-equal';
+import { version, name, mapVersion } from '../package.json';
 import ExportWindow from './exportWindow.vue';
-import { getSetupAndState } from './configManager.js';
-import getDefaultConfig from './defaultConfig.js';
+import ExportConfigEditor from './ExportConfigEditor.vue';
+import { getConfigAndState } from './configManager.js';
+import getDefaultOptions from './defaultOptions.js';
 import createDataSourceFromConfig from './dataSources/dataSourceFactory.js';
 import ObliqueDataSource from './dataSources/obliqueDataSource.js';
 import de from './i18n/de.json';
@@ -13,20 +15,17 @@ import en from './i18n/en.json';
 export const windowId = 'export_window_id';
 
 /**
- * @param {Object} config - the configuration of this plugin instance, passed in from the app.
+ * @param {Object} options - the options for this plugin instance, passed in from the app.
  * @returns {import("@vcmap/ui/src/vcsUiApp").VcsPlugin<T>}
  */
-export default (config) => {
-  const { pluginSetup, pluginState } = getSetupAndState(
-    config,
-    getDefaultConfig(),
-  );
-  /** initial state for setting back state to default values */
-  const defaultState = JSON.parse(JSON.stringify(pluginState));
+export default (options) => {
   /**
    * @readonly
    */
   let dataSource = null;
+  let config = null;
+  let state = null;
+  let defaultState = null;
 
   return {
     get name() {
@@ -35,30 +34,36 @@ export default (config) => {
     get version() {
       return version;
     },
-    config: pluginSetup,
-    state: reactive(pluginState),
-    defaultState,
+    get mapVersion() {
+      return mapVersion;
+    },
+    /** @returns {import("./configManager").ExportOptions} */
+    get config() {
+      return config;
+    },
+    /** @returns {import("./configManager").ExportState} */
+    get state() {
+      return state;
+    },
+    /**
+     * initial state for setting back state to default values
+     * @returns {import("./configManager").ExportState}
+     */
+    get defaultState() {
+      return defaultState;
+    },
     get dataSource() {
       return dataSource;
     },
-    updateDataSource(app, downloadState) {
-      const dataSourceOptions = pluginSetup.dataSourceOptionsList.find(
-        (dataSourceOption) =>
-          dataSourceOption.type === pluginState.selectedDataSource,
+    initialize() {
+      const { pluginConfig, pluginState } = getConfigAndState(
+        options,
+        getDefaultOptions(),
       );
-      if (dataSourceOptions) {
-        dataSource = createDataSourceFromConfig(dataSourceOptions, app);
-        if (dataSource instanceof ObliqueDataSource) {
-          dataSource.viewDirectionFilter =
-            pluginState.settingsOblique.directionFilter;
-          dataSource.downloadState = downloadState;
-        }
-      } else {
-        dataSource = null;
-      }
+      config = pluginConfig;
+      state = reactive(pluginState);
+      defaultState = JSON.parse(JSON.stringify(pluginState));
     },
-    resetState: () =>
-      Object.assign(pluginState, JSON.parse(JSON.stringify(defaultState))),
     /**
      * @param {import("@vcmap/ui").VcsUiApp} vcsUiApp
      * @returns {Promise<void>}
@@ -68,7 +73,7 @@ export default (config) => {
         {
           name: 'export.name',
           title: 'export.tooltip',
-          icon: '$vcsImport',
+          icon: '$vcsExport',
         },
         {
           id: windowId,
@@ -76,7 +81,7 @@ export default (config) => {
           slot: WindowSlot.DYNAMIC_LEFT,
           state: {
             headerTitle: 'export.headerTitle',
-            headerIcon: '$vcsImport',
+            headerIcon: '$vcsExport',
             infoUrlCallback: vcsUiApp.getHelpUrlCallback(
               '/tools/exportTool.html',
             ),
@@ -101,14 +106,14 @@ export default (config) => {
             event.feature[vcsLayerName],
           )?.properties;
           if (
-            properties.exportWorkbench &&
-            properties.exportWorkbench ===
-              pluginSetup.settingsCityModel.fmeServerUrl
+            properties?.exportWorkbench &&
+            properties?.exportWorkbench ===
+              config.settingsCityModel.fmeServerUrl
           ) {
             contextEntries.push({
               id: 'export_object',
               name: 'export.context.cityModel',
-              icon: '$vcsImport',
+              icon: '$vcsExport',
               callback() {
                 if (!vcsUiApp.toolboxManager.get(windowId).action.active) {
                   action.callback();
@@ -128,9 +133,49 @@ export default (config) => {
         return contextEntries;
       }, name);
     },
+    updateDataSource(app, downloadState) {
+      const dataSourceOptions = config.dataSourceOptionsList.find(
+        (dataSourceOption) =>
+          dataSourceOption.type === state.selectedDataSource,
+      );
+      if (dataSourceOptions) {
+        dataSource = createDataSourceFromConfig(dataSourceOptions, app);
+        if (dataSource instanceof ObliqueDataSource) {
+          dataSource.viewDirectionFilter =
+            state.settingsOblique.directionFilter;
+          dataSource.downloadState = downloadState;
+        }
+      } else {
+        dataSource = null;
+      }
+    },
+    resetState: () =>
+      Object.assign(state, JSON.parse(JSON.stringify(defaultState))),
     i18n: {
       de,
       en,
+    },
+    getDefaultOptions,
+    toJSON() {
+      const defaultOptions = getDefaultOptions();
+      const flatConfig = {
+        termsOfUse: config.termsOfUse,
+        dataSourceOptionsList: config.dataSourceOptionsList,
+        allowDescription: config.allowDescription,
+        maxSelectionArea: config.maxSelectionArea,
+        ...config.settingsCityModel,
+        ...config.defaults,
+      };
+      const customOptions = Object.keys(flatConfig).reduce((acc, key) => {
+        if (!deepEqual(defaultOptions[key], flatConfig[key])) {
+          acc[key] = flatConfig[key];
+        }
+        return acc;
+      }, {});
+      return customOptions;
+    },
+    getConfigEditors() {
+      return [{ component: ExportConfigEditor }];
     },
     destroy() {},
   };

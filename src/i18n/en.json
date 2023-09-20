@@ -14,7 +14,7 @@
     "dataSources": {
       "cityModel": "3D objects",
       "oblique": "Oblique images",
-      "geojson": "GeoJSON"
+      "geojson": "Static data"
     },
     "selectionTypes": {
       "areaSelection": "Area selection",
@@ -100,6 +100,45 @@
         "areaSelection": "Select the area you want to export by drawing a geometry.",
         "objectSelection": "Select city model objects by clicking on them. Only available in 3D view.",
         "currentImage": "Download the currently visible oblique image. Only available in oblique view."
+      }
+    },
+    "editor": {
+      "dataSources": "Data sources",
+      "obliqueName": "Name",
+      "fileExtension": "File extension",
+      "resolution": "Resolution",
+      "dedicatedSource": "Dedicated source",
+      "baseUrl": "Base URL",
+      "title": "Title",
+      "geojsonUrl": "GeoJSON URL",
+      "termsOfUse": "Terms of use",
+      "allowDescription": "Allow description",
+      "maxSelectionArea": "Max selection area",
+      "cityModelSettings": "City model settings",
+      "exportFormatList": "Export formats",
+      "default": "Default",
+      "lodList": "Levels of detail",
+      "thematicClassList": "Thematic classes",
+      "appearanceThemeDefault": "Object appearance default",
+      "heightModeDefault": "Height mode default",
+      "general": "General settings",
+      "allowHeightMode": "Height mode configurable",
+      "crsTextInput": "CRS text input",
+      "crsPredefined": "Predefined CRS",
+      "fmeSecurityToken": "FME Security Token",
+      "fmeServerUrl": "FME Server URL",
+      "exportScene": "Export plans and drawings",
+      "allowTextureExport": "Allow texture export",
+      "allowAddGenericAttrs": "Allow export of generic attributes",
+      "allowTiledExport": "Allow tiled export",
+      "allowTerrainExport": "Allow terrain export",
+      "terrainUrl": "Overwrite current terrain",
+      "terrainZoomLevel": "Terrain Zoom Level",
+      "dataSourceRequired": "At least one data source required",
+      "placeholder": {
+        "baseUrl": "./path/to/dataset/",
+        "geojsonUrl": "./path/to/file.geojson",
+        "terrainUrl": "./path/to/terrain/layer.json"
       }
     }
   }

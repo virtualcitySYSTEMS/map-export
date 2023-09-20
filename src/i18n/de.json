@@ -14,7 +14,7 @@
     "dataSources": {
       "cityModel": "3D Objekte",
       "oblique": "Schrägluftbild",
-      "geojson": "GeoJSON"
+      "geojson": "Statische Daten"
     },
     "selectionTypes": {
       "areaSelection": "Flächenauswahl",
@@ -98,6 +98,44 @@
         "areaSelection": "Zeichnen Sie eine Geometrie, um einen Bereich zu exportieren.",
         "objectSelection": "Klicken Sie auf Objekte des Stadtmodells, um sie auszuwählen. Nur verfügbar in der 3D Ansicht.",
         "currentImage": "Lädt das aktuell sichtbare Schrägluftbild herunter. Nur verfügbar in der Ansicht \"Schrägluftbilder\"."
+      }
+    },
+    "editor": {
+      "dataSources": "Datenquellen",
+      "obliqueName": "Name",
+      "fileExtension": "Dateiendung",
+      "resolution": "Auflösung",
+      "dedicatedSource": "Zugehörige Quelle",
+      "baseUrl": "Basis URL",
+      "title": "Titel",
+      "geojsonUrl": "GeoJSON URL",
+      "termsOfUse": "Nutzungsbedingungen",
+      "allowDescription": "Eingabefeld für Beschreibung",
+      "maxSelectionArea": "Maximale Auswahlfläche",
+      "cityModelSettings": "Einstellungen zum Stadtmodell",
+      "exportFormatList": "Export Formate",
+      "default": "Default",
+      "lodList": "Detaillierungsgrade",
+      "thematicClassList": "Thematische Klassen",
+      "appearanceThemeDefault": "Default Objekttextur",
+      "heightModeDefault": "Default Höhenmodus",
+      "general": "Allgemeine Einstellungen",
+      "allowHeightMode": "Höhenmodus konfigurierbar",
+      "fmeSecurityToken": "FME Security Token",
+      "fmeServerUrl": "FME Server URL",
+      "exportScene": "Planungen und Zeichnungen exportieren",
+      "allowTextureExport": "Export von Texturen erlauben",
+      "allowAddGenericAttrs": "Hinzufügen von generischen Attributen erlauben",
+      "allowTiledExport": "Gekachelten Export erlauben",
+      "allowTerrainExport": "Geländeexport erlauben",
+      "terrainUrl": "Aktives Gelände überschreiben",
+      "terrainZoomLevel": "Gelände Zoom Level",
+      "dataSourceRequired": "Mindestens eine Datenquelle erforderlich",
+      "crsPredefined": "CRS Auswahl",
+      "placeholder": {
+        "baseUrl": "./Pfad/zu/Datensatz/",
+        "geojsonUrl": "./Pfad/zu/file.geojson",
+        "terrainUrl": "./Pfad/zu/Gelände/layer.json"
       }
     }
   }

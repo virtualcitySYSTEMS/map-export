@@ -130,7 +130,7 @@
                   {{ $t('export.userData.accept') }}
                   <a
                     target="_blank"
-                    :href="pluginSetup.termsOfUse"
+                    :href="pluginConfig.termsOfUse"
                     @click.stop
                     >{{ $t('export.userData.termsOfUse') }}</a
                   >
@@ -169,7 +169,7 @@
                   pluginState.selectedDataSource ===
                   DataSourceOptions.CITY_MODEL
                 "
-                :setup="pluginSetup.settingsCityModel"
+                :setup="pluginConfig.settingsCityModel"
                 v-model="pluginState.settingsCityModel"
                 :button-disabled="!stepValid.settings"
                 :button-show="pluginState.highestStep <= stepOrder.SETTINGS"
@@ -256,7 +256,7 @@
                   class="pb-2"
                   rows="2"
                   v-model="pluginState.description"
-                  v-if="pluginSetup.allowDescription"
+                  v-if="pluginConfig.allowDescription"
                 />
               </div>
               <ResultList
@@ -269,10 +269,10 @@
                 :selected-data-source="pluginState.selectedDataSource"
                 v-model="pluginState.selectedResultItems"
                 :active="pluginState.step === stepOrder.EXPORT_DESTINATION"
-                :max-selection-area="pluginSetup.maxSelectionArea"
+                :max-selection-area="pluginConfig.maxSelectionArea"
               />
               <VcsCheckbox
-                v-if="pluginSetup.termsOfUse"
+                v-if="pluginConfig.termsOfUse"
                 v-model="pluginState.termsConsented"
                 :rules="[(v) => !!v || $t('export.validation.termsOfUse')]"
               >
@@ -280,7 +280,7 @@
                   {{ $t('export.userData.accept') }}
                   <a
                     target="_blank"
-                    :href="pluginSetup.termsOfUse"
+                    :href="pluginConfig.termsOfUse"
                     @click.stop
                     >{{ $t('export.userData.termsOfUse') }}</a
                   >
@@ -389,8 +389,8 @@
 
       /** @type import("./configManager").ExportState */
       const pluginState = plugin.state;
-      /** @type import("./configManager").ExportSetup */
-      const pluginSetup = plugin.config;
+      /** @type import("./configManager").ExportConfig */
+      const pluginConfig = plugin.config;
 
       const running = ref(false);
       const obliqueDownload = reactive({
@@ -454,12 +454,12 @@
        * @returns {Array<{options: import("./dataSources/abstractDataSource").AbstractDataSourceOptions, text: string }>} Array of dataSource items
        */
       const dataSourceItems = computed(() => {
-        return pluginSetup.dataSourceOptionsList.map((dataSourceOption) => {
+        return pluginConfig.dataSourceOptionsList.map((dataSourceOption) => {
           let text;
           if (dataSourceOption.type === DataSourceOptions.CITY_MODEL) {
-            text = 'export.dataSources.cityModel';
+            text = dataSourceOption.title || 'export.dataSources.cityModel';
           } else if (dataSourceOption.type === DataSourceOptions.OBLIQUE) {
-            text = 'export.dataSources.oblique';
+            text = dataSourceOption.title || 'export.dataSources.oblique';
           } else if (dataSourceOption.type === DataSourceOptions.GEOJSON) {
             text = dataSourceOption.title;
           } else {
@@ -479,7 +479,7 @@
           (layer) =>
             layer instanceof CesiumTilesetLayer &&
             layer.properties.exportWorkbench ===
-              pluginSetup.settingsCityModel.fmeServerUrl,
+              pluginConfig.settingsCityModel.fmeServerUrl,
         );
       }
 
@@ -563,7 +563,7 @@
        * If the request button is enabled or disabled.
        */
       const requestEnabled = computed(() => {
-        const termsAccepted = pluginSetup.termsOfUse
+        const termsAccepted = pluginConfig.termsOfUse
           ? pluginState.termsConsented
           : true;
         if (pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL) {
@@ -671,7 +671,7 @@
           running.value = true;
           if (pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL) {
             promise = prepareQueryAndSend(
-              pluginSetup,
+              pluginConfig,
               pluginState,
               String(areaSelectionLayerName),
               app,
@@ -815,7 +815,7 @@
         requestEnabled,
         handleSession,
         areaSelectionLayerName,
-        pluginSetup,
+        pluginConfig,
         pluginState,
         dataSourceItems,
         selectionTypeItems,

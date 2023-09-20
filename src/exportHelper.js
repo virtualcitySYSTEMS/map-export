@@ -6,6 +6,7 @@ import {
   TMSLayer,
   VectorLayer,
   WMSLayer,
+  Projection,
 } from '@vcmap/core';
 import { Polygon } from 'ol/geom';
 import { getArea } from 'ol/sphere';
@@ -55,14 +56,14 @@ export async function validatePolygonFeature(feature, app, maxSelectionArea) {
 
 /**
  * Prepares query parameter and sends a post request to the fme server.
- * @param {import("./configManager").ExportSetup} pluginSetup The setup configuration of the plugin.
+ * @param {import("./configManager").ExportConfig} pluginConfig The setup configuration of the plugin.
  * @param {import("./configManager").ExportState} pluginState The state of the plugin.
  * @param {string} selectionLayerName The name of the vector layer for the selection area.
  * @param {import("@vcmap/core").VcsApp} app
  * @returns {Promise<Response>} The promise of the fetch post request to the fme server.
  */
 export async function prepareQueryAndSend(
-  pluginSetup,
+  pluginConfig,
   pluginState,
   selectionLayerName,
   app,
@@ -93,9 +94,9 @@ export async function prepareQueryAndSend(
     dataProjection,
     fmeSecurityToken,
     fmeServerUrl,
-  } = pluginSetup.settingsCityModel;
+  } = pluginConfig.settingsCityModel;
 
-  const { maxSelectionArea } = pluginSetup;
+  const { maxSelectionArea } = pluginConfig;
 
   /**
    * The query paramters for GET request to VC Warehouse.
@@ -204,7 +205,10 @@ export async function prepareQueryAndSend(
       await validatePolygonFeature(feature, app, maxSelectionArea)
     ).clone();
 
-    geometry.transform(mercatorProjection.proj, dataProjection.proj);
+    geometry.transform(
+      mercatorProjection.proj,
+      new Projection(dataProjection).proj4,
+    );
 
     const coords = geometry.getCoordinates()[0];
 

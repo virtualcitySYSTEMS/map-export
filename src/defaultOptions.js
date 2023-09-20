@@ -1,5 +1,5 @@
 /**
- * @returns {import("./configManager").ExportConfig} the default plugin configuration
+ * @returns {import("./configManager").ExportOptions} the default plugin options
  */
 export default () => {
   return {
@@ -29,7 +29,7 @@ export default () => {
     exportFormatDefault: ['CityGML'],
     lodList: ['LoD1', 'LoD2', 'LoD3', 'haLoD'],
     lodDefault: 'haLoD',
-    thematicClassOptions: [
+    thematicClassList: [
       '26',
       '7',
       '14',
@@ -46,12 +46,12 @@ export default () => {
       '44',
     ],
     thematicClassDefault: ['26'],
-    dataSourceOptionsList: [{ type: 'cityModel' }],
+    dataSourceOptionsList: [],
     appearanceThemeList: ['rgbTexture'],
     appearanceThemeDefault: 'rgbTexture',
     heightModeDefault: 'absolute',
     allowHeightMode: true,
-    allowCrsTextInput: true,
+    allowCrsTextInput: false,
     allowTextureExport: true,
     allowAddGenericAttrs: true,
     allowTiledExport: true,
@@ -61,9 +61,9 @@ export default () => {
     terrainAppearanceOptions: {},
     terrainUrl: null,
     terrainZoomLevel: -1,
-    crs: null,
+    crs: 'EPSG:25832',
     allowDescription: true,
-    dataProjection: null,
+    dataProjection: { epsg: 'EPSG:25832' },
     exportScene: true,
     maxSelectionArea: 2000000,
   };

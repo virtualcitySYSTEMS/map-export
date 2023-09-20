@@ -1,4 +1,3 @@
-import { getDefaultProjection, Projection } from '@vcmap/core';
 import { check, checkMaybe } from '@vcsuite/check';
 import { parseBoolean, parseInteger } from '@vcsuite/parsers';
 
@@ -152,27 +151,31 @@ export const exportFormats = {
  */
 
 /**
+ * Object that maps the thematic class ids to the corresponding titles.
+ */
+export const thematicClassTitles = {
+  26: 'Building',
+  7: 'SolitaryVegetationObjects',
+  5: 'GenericCityObject',
+  21: 'CityFurniture',
+  14: 'ReliefFeature',
+  85: 'Tunnel',
+  64: 'Bridge',
+  45: 'Road',
+  44: 'Railway',
+  43: 'Track',
+  46: 'Square',
+  8: 'Plant Cover',
+  9: 'WaterBody',
+  4: 'LandUse',
+};
+
+/**
  * Maps an array of thematic city gml class ids to an array of objects with the properties of the classes.
  * @param {Array<string>} classes The thematic classes that should be mapped.
  * @returns {Array<ThematicClassProperties>} The thematic classes with title and if only available as city gml.
  */
-function mapThematicClasses(classes) {
-  const titles = {
-    26: 'Building',
-    7: 'SolitaryVegetationObjects',
-    5: 'GenericCityObject',
-    21: 'CityFurniture',
-    14: 'ReliefFeature',
-    85: 'Tunnel',
-    64: 'Bridge',
-    45: 'Road',
-    44: 'Railway',
-    43: 'Track',
-    46: 'Square',
-    8: 'Plant Cover',
-    9: 'WaterBody',
-    4: 'LandUse',
-  };
+export function mapThematicClasses(classes) {
   const cityGmlOnly = {
     85: true,
     45: true,
@@ -185,7 +188,7 @@ function mapThematicClasses(classes) {
   };
   return classes.map((key) => ({
     value: key,
-    text: titles[key],
+    text: thematicClassTitles[key],
     citygmlOnly: cityGmlOnly[key],
   }));
 }
@@ -246,8 +249,8 @@ export const LodOptions = {
  * @property {number} maxSelectionArea The max area for area selection in meters.
  * Is a setting for city model but type is altered, therefore can not be part of SettingsCityModelSetup typedef
  * @typedef {Object} AlteredSettingsCityModelInput Available city model thematic classes the user can select from.
- * @property {Array<string>} thematicClassOptions Available city model thematic classes the user can select from.
- * @typedef {SettingsCityModelSetup & SettingsCityModelDefaults & GeneralSetup & AlteredSettingsCityModelInput} ExportConfig Configuration options of the export plugin.
+ * @property {Array<string>} thematicClassList Available city model thematic classes the user can select from.
+ * @typedef {SettingsCityModelSetup & SettingsCityModelDefaults & GeneralSetup & AlteredSettingsCityModelInput} ExportOptions Configuration options of the export plugin.
  */
 
 /**
@@ -257,15 +260,15 @@ export const LodOptions = {
  * @property {Object<string, number> | null} terrainAppearanceOptions Key value pairs of imagery layer name and level for textured terrain export
  * @property {Array<string>} appearanceThemeList The possible appearance themes for the city model.
  * @property {boolean} allowHeightMode If the user can select a height mode (absolut/ellipsoid)
- * @property {boolean} allowCrsTextInput If the user can insert an epsg code for output crs
+ * @property {boolean} allowCrsTextInput If the user can insert an epsg code for output crs. If true, overrides crs property.
  * @property {boolean} allowTextureExport If user can choose to export textures
  * @property {boolean} allowAddGenericAttrs If user can choose to add generic attributes
  * @property {boolean} allowTiledExport If user can choose to export as tiles
  * @property {boolean} allowTerrainExport If user can choose to export terrain
- * @property {string | Array<string> | null} crs The output crs as epsg code. If array is provided user can select. Example: ["EPSG:25832", "EPSG:4326"]
+ * @property {string | Array<string>} crs The output crs as epsg code. Defaults to EPSG:25832. If array is provided user can select. Example: ["EPSG:25832", "EPSG:3587"]
  * @property {string | null} terrainUrl URL used if terrainExport is true, if not provided the currently active terrain will be used.
  * @property {?number} terrainZoomLevel Zoom level of terrain used if terrainExport is true.
- * @property {import("@vcmap/core").ProjectionOptions | null} dataProjection The datas projection, defaults to getDefaultProjection().
+ * @property {import("@vcmap/core").ProjectionOptions} dataProjection The datas projection, defaults to EPSG:25832.
  * @property {boolean} exportScene export entire scene, not just the city model.
  * @property {string=} fmeServerUrl The FME server URL.
  * @property {string=} fmeSecurityToken The FME security token for the given server.
@@ -273,8 +276,8 @@ export const LodOptions = {
 
 /**
  * @typedef {Object} AlteredSettingsCityModelOutput Available city model thematic classes the user can select from.
- * @property {Array<ThematicClassProperties>} thematicClassList Available city model thematic classes the user can select from.
- * @typedef {GeneralSetup & {settingsCityModel: SettingsCityModelSetup & AlteredSettingsCityModelOutput}} ExportSetup Setup variables of the export plugin.
+ * @property {Array<string>} thematicClassList Available city model thematic classes the user can select from.
+ * @typedef {GeneralSetup & {settingsCityModel: SettingsCityModelSetup & AlteredSettingsCityModelOutput} & {defaults: SettingsCityModelDefaults}} ExportConfig Setup variables of the export plugin.
  */
 
 /**
@@ -314,85 +317,75 @@ export const LodOptions = {
  */
 
 /**
- * Parses the default config as well as the custom map plugin config and merges them.
- * @param {ExportConfig} pluginConfig The config which is defined when setting up the map.
- * @param {ExportConfig} defaultConfig The default plugin config inside the source code of the plugin.
- * @returns {{pluginSetup: ExportSetup, pluginState: ExportState}}
+ * Parses the default options as well as the custom map plugin options and merges them.
+ * @param {ExportOptions} pluginOptions The options which is defined when setting up the map.
+ * @param {ExportOptions} defaultOptions The default plugin options inside the source code of the plugin.
+ * @returns {{pluginConfig: ExportConfig, pluginState: ExportState}}
  */
-export function getSetupAndState(pluginConfig, defaultConfig) {
+export function getConfigAndState(pluginOptions, defaultOptions) {
   // perform validation
 
-  // is put in an object so that if only one string is in the array/list, the array can be removed so the check of the default value works
-  const stringListValidation = {
-    exportFormatList:
-      pluginConfig.exportFormatList || defaultConfig.exportFormatList,
-    lodList: pluginConfig.lodList || defaultConfig.lodList,
-    thematicClassList:
-      pluginConfig.thematicClassOptions || defaultConfig.thematicClassOptions,
-    appearanceThemeList:
-      pluginConfig.appearanceThemeList || defaultConfig.appearanceThemeList,
-  };
+  // is put in an object so that if only one entry is in the array, the array can be removed so the check of the default value works. Can be removed when @vcsuite/check is updated.
+  const listOptions = [
+    'exportFormat',
+    'thematicClass',
+    'lod',
+    'appearanceTheme',
+  ].reduce((acc, key) => {
+    const value = pluginOptions[`${key}List`] || defaultOptions[`${key}List`];
+    acc[`${key}List`] = value.length === 1 ? value[0] : value;
+    return acc;
+  }, {});
 
-  Object.keys(stringListValidation).forEach((key) => {
-    check(stringListValidation[key], [String]);
-    if (stringListValidation[key].length === 1) {
-      stringListValidation[key] = stringListValidation[key][0];
-    }
-  });
-
-  checkMaybe(pluginConfig.exportFormatList, [String]);
-  if (pluginConfig.exportFormatDefault) {
-    pluginConfig.exportFormatDefault?.forEach((exportFormat) =>
-      check(exportFormat, stringListValidation.exportFormatList),
-    );
-  } else {
-    defaultConfig.exportFormatDefault?.forEach((exportFormat) =>
-      checkMaybe(exportFormat, stringListValidation.exportFormatList),
-    );
-  }
-  checkMaybe(pluginConfig.lodList, Object.values(LodOptions));
+  checkMaybe(pluginOptions.exportFormatList, [Object.keys(exportFormats)]);
   check(
-    pluginConfig.lodDefault || defaultConfig.lodDefault,
-    stringListValidation.lodList,
+    pluginOptions.exportFormatDefault || defaultOptions.exportFormatDefault,
+    [listOptions.exportFormatList],
   );
-  checkMaybe(pluginConfig.thematicClassOptions, [Number]);
-  if (pluginConfig.thematicClassDefault) {
-    pluginConfig.thematicClassDefault?.forEach((thematicClass) =>
-      check(thematicClass, stringListValidation.thematicClassList),
-    );
-  } else {
-    defaultConfig.exportFormatDefault?.forEach((exportFormat) =>
-      checkMaybe(
-        exportFormat,
-        pluginConfig.exportFormatList || defaultConfig.exportFormatList,
-      ),
-    );
-  }
-  checkMaybe(pluginConfig.dataSourceOptionsList, [{ type: String }]);
-  checkMaybe(pluginConfig.appearanceThemeList, [String]);
 
+  checkMaybe(pluginOptions.thematicClassList, [
+    Object.keys(thematicClassTitles),
+  ]);
   check(
-    pluginConfig.appearanceThemeDefault || defaultConfig.appearanceThemeDefault,
-    stringListValidation.appearanceThemeList,
+    pluginOptions.thematicClassDefault || defaultOptions.thematicClassDefault,
+    [listOptions.thematicClassList],
   );
-  checkMaybe(pluginConfig.heightModeDefault, HeightModes);
-  checkMaybe(pluginConfig.terrainAppearanceOptions, Object);
-  checkMaybe(pluginConfig.terrainZoomLevel, Number);
-  checkMaybe(pluginConfig.allowHeightMode, Boolean);
-  checkMaybe(pluginConfig.allowCrsTextInput, Boolean);
-  checkMaybe(pluginConfig.allowTextureExport, Boolean);
-  checkMaybe(pluginConfig.allowAddGenericAttrs, Boolean);
-  checkMaybe(pluginConfig.allowTiledExport, Boolean);
-  checkMaybe(pluginConfig.allowTerrainExport, Boolean);
-  checkMaybe(pluginConfig.termsOfUse, [String, URL]);
-  checkMaybe(pluginConfig.allowDescription, Boolean);
-  checkMaybe(pluginConfig.exportScene, Boolean);
-  checkMaybe(pluginConfig.crs, [String, [String]]);
-  checkMaybe(pluginConfig.dataProjection, Object);
-  checkMaybe(pluginConfig.maxSelectionArea, Number);
+
+  checkMaybe(pluginOptions.lodList, [Object.values(LodOptions)]);
+  check(
+    pluginOptions.lodDefault || defaultOptions.lodDefault,
+    listOptions.lodList,
+  );
+
+  checkMaybe(pluginOptions.appearanceThemeList, [String]);
+  check(
+    pluginOptions.appearanceThemeDefault ||
+      defaultOptions.appearanceThemeDefault,
+    listOptions.appearanceThemeList,
+  );
+
+  checkMaybe(pluginOptions.dataSourceOptionsList, [
+    { type: Object.values(DataSourceOptions) },
+  ]);
+
+  checkMaybe(pluginOptions.heightModeDefault, Object.values(HeightModes));
+  checkMaybe(pluginOptions.terrainAppearanceOptions, Object);
+  checkMaybe(pluginOptions.terrainZoomLevel, Number);
+  checkMaybe(pluginOptions.allowHeightMode, Boolean);
+  checkMaybe(pluginOptions.allowCrsTextInput, Boolean);
+  checkMaybe(pluginOptions.allowTextureExport, Boolean);
+  checkMaybe(pluginOptions.allowAddGenericAttrs, Boolean);
+  checkMaybe(pluginOptions.allowTiledExport, Boolean);
+  checkMaybe(pluginOptions.allowTerrainExport, Boolean);
+  checkMaybe(pluginOptions.termsOfUse, [String, URL]);
+  checkMaybe(pluginOptions.allowDescription, Boolean);
+  checkMaybe(pluginOptions.exportScene, Boolean);
+  checkMaybe(pluginOptions.crs, [String, [String]]);
+  checkMaybe(pluginOptions.dataProjection, Object);
+  checkMaybe(pluginOptions.maxSelectionArea, Number);
 
   const dataSourceOptionsList =
-    pluginConfig.dataSourceOptionsList || defaultConfig.dataSourceOptionsList;
+    pluginOptions.dataSourceOptionsList || defaultOptions.dataSourceOptionsList;
   dataSourceOptionsList.forEach((dataSourceOptions) => {
     if (dataSourceOptions.type === DataSourceOptions.GEOJSON) {
       if (dataSourceOptions.title) {
@@ -420,97 +413,103 @@ export function getSetupAndState(pluginConfig, defaultConfig) {
         dataSourceOption.type === DataSourceOptions.CITY_MODEL,
     )
   ) {
-    check(pluginConfig.fmeSecurityToken, String);
-    check(pluginConfig.fmeServerUrl, String);
+    check(pluginOptions.fmeSecurityToken, String);
+    check(pluginOptions.fmeServerUrl, String);
   }
 
   const exportFormatList =
-    pluginConfig.exportFormatList || defaultConfig.exportFormatList;
+    pluginOptions.exportFormatList || defaultOptions.exportFormatList;
   const exportFormatDefault =
-    pluginConfig.exportFormatDefault || defaultConfig.exportFormatDefault;
+    pluginOptions.exportFormatDefault || defaultOptions.exportFormatDefault;
 
-  const lodList = pluginConfig.lodList || defaultConfig.lodList;
-  const lodDefault = pluginConfig.lodDefault || defaultConfig.lodDefault;
+  const lodList = pluginOptions.lodList || defaultOptions.lodList;
+  const lodDefault = pluginOptions.lodDefault || defaultOptions.lodDefault;
 
-  const thematicClassList = mapThematicClasses(
-    pluginConfig.thematicClassOptions || defaultConfig.thematicClassOptions,
-  );
+  const thematicClassList =
+    pluginOptions.thematicClassList || defaultOptions.thematicClassList;
   const thematicClassDefault =
-    pluginConfig.thematicClassDefault || defaultConfig.thematicClassDefault;
+    pluginOptions.thematicClassDefault || defaultOptions.thematicClassDefault;
 
-  const termsOfUse = pluginConfig.termsOfUse || defaultConfig.termsOfUse;
+  const termsOfUse =
+    pluginOptions.termsOfUse !== undefined
+      ? pluginOptions.termsOfUse
+      : defaultOptions.termsOfUse;
 
   const appearanceThemeList =
-    pluginConfig.appearanceThemeList || defaultConfig.appearanceThemeList;
+    pluginOptions.appearanceThemeList || defaultOptions.appearanceThemeList;
   const appearanceThemeDefault =
-    pluginConfig.appearanceThemeDefault || defaultConfig.appearanceThemeDefault;
+    pluginOptions.appearanceThemeDefault ||
+    defaultOptions.appearanceThemeDefault;
 
-  const terrainAppearanceOptions = pluginConfig.terrainAppearanceOptions || {};
+  const terrainAppearanceOptions = pluginOptions.terrainAppearanceOptions || {};
 
   const allowHeightMode = parseBoolean(
-    pluginConfig.allowHeightMode,
-    defaultConfig.allowHeightMode,
+    pluginOptions.allowHeightMode,
+    defaultOptions.allowHeightMode,
   );
   const heightModeDefault =
-    pluginConfig.heightModeDefault || defaultConfig.heightModeDefault;
+    pluginOptions.heightModeDefault || defaultOptions.heightModeDefault;
 
   const allowCrsTextInput = parseBoolean(
-    pluginConfig.allowCrsTextInput,
-    defaultConfig.allowCrsTextInput,
+    pluginOptions.allowCrsTextInput,
+    defaultOptions.allowCrsTextInput,
   );
   const allowTextureExport = parseBoolean(
-    pluginConfig.allowTextureExport,
-    defaultConfig.allowTextureExport,
+    pluginOptions.allowTextureExport,
+    defaultOptions.allowTextureExport,
   );
   const allowAddGenericAttrs = parseBoolean(
-    pluginConfig.allowAddGenericAttrs,
-    defaultConfig.allowAddGenericAttrs,
+    pluginOptions.allowAddGenericAttrs,
+    defaultOptions.allowAddGenericAttrs,
   );
   const allowTiledExport = parseBoolean(
-    pluginConfig.allowTiledExport,
-    defaultConfig.allowTiledExport,
+    pluginOptions.allowTiledExport,
+    defaultOptions.allowTiledExport,
   );
   const allowTerrainExport = parseBoolean(
-    pluginConfig.allowTerrainExport,
-    defaultConfig.allowTerrainExport,
+    pluginOptions.allowTerrainExport,
+    defaultOptions.allowTerrainExport,
   );
 
-  const { terrainUrl } = pluginConfig;
+  const terrainUrl = pluginOptions.terrainUrl || defaultOptions.terrainUrl;
   // terrainZoomLevel needs to be null, so it can be JSON stringified, but input of parseInteger has to be undefined.
   const terrainZoomLevel =
     parseInteger(
-      pluginConfig.terrainZoomLevel,
-      defaultConfig.terrainZoomLevel || undefined,
+      pluginOptions.terrainZoomLevel,
+      defaultOptions.terrainZoomLevel || undefined,
     ) || null;
 
-  const dataProjection = pluginConfig.dataProjection
-    ? new Projection(pluginConfig.dataProjection)
-    : getDefaultProjection();
+  const dataProjection =
+    pluginOptions.dataProjection || defaultOptions.dataProjection;
 
-  const crs = pluginConfig.crs || dataProjection.epsg;
+  const crs = pluginOptions.crs || defaultOptions.crs;
 
   const allowDescription = parseBoolean(
-    pluginConfig.allowDescription,
-    defaultConfig.allowDescription,
+    pluginOptions.allowDescription,
+    defaultOptions.allowDescription,
   );
 
   const fmeSecurityToken =
-    pluginConfig.fmeSecurityToken || defaultConfig.fmeSecurityToken;
+    pluginOptions.fmeSecurityToken || defaultOptions.fmeSecurityToken;
 
-  const fmeServerUrl = pluginConfig.fmeServerUrl || defaultConfig.fmeServerUrl;
+  const fmeServerUrl =
+    pluginOptions.fmeServerUrl || defaultOptions.fmeServerUrl;
 
   const maxSelectionArea =
-    pluginConfig.maxSelectionArea || defaultConfig.maxSelectionArea;
+    pluginOptions.maxSelectionArea || defaultOptions.maxSelectionArea;
 
   let selectedCrs = null;
   if (Array.isArray(crs)) {
     selectedCrs = crs[0];
   }
 
-  const exportScene = pluginConfig.exportScene || defaultConfig.exportScene;
+  const exportScene = parseBoolean(
+    pluginOptions.exportScene,
+    defaultOptions.exportScene,
+  );
 
   return {
-    pluginSetup: {
+    pluginConfig: {
       settingsCityModel: {
         exportFormatList,
         lodList,
@@ -535,6 +534,13 @@ export function getSetupAndState(pluginConfig, defaultConfig) {
       dataSourceOptionsList,
       allowDescription,
       maxSelectionArea,
+      defaults: {
+        exportFormatDefault,
+        lodDefault,
+        thematicClassDefault,
+        appearanceThemeDefault,
+        heightModeDefault,
+      },
     },
     pluginState: {
       step: 1,

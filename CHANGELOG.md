@@ -1,3 +1,8 @@
+# v1.0.8
+
+- add config editor
+- add info url
+
 # v1.0.6
 
 - Updated Dependencies
