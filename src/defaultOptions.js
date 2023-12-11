@@ -1,7 +1,10 @@
+import { getDefaultProjection } from '@vcmap/core';
+
 /**
  * @returns {import("./configManager").ExportOptions} the default plugin options
  */
 export default () => {
+  const defaultProjection = getDefaultProjection();
   return {
     exportFormatList: [
       '2D Shape',
@@ -51,7 +54,6 @@ export default () => {
     appearanceThemeDefault: 'rgbTexture',
     heightModeDefault: 'absolute',
     allowHeightMode: true,
-    allowCrsTextInput: false,
     allowTextureExport: true,
     allowAddGenericAttrs: true,
     allowTiledExport: true,
@@ -61,9 +63,9 @@ export default () => {
     terrainAppearanceOptions: {},
     terrainUrl: null,
     terrainZoomLevel: -1,
-    crs: 'EPSG:25832',
+    crs: defaultProjection.epsg,
     allowDescription: true,
-    dataProjection: { epsg: 'EPSG:25832' },
+    dataProjection: defaultProjection.toJSON(),
     exportScene: true,
     maxSelectionArea: 2000000,
   };

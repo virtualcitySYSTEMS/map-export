@@ -1,5 +1,5 @@
 import { createToggleAction, ToolboxType, WindowSlot } from '@vcmap/ui';
-import { vcsLayerName } from '@vcmap/core';
+import { getDefaultProjection, vcsLayerName } from '@vcmap/core';
 import { reactive } from 'vue';
 import deepEqual from 'fast-deep-equal';
 import { version, name, mapVersion } from '../package.json';
@@ -15,7 +15,24 @@ import en from './i18n/en.json';
 export const windowId = 'export_window_id';
 
 /**
- * @param {Object} options - the options for this plugin instance, passed in from the app.
+ * Updates the dataProjection and crs config and state in case a module is added or removed. If these are not set in the options, the defaults map projection is used, which can change on module changes.
+ * @param {import("./configManager").ExportOptions} options The plugin options.
+ * @param {import("./configManager").ExportConfig} config The config created by configManager
+ * @param {import("./configManager").ExportState} state The state created by configManager
+ */
+function updateCrs(options, config, state) {
+  const defaultProjection = getDefaultProjection();
+  if (!options.dataProjection) {
+    config.settingsCityModel.dataProjection = defaultProjection;
+  }
+  if (!options.crs) {
+    config.settingsCityModel.crs = defaultProjection.epsg;
+    state.settingsCityModel.selectedCrs = defaultProjection.epsg;
+  }
+}
+
+/**
+ * @param {import("./configManager").ExportOptions} options - the options for this plugin instance, passed in from the app.
  * @returns {import("@vcmap/ui/src/vcsUiApp").VcsPlugin<T>}
  */
 export default (options) => {
@@ -26,6 +43,7 @@ export default (options) => {
   let config = null;
   let state = null;
   let defaultState = null;
+  let moduleListeners = [];
 
   return {
     get name() {
@@ -55,7 +73,10 @@ export default (options) => {
     get dataSource() {
       return dataSource;
     },
-    initialize() {
+    /**
+     * @param {import("@vcmap/ui").VcsUiApp} vcsUiApp
+     */
+    initialize(vcsUiApp) {
       const { pluginConfig, pluginState } = getConfigAndState(
         options,
         getDefaultOptions(),
@@ -63,6 +84,15 @@ export default (options) => {
       config = pluginConfig;
       state = reactive(pluginState);
       defaultState = JSON.parse(JSON.stringify(pluginState));
+
+      moduleListeners = [
+        vcsUiApp.moduleAdded.addEventListener(() => {
+          updateCrs(options, pluginConfig, pluginState);
+        }),
+        vcsUiApp.moduleRemoved.addEventListener(() => {
+          updateCrs(options, pluginConfig, pluginState);
+        }),
+      ];
     },
     /**
      * @param {import("@vcmap/ui").VcsUiApp} vcsUiApp
@@ -177,6 +207,8 @@ export default (options) => {
     getConfigEditors() {
       return [{ component: ExportConfigEditor }];
     },
-    destroy() {},
+    destroy() {
+      moduleListeners.forEach((l) => l());
+    },
   };
 };

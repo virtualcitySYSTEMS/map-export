@@ -123,7 +123,6 @@
       "heightModeDefault": "Height mode default",
       "general": "General settings",
       "allowHeightMode": "Height mode configurable",
-      "crsTextInput": "CRS text input",
       "crsPredefined": "Predefined CRS",
       "fmeSecurityToken": "FME Security Token",
       "fmeServerUrl": "FME Server URL",

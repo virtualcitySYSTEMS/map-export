@@ -82,25 +82,13 @@
         />
       </v-col>
     </v-row>
-    <v-row v-if="crsInput" no-gutters>
+    <v-row v-if="showCrsInput" no-gutters>
       <v-col class="pa-0" cols="6">
         <VcsLabel html-for="crs-input" :dense="true">
           {{ $t('export.settingsCityModel.coordinateSystem') }}
         </VcsLabel>
       </v-col>
-      <v-col class="pa-0" v-if="setup.allowCrsTextInput" cols="6">
-        <VcsTextField
-          id="crs-input"
-          clearable
-          dense
-          placeholder="EPSG Code"
-          v-model="settingsState.selectedCrs"
-          :rules="[
-            (v) => /^(EPSG:)?\d{4,5}/.test(v) || $t('export.validation.epsg'),
-          ]"
-        />
-      </v-col>
-      <v-col class="pa-0" v-else cols="6">
+      <v-col class="pa-0" cols="6">
         <VcsSelect
           id="crs-input"
           v-model="settingsState.selectedCrs"
@@ -129,13 +117,7 @@
   // @ts-check
   import { TMSLayer, WMSLayer } from '@vcmap/core';
   import { VContainer, VRow, VCol } from 'vuetify/lib';
-  import {
-    VcsLabel,
-    VcsSelect,
-    VcsCheckbox,
-    VcsTextField,
-    VcsFormButton,
-  } from '@vcmap/ui';
+  import { VcsLabel, VcsSelect, VcsCheckbox, VcsFormButton } from '@vcmap/ui';
   import { computed, inject, onBeforeMount, reactive, watch } from 'vue';
   import { exportFormats, mapThematicClasses } from './configManager.js';
 
@@ -155,7 +137,6 @@
       VcsLabel,
       VcsSelect,
       VcsCheckbox,
-      VcsTextField,
       VcsFormButton,
     },
     props: {
@@ -328,18 +309,16 @@
       });
 
       /** Manages crs input options. */
-      const crsInput = computed(() => {
-        return settingsState.localCoordinates
-          ? false
-          : props.setup.allowCrsTextInput || Array.isArray(props.setup.crs);
-      });
+      const showCrsInput = computed(
+        () => !settingsState.localCoordinates && Array.isArray(props.setup.crs),
+      );
 
       return {
         settingsState,
         mainSettingsSetup,
         formatSettingsSetup,
         showHeightMode,
-        crsInput,
+        showCrsInput,
       };
     },
   };

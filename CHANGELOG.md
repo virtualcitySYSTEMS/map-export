@@ -1,3 +1,9 @@
+# v1.0.11
+
+- fix bug if the plugin is configured with only one crs
+- fix dataProjection bug, that appeared when doing area selection
+- remove crs text input
+
 # v1.0.8
 
 - add config editor

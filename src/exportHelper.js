@@ -207,7 +207,7 @@ export async function prepareQueryAndSend(
 
     geometry.transform(
       mercatorProjection.proj,
-      new Projection(dataProjection).proj4,
+      new Projection(dataProjection).proj,
     );
 
     const coords = geometry.getCoordinates()[0];

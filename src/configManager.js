@@ -260,7 +260,6 @@ export const LodOptions = {
  * @property {Object<string, number> | null} terrainAppearanceOptions Key value pairs of imagery layer name and level for textured terrain export
  * @property {Array<string>} appearanceThemeList The possible appearance themes for the city model.
  * @property {boolean} allowHeightMode If the user can select a height mode (absolut/ellipsoid)
- * @property {boolean} allowCrsTextInput If the user can insert an epsg code for output crs. If true, overrides crs property.
  * @property {boolean} allowTextureExport If user can choose to export textures
  * @property {boolean} allowAddGenericAttrs If user can choose to add generic attributes
  * @property {boolean} allowTiledExport If user can choose to export as tiles
@@ -290,7 +289,7 @@ export const LodOptions = {
  * @property {boolean} tiledExport If the exported data should be tiled.
  * @property {boolean} localCoordinates If the coordinates of the exported data should have a local coordinate system.
  * @property {boolean} genericAttributes If the generic attributes of the city model should also be exported.
- * @property {string | null} selectedCrs The output crs.
+ * @property {string} selectedCrs The output crs.
  * @property {string} selectedAppearanceTheme The selected appearance theme for the city model.
  * @property {string | null} selectedTerrainAppearanceLayer The selected TMS or WMS Layer that is draped on the terrain for appearance.
  * @property {HeightModes} selectedHeightMode The selected height mode.
@@ -372,7 +371,6 @@ export function getConfigAndState(pluginOptions, defaultOptions) {
   checkMaybe(pluginOptions.terrainAppearanceOptions, Object);
   checkMaybe(pluginOptions.terrainZoomLevel, Number);
   checkMaybe(pluginOptions.allowHeightMode, Boolean);
-  checkMaybe(pluginOptions.allowCrsTextInput, Boolean);
   checkMaybe(pluginOptions.allowTextureExport, Boolean);
   checkMaybe(pluginOptions.allowAddGenericAttrs, Boolean);
   checkMaybe(pluginOptions.allowTiledExport, Boolean);
@@ -450,10 +448,6 @@ export function getConfigAndState(pluginOptions, defaultOptions) {
   const heightModeDefault =
     pluginOptions.heightModeDefault || defaultOptions.heightModeDefault;
 
-  const allowCrsTextInput = parseBoolean(
-    pluginOptions.allowCrsTextInput,
-    defaultOptions.allowCrsTextInput,
-  );
   const allowTextureExport = parseBoolean(
     pluginOptions.allowTextureExport,
     defaultOptions.allowTextureExport,
@@ -498,10 +492,7 @@ export function getConfigAndState(pluginOptions, defaultOptions) {
   const maxSelectionArea =
     pluginOptions.maxSelectionArea || defaultOptions.maxSelectionArea;
 
-  let selectedCrs = null;
-  if (Array.isArray(crs)) {
-    selectedCrs = crs[0];
-  }
+  const selectedCrs = Array.isArray(crs) ? crs[0] : crs;
 
   const exportScene = parseBoolean(
     pluginOptions.exportScene,
@@ -517,7 +508,6 @@ export function getConfigAndState(pluginOptions, defaultOptions) {
         terrainAppearanceOptions,
         appearanceThemeList,
         allowHeightMode,
-        allowCrsTextInput,
         allowTextureExport,
         allowAddGenericAttrs,
         allowTiledExport,
