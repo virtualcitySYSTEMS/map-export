@@ -9,7 +9,8 @@
       "settings": "Einstellungen",
       "selectImages": "Bilder auswählen",
       "selectFiles": "Dateien auswählen",
-      "exportDestination": "E-Mailadresse"
+      "exportDestination": "E-Mailadresse",
+      "exportName": "Export Name"
     },
     "dataSources": {
       "cityModel": "3D Objekte",
@@ -55,6 +56,7 @@
     },
     "userData": {
       "enterMail": "Hier E-Mailadresse eingeben",
+      "enterExportName": "Hier einen Namen für den Export eingeben",
       "descriptionPlaceholder": "Beschreiben Sie den Datensatz, um ihn später zuordnen zu können.",
       "accept": "Ich akzeptiere die",
       "termsOfUse": "Nutzungsbedingungen"
@@ -111,6 +113,8 @@
       "geojsonUrl": "GeoJSON URL",
       "termsOfUse": "Nutzungsbedingungen",
       "allowDescription": "Eingabefeld für Beschreibung",
+      "email": "Eingabefeld für eine Email",
+      "exportName": "Eingabefeld für Export Namen",
       "maxSelectionArea": "Maximale Auswahlfläche",
       "cityModelSettings": "Einstellungen zum Stadtmodell",
       "exportFormatList": "Export Formate",

@@ -60,6 +60,7 @@ export async function validatePolygonFeature(feature, app, maxSelectionArea) {
  * @param {import("./configManager").ExportState} pluginState The state of the plugin.
  * @param {string} selectionLayerName The name of the vector layer for the selection area.
  * @param {import("@vcmap/core").VcsApp} app
+ * @param {Object<string, any>} additionalParams
  * @returns {Promise<Response>} The promise of the fetch post request to the fme server.
  */
 export async function prepareQueryAndSend(
@@ -67,6 +68,7 @@ export async function prepareQueryAndSend(
   pluginState,
   selectionLayerName,
   app,
+  additionalParams,
 ) {
   const {
     selectedCrs,
@@ -83,8 +85,13 @@ export async function prepareQueryAndSend(
     selectedTerrainAppearanceLayer,
   } = pluginState.settingsCityModel;
 
-  const { email, description, selectedSelectionType, selectedObjects } =
-    pluginState;
+  const {
+    email,
+    exportName,
+    description,
+    selectedSelectionType,
+    selectedObjects,
+  } = pluginState;
 
   const {
     terrainUrl,
@@ -133,7 +140,8 @@ export async function prepareQueryAndSend(
         : 'No',
     APP_THEME: selectedAppearanceTheme || 'none',
     HEIGHTMODE: !terrainExport ? selectedHeightMode : 'absolute',
-    OPT_REQUESTEREMAIL: email, // TODO: Validate email in vue component
+    OPT_REQUESTEREMAIL: email,
+    EXPORT_NAME: exportName,
     DESC: description,
   };
 
@@ -235,6 +243,8 @@ export async function prepareQueryAndSend(
     serverUrl.searchParams.set(key, value);
   });
 
+  const combinedData = { ...sceneExport, ...additionalParams };
+
   return fetch(serverUrl, {
     method: 'POST',
     headers: {
@@ -242,6 +252,6 @@ export async function prepareQueryAndSend(
       'Content-Type': 'application/json',
       Authorization: `fmetoken token=${fmeSecurityToken}`, // TODO: Ensure in configManager that token exists
     },
-    body: JSON.stringify(sceneExport),
+    body: JSON.stringify(combinedData),
   });
 }

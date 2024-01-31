@@ -29,6 +29,26 @@
         <v-row no-gutters>
           <v-col>
             <VcsCheckbox
+              id="general-allow-email"
+              label="export.editor.email"
+              :true-value="true"
+              :false-value="false"
+              v-model="localConfig.allowEmail"
+            />
+          </v-col> </v-row
+        ><v-row no-gutters>
+          <v-col>
+            <VcsCheckbox
+              id="general-allow-exportName"
+              label="export.editor.exportName"
+              :true-value="true"
+              :false-value="false"
+              v-model="localConfig.allowExportName"
+            />
+          </v-col> </v-row
+        ><v-row no-gutters>
+          <v-col>
+            <VcsCheckbox
               id="general-allow-description"
               label="export.editor.allowDescription"
               :true-value="true"

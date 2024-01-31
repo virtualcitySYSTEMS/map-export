@@ -206,7 +206,17 @@
           <span
             class="py-3"
             v-if="
-              pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL
+              pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL &&
+              pluginConfig.allowEmail === false &&
+              pluginConfig.allowExportName === true
+            "
+          >
+            {{ $t('export.stepTitles.exportName') }}</span
+          ><span
+            class="py-3"
+            v-else-if="
+              pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL &&
+              pluginConfig.allowEmail === true
             "
           >
             {{ $t('export.stepTitles.exportDestination') }}</span
@@ -242,6 +252,7 @@
                 "
               >
                 <VcsTextField
+                  v-if="pluginConfig.allowEmail"
                   :dense="true"
                   :label="undefined"
                   :placeholder="$t('export.userData.enterMail')"
@@ -250,6 +261,19 @@
                     (v) =>
                       isValidEmail(v) || $t('export.validation.provideEmail'),
                   ]"
+                />
+                <VcsTextField
+                  v-if="pluginConfig.allowExportName"
+                  :dense="true"
+                  :label="undefined"
+                  :placeholder="$t('export.userData.enterExportName')"
+                  :rules="[
+                    (v) =>
+                      pluginConfig.allowEmail ||
+                      pluginState.exportName ||
+                      $t('components.validation.required'),
+                  ]"
+                  v-model="pluginState.exportName"
                 />
                 <VcsTextArea
                   :placeholder="$t('export.userData.descriptionPlaceholder')"
@@ -567,7 +591,13 @@
           ? pluginState.termsConsented
           : true;
         if (pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL) {
-          return termsAccepted && !!pluginState.email;
+          if (pluginConfig.allowEmail) {
+            // Check if email is provided
+            return termsAccepted && !!pluginState.email;
+          } else if (pluginConfig.allowExportName) {
+            // Check if exportName is provided
+            return termsAccepted && !!pluginState.exportName;
+          }
         } else if (
           pluginState.selectedDataSource === DataSourceOptions.OBLIQUE
         ) {
@@ -675,6 +705,7 @@
               pluginState,
               String(areaSelectionLayerName),
               app,
+              plugin.additionalParams,
             );
           } else if (
             pluginState.selectedDataSource === DataSourceOptions.OBLIQUE ||

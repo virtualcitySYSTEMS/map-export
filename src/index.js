@@ -63,6 +63,14 @@ export default (options) => {
     get state() {
       return state;
     },
+
+    /**
+     * Additional parameters (if any) that can be used to customize or configure the plugin further.
+     * These can be set from other plugins and are handled in the body of the FME Request.
+     * They can be used to forward login information (SessionIds).
+     * @type {Object}
+     */
+    additionalParams: undefined,
     /**
      * initial state for setting back state to default values
      * @returns {import("./configManager").ExportState}
@@ -192,6 +200,8 @@ export default (options) => {
         termsOfUse: config.termsOfUse,
         dataSourceOptionsList: config.dataSourceOptionsList,
         allowDescription: config.allowDescription,
+        allowEmail: config.allowEmail,
+        allowExportName: config.allowExportName,
         maxSelectionArea: config.maxSelectionArea,
         ...config.settingsCityModel,
         ...config.defaults,

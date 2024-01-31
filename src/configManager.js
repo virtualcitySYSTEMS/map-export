@@ -245,6 +245,8 @@ export const LodOptions = {
  * @typedef GeneralSetup
  * @property {Array<import("./dataSources/abstractDataSource").AbstractDataSourceOptions>} dataSourceOptionsList List of selectable data sources and their options. GeoJSON can additionally contain title and help.
  * @property {URL | string | null} termsOfUse URL to a website with the term of use.
+ * @property {boolean} allowExportName export name for export.
+ * @property {boolean} allowEmail export email.
  * @property {boolean} allowDescription If user can add a description to the city model export.
  * @property {number} maxSelectionArea The max area for area selection in meters.
  * Is a setting for city model but type is altered, therefore can not be part of SettingsCityModelSetup typedef
@@ -308,6 +310,7 @@ export const LodOptions = {
  * @property {SettingsObliqueState} settingsOblique The selected settings for oblique export.
  * @property {boolean} termsConsented If user accepted the terms of use.
  * @property {string | null} email Email address provided by the user for sending results.
+ * @property {string | null} exportName Name provided by the user for the exportet file.
  * @property {string} description A description that the user can add to the exported dataset to make it easier for him to identify the exported data.
  * @property {SelectionTypes | null} selectedSelectionType The selected selection type.
  * @property {DataSourceOptions | null} selectedDataSource The selected dataSource.
@@ -381,6 +384,9 @@ export function getConfigAndState(pluginOptions, defaultOptions) {
   checkMaybe(pluginOptions.crs, [String, [String]]);
   checkMaybe(pluginOptions.dataProjection, Object);
   checkMaybe(pluginOptions.maxSelectionArea, Number);
+
+  checkMaybe(pluginOptions.allowEmail, Boolean);
+  checkMaybe(pluginOptions.allowExportName, Boolean);
 
   const dataSourceOptionsList =
     pluginOptions.dataSourceOptionsList || defaultOptions.dataSourceOptionsList;
@@ -499,6 +505,16 @@ export function getConfigAndState(pluginOptions, defaultOptions) {
     defaultOptions.exportScene,
   );
 
+  const allowExportName = parseBoolean(
+    pluginOptions.allowExportName,
+    defaultOptions.allowExportName,
+  );
+
+  const allowEmail = parseBoolean(
+    pluginOptions.allowEmail,
+    defaultOptions.allowEmail,
+  );
+
   return {
     pluginConfig: {
       settingsCityModel: {
@@ -520,6 +536,8 @@ export function getConfigAndState(pluginOptions, defaultOptions) {
         fmeSecurityToken,
         fmeServerUrl,
       },
+      allowExportName,
+      allowEmail,
       termsOfUse,
       dataSourceOptionsList,
       allowDescription,
@@ -554,6 +572,7 @@ export function getConfigAndState(pluginOptions, defaultOptions) {
       },
       termsConsented: false,
       email: null,
+      exportName: null,
       description: '',
       selectedSelectionType: null,
       selectedDataSource: null,

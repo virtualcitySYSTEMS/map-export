@@ -1,3 +1,8 @@
+# v1.0.12
+
+- add additional Parameter to sent to FME Workbench
+- either exportName or Email is mandatory (for use in Servers)
+
 # v1.0.11
 
 - fix bug if the plugin is configured with only one crs

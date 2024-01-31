@@ -68,5 +68,7 @@ export default () => {
     dataProjection: defaultProjection.toJSON(),
     exportScene: true,
     maxSelectionArea: 2000000,
+    allowEmail: true,
+    allowExportName: false,
   };
 };
