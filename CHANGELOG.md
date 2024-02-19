@@ -1,6 +1,7 @@
 # v1.0.13
 
 - fix exportName Rule
+- fixes a bug where using the cityObject selection method would make the map slow.
 
 # v1.0.12
 

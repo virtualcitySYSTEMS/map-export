@@ -57,7 +57,14 @@
 <script>
   import { CesiumTilesetLayer } from '@vcmap/core';
   import { VcsFormButton, VcsTooltip } from '@vcmap/ui';
-  import { computed, inject, onBeforeUnmount, ref, watch } from 'vue';
+  import {
+    computed,
+    inject,
+    onBeforeUnmount,
+    ref,
+    shallowRef,
+    watch,
+  } from 'vue';
   import { VContainer, VRow, VCol, VIcon, VInput } from 'vuetify/lib';
   import { name } from '../package.json';
   import { windowId } from './index.js';
@@ -111,7 +118,7 @@
     setup(props, { emit }) {
       const app = inject('vcsApp');
       const plugin = app.plugins.getByKey(name);
-      const selectableLayers = ref(
+      const selectableLayers = shallowRef(
         getSelectableLayers(app, plugin.config.settingsCityModel.fmeServerUrl),
       );
       const selectedObjects = ref(props.value);
