@@ -270,7 +270,7 @@
                   :rules="[
                     (v) =>
                       pluginConfig.allowEmail ||
-                      pluginState.exportName ||
+                      v.length > 0 ||
                       $t('components.validation.required'),
                   ]"
                   v-model="pluginState.exportName"

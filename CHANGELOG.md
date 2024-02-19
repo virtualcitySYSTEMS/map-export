@@ -1,3 +1,7 @@
+# v1.0.13
+
+- fix exportName Rule
+
 # v1.0.12
 
 - add additional Parameter to sent to FME Workbench
