@@ -21,9 +21,8 @@ class SelectionObjectInteraction extends AbstractInteraction {
   /**
    * @param {import("@vcmap/ui").VcsUiApp} app
    * @param {Array<import("@vcmap/core"):CesiumTilesetLayer>} layers
-   * @param {Array<string>} features Ids of selected features.
    */
-  constructor(app, layers, features) {
+  constructor(app, layers) {
     super(EventType.CLICK, ModificationKeyType.CTRL);
     /**
      * @type {import("@vcmap/ui").VcsUiApp}
@@ -41,8 +40,7 @@ class SelectionObjectInteraction extends AbstractInteraction {
      * @type {string[]}
      * @private
      */
-    this._selectedFeatures = features || [];
-    this._highlightSelectedFeatures();
+    this._selectedFeatures = [];
     /**
      * @type {import("@vcmap/core").VcsEvent<Array<string>>}
      * @private

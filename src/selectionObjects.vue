@@ -130,7 +130,6 @@
       const interaction = new ObjectSelectionInteraction(
         app,
         selectableLayers.value,
-        selectedObjects.value,
       );
 
       const selectableLayerNames = computed(() => {
@@ -139,14 +138,7 @@
 
       let destroy = () => {};
 
-      // in case the selected features are changed from outside this component (e.g. by selecting object with context menu).
-      const stopWatching = watch(
-        () => props.value,
-        () => {
-          interaction.selectedFeatures = props.value;
-          count.value = props.value.length;
-        },
-      );
+      let stopWatching = () => {};
 
       destroy = () => {
         stopWatching();
@@ -185,6 +177,17 @@
           }
         }),
       ];
+
+      // in case the selected features are changed from outside this component (e.g. by selecting object with context menu).
+      stopWatching = watch(
+        () => props.value,
+        () => {
+          interaction.selectedFeatures = props.value;
+          count.value = props.value.length;
+        },
+        { immediate: true },
+      );
+
       onBeforeUnmount(() => {
         listeners.forEach((cb) => cb());
         destroy();

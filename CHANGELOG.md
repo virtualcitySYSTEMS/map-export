@@ -1,3 +1,7 @@
+# v1.0.14
+
+- Fixes a bug where the highlight color was lost when the feature was already selected by the feature info tool.
+
 # v1.0.13
 
 - fix exportName Rule
