@@ -58,8 +58,7 @@ export default () => {
     allowAddGenericAttrs: true,
     allowTiledExport: true,
     allowTerrainExport: true,
-    termsOfUse:
-      'https://www.businesslocationcenter.de/berlin3d-downloadportal/templates/en/datenschutzhinweise.html',
+    termsOfUse: 'https://linktoprivacy',
     terrainAppearanceOptions: {},
     terrainUrl: null,
     terrainZoomLevel: -1,
