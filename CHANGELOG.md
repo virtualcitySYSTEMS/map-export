@@ -1,3 +1,7 @@
+# v1.0.15
+
+- Fixes a bug in the plugin config editor, where changing the max area was not possible
+
 # v1.0.14
 
 - Fixes a bug where the highlight color was lost when the feature was already selected by the feature info tool.

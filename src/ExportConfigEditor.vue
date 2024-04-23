@@ -67,7 +67,7 @@
             <VcsTextField
               id="general-max-selection-area"
               clearable
-              v-model="localConfig.maxSelectionArea"
+              v-model.number="localConfig.maxSelectionArea"
               type="number"
               unit="m²"
               :rules="[(v) => !!v || 'components.validation.required']"
