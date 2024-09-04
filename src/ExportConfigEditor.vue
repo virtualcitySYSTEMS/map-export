@@ -35,18 +35,9 @@
               :false-value="false"
               v-model="localConfig.allowEmail"
             />
-          </v-col> </v-row
-        ><v-row no-gutters>
-          <v-col>
-            <VcsCheckbox
-              id="general-allow-exportName"
-              label="export.editor.exportName"
-              :true-value="true"
-              :false-value="false"
-              v-model="localConfig.allowExportName"
-            />
-          </v-col> </v-row
-        ><v-row no-gutters>
+          </v-col>
+        </v-row>
+        <v-row no-gutters>
           <v-col>
             <VcsCheckbox
               id="general-allow-description"
@@ -292,7 +283,7 @@
         >
           <v-col>
             <VcsLabel :html-for="`settings-${key}`" dense>
-              {{ $t(`export.editor.${key}`) }}
+              {{ $st(`export.editor.${key}`) }}
             </VcsLabel>
           </v-col>
           <v-col>
@@ -300,7 +291,7 @@
               :id="`settings-${key}`"
               v-model="localConfig[key]"
               :rules="[(v) => !!v || 'components.validation.required']"
-              :placeholder="$t(`export.editor.${key}`)"
+              :placeholder="$st(`export.editor.${key}`)"
             />
           </v-col>
         </v-row>
@@ -308,7 +299,7 @@
           <v-row no-gutters>
             <v-col cols="6">
               <VcsLabel :html-for="`settings-${key}-list`" dense>
-                {{ $t(`export.editor.${key}List`) }}
+                {{ $st(`export.editor.${key}List`) }}
               </VcsLabel>
             </v-col>
             <v-col cols="2">
@@ -476,7 +467,7 @@
 </template>
 
 <script>
-  import { VContainer, VRow, VCol } from 'vuetify/lib';
+  import { VContainer, VRow, VCol } from 'vuetify/components';
   import {
     AbstractConfigEditor,
     VcsFormSection,

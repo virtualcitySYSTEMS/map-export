@@ -17,33 +17,30 @@
         </ul>
       </v-col>
     </v-row>
-    <VcsTooltip
-      tooltip-position="right"
-      :tooltip="isError ? 'export.validation.objectSelection' : ''"
-      color="error"
-    >
-      <template #activator="{ on, attrs }">
-        <v-row no-gutters v-bind="attrs" v-on="on">
-          <v-input
-            :value="count"
-            :rules="[(v) => !!v]"
-            hide-details
-            @update:error="
-              (errorState) => {
-                isError = errorState;
-              }
-            "
-          >
-            <v-col cols="8" class="px-0 py-1">
-              {{ $t('export.selectionTypes.objectCount') }}:
-            </v-col>
-            <v-col cols="4" class="px-0 py-1 d-flex justify-end">
-              <span>{{ count }}</span>
-            </v-col>
-          </v-input>
-        </v-row>
-      </template>
-    </VcsTooltip>
+    <v-row no-gutters>
+      <v-input
+        class="feature-input"
+        :model-value="count"
+        :rules="[objectSelectionRule]"
+        :class="{ 'text-error': count === 0 && isReset }"
+      >
+        <v-col cols="8" class="px-0 py-1">
+          {{ $t('export.selectionTypes.objectCount') }}:
+        </v-col>
+        <v-col cols="4" class="px-0 py-1 d-flex justify-end">
+          <span>{{ count }}</span>
+        </v-col>
+        <template #message="{ message }">
+          <v-tooltip
+            activator=".feature-input"
+            :v-if="message"
+            :text="$st(message)"
+            content-class="bg-error"
+            location="right"
+          />
+        </template>
+      </v-input>
+    </v-row>
     <v-row no-gutters v-if="buttonShow">
       <v-col class="d-flex flex-row-reverse">
         <VcsFormButton @click="$emit('continue')" :disabled="buttonDisabled">
@@ -56,19 +53,20 @@
 
 <script>
   import { CesiumTilesetLayer } from '@vcmap/core';
-  import { VcsFormButton, VcsTooltip } from '@vcmap/ui';
+  import { useProxiedComplexModel, VcsFormButton } from '@vcmap/ui';
+  import { computed, inject, ref, shallowRef, watch } from 'vue';
   import {
-    computed,
-    inject,
-    onBeforeUnmount,
-    ref,
-    shallowRef,
-    watch,
-  } from 'vue';
-  import { VContainer, VRow, VCol, VIcon, VInput } from 'vuetify/lib';
+    VContainer,
+    VRow,
+    VCol,
+    VIcon,
+    VInput,
+    VTooltip,
+  } from 'vuetify/components';
   import { name } from '../package.json';
   import { windowId } from './index.js';
   import ObjectSelectionInteraction from './selectionObjectsInteraction.js';
+  import { SelectionTypes } from './configManager.js';
 
   /**
    * @param {import("@vcmap/ui").VcsUiApp} app
@@ -98,10 +96,10 @@
       VIcon,
       VInput,
       VcsFormButton,
-      VcsTooltip,
+      VTooltip,
     },
     props: {
-      value: {
+      modelValue: {
         type: Array,
         required: true,
       },
@@ -114,6 +112,10 @@
         required: false,
         default: true,
       },
+      isReset: {
+        type: Boolean,
+        required: true,
+      },
     },
     setup(props, { emit }) {
       const app = inject('vcsApp');
@@ -121,16 +123,17 @@
       const selectableLayers = shallowRef(
         getSelectableLayers(app, plugin.config.settingsCityModel.fmeServerUrl),
       );
-      const selectedObjects = ref(props.value);
+      const selectedObjects = useProxiedComplexModel(props, 'modelValue', emit);
+
       /** Number of selected Objects. */
       const count = ref(selectedObjects.value.length);
 
       const { eventHandler } = app.maps;
-
       const interaction = new ObjectSelectionInteraction(
         app,
         selectableLayers.value,
       );
+      interaction.id = 'objectSelectionInteractionId';
 
       const selectableLayerNames = computed(() => {
         return selectableLayers.value.map((l) => l.properties?.title ?? l.name);
@@ -153,13 +156,25 @@
           selectedObjects.value = selectedFeatures;
           count.value = selectedFeatures.length;
         }),
-        eventHandler.addExclusiveInteraction(interaction, () => {
-          destroy?.();
+        eventHandler.exclusiveAdded.addEventListener(() => {
+          if (
+            interaction.id !== eventHandler.exclusiveInteractionId &&
+            plugin.state.selectedSelectionType ===
+              SelectionTypes.OBJECT_SELECTION
+          ) {
+            app.windowManager.remove(windowId);
+            listeners.forEach((cb) => cb());
+          }
         }),
-        eventHandler.exclusiveRemoved.addEventListener(() => {
-          destroy?.();
-          app.windowManager.remove(windowId);
-        }),
+        eventHandler.addExclusiveInteraction(
+          interaction,
+          () => {
+            destroy?.();
+          },
+          undefined,
+          interaction.id,
+        ),
+
         app.layers.added.addEventListener((layer) => {
           if (layer.properties.exportWorkbench === plugin.config.fmeServerUrl) {
             selectableLayers.value = getSelectableLayers(
@@ -176,30 +191,40 @@
             );
           }
         }),
+        app.windowManager.removed.addEventListener(({ id }) => {
+          if (id === windowId) {
+            listeners.forEach((cb) => cb());
+            destroy();
+          }
+        }),
       ];
 
       // in case the selected features are changed from outside this component (e.g. by selecting object with context menu).
       stopWatching = watch(
-        () => props.value,
+        () => props.modelValue,
         () => {
-          interaction.selectedFeatures = props.value;
-          count.value = props.value.length;
+          interaction.selectedFeatures = props.modelValue;
+          count.value = props.modelValue.length;
         },
         { immediate: true },
       );
 
-      onBeforeUnmount(() => {
-        listeners.forEach((cb) => cb());
-        destroy();
-      });
-
-      watch(selectedObjects, () => emit('input', selectedObjects));
+      function objectSelectionRule(v) {
+        return !!v || 'export.validation.objectSelection';
+      }
 
       return {
         selectableLayerNames,
         count,
-        isError: ref(false),
+        objectSelectionRule,
       };
     },
   };
 </script>
+
+<style lang="scss">
+  // remove details
+  :deep(.v-input__details) {
+    display: none;
+  }
+</style>

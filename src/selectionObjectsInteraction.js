@@ -78,8 +78,8 @@ class SelectionObjectInteraction extends AbstractInteraction {
           [featureId]: getHighlightStyle(
             feature,
             layer,
-            this._app.uiConfig.config.value.primaryColor ??
-              getDefaultPrimaryColor(),
+            this._app.uiConfig.config.primaryColor ??
+              getDefaultPrimaryColor(this._app),
           ),
         });
       });
@@ -96,8 +96,8 @@ class SelectionObjectInteraction extends AbstractInteraction {
         [curr]: getHighlightStyle(
           null,
           null,
-          this._app.uiConfig.config.value.primaryColor ??
-            getDefaultPrimaryColor(),
+          this._app.uiConfig.config.primaryColor ??
+            getDefaultPrimaryColor(this._app),
         ),
       }),
       {},

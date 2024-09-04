@@ -8,13 +8,22 @@
     >
       <v-col class="pa-0" cols="6">
         <VcsLabel :html-for="name + 'Select'" :dense="true">
-          {{ $t(mainSetting.i18n) }}
+          {{ $st(mainSetting.i18n) }}
         </VcsLabel>
       </v-col>
       <v-col class="pa-0" cols="6">
         <VcsSelect
           :id="name + 'Select'"
           :items="mainSetting.items"
+          :item-text="
+            (item) => {
+              if (item.text) {
+                return item.text;
+              } else {
+                return item;
+              }
+            }
+          "
           v-model="settingsState[mainSetting.stateName]"
           :dense="true"
           :multiple="mainSetting.multiple"
@@ -25,8 +34,8 @@
       </v-col>
     </v-row>
     <!-- settings that depend on the selected formats -->
-    <template v-for="(formatSetting, name) in formatSettingsSetup">
-      <v-row no-gutters :key="name">
+    <div v-for="(formatSetting, name) in formatSettingsSetup" :key="name">
+      <v-row no-gutters>
         <v-col class="pa-0">
           <VcsCheckbox
             :label="formatSetting.i18n"
@@ -44,7 +53,7 @@
         >
           <v-col class="pa-0" cols="6">
             <VcsLabel :html-for="selectField.name + 'Select'" :dense="true">
-              {{ $t(selectField.i18n) }}
+              {{ $st(selectField.i18n) }}
             </VcsLabel>
           </v-col>
           <v-col class="pa-0" cols="6">
@@ -57,7 +66,8 @@
           </v-col>
         </v-row>
       </template>
-    </template>
+    </div>
+
     <v-row v-if="showHeightMode" no-gutters>
       <v-col class="pa-0" cols="6">
         <VcsLabel html-for="height-mode-select" :dense="true">
@@ -107,18 +117,20 @@
   </v-container>
 </template>
 
-<style scoped>
-  /* .col {
-    padding: 0;
-  } */
-</style>
+<style scoped></style>
 
 <script>
   // @ts-check
   import { TMSLayer, WMSLayer } from '@vcmap/core';
-  import { VContainer, VRow, VCol } from 'vuetify/lib';
-  import { VcsLabel, VcsSelect, VcsCheckbox, VcsFormButton } from '@vcmap/ui';
-  import { computed, inject, onBeforeMount, reactive, watch } from 'vue';
+  import { VContainer, VRow, VCol } from 'vuetify/components';
+  import {
+    VcsLabel,
+    VcsSelect,
+    VcsCheckbox,
+    VcsFormButton,
+    useProxiedComplexModel,
+  } from '@vcmap/ui';
+  import { computed, inject, onBeforeMount } from 'vue';
   import { exportFormats, mapThematicClasses } from './configManager.js';
 
   /**
@@ -144,7 +156,7 @@
         type: Object,
         required: true,
       },
-      value: {
+      modelValue: {
         type: Object,
         required: true,
       },
@@ -160,7 +172,7 @@
     },
     setup(props, { emit }) {
       /** State object of the city model export settings. */
-      const settingsState = reactive(props.value);
+      const settingsState = useProxiedComplexModel(props, 'modelValue', emit);
 
       /** Setup for the main settings. */
       const mainSettingsSetup = {
@@ -184,11 +196,6 @@
         },
       };
 
-      // Emits the state when a change to the settings is made.
-      watch(settingsState, () => {
-        emit('input', settingsState);
-      });
-
       const terrainAppearanceOptions = {};
 
       /** Adds available TMS and WMS layers to terrainAppearanceOptions and makes them available for selection. */
@@ -205,7 +212,7 @@
             });
           const layerNames = Object.keys(terrainAppearanceOptions);
           if (layerNames.length > 0) {
-            settingsState.selectedTerrainAppearanceLayer = layerNames[0];
+            settingsState.value.selectedTerrainAppearanceLayer = layerNames[0];
           }
         }
       }
@@ -220,7 +227,7 @@
           showTerrainExport: {
             render:
               props.setup.allowTerrainExport &&
-              settingsState.selectedExportFormats.some(
+              settingsState.value.selectedExportFormats.some(
                 (formatType) => formatType !== '2D Shape',
               ),
             i18n: 'export.settingsCityModel.terrainExport',
@@ -229,7 +236,7 @@
           showAddGenericAttr: {
             render:
               props.setup.allowAddGenericAttrs &&
-              settingsState.selectedExportFormats.some(
+              settingsState.value.selectedExportFormats.some(
                 (formatType) => exportFormats[formatType].genericAttributes,
               ),
             i18n: 'export.settingsCityModel.genericAttrs',
@@ -238,7 +245,7 @@
           showTextureExport: {
             render:
               props.setup.allowTextureExport &&
-              settingsState.selectedExportFormats.some(
+              settingsState.value.selectedExportFormats.some(
                 (formatType) => exportFormats[formatType].texture,
               ),
             i18n: 'export.settingsCityModel.textureExport',
@@ -255,7 +262,7 @@
                 name: 'terrainAppearanceOptions',
                 render:
                   Object.keys(terrainAppearanceOptions).length > 0 &&
-                  settingsState.terrainExport,
+                  settingsState.value.terrainExport,
                 i18n: 'export.settingsCityModel.terrainTexture',
                 items: Object.keys(terrainAppearanceOptions),
                 stateName: 'selectedTerrainAppearanceLayer',
@@ -263,7 +270,7 @@
             ],
           },
           showUseLocalCoors: {
-            render: settingsState.selectedExportFormats.some(
+            render: settingsState.value.selectedExportFormats.some(
               (formatType) => exportFormats[formatType].localCoordinates,
             ),
             i18n: 'export.settingsCityModel.localCoordinates',
@@ -300,9 +307,9 @@
       /** If heightmode should be displayed. */
       const showHeightMode = computed(() => {
         return (
-          !settingsState.terrainExport &&
+          !settingsState.value.terrainExport &&
           props.setup.allowHeightMode &&
-          settingsState.selectedExportFormats.some(
+          settingsState.value.selectedExportFormats.some(
             (formatType) => exportFormats[formatType].heightMode,
           )
         );
@@ -310,7 +317,9 @@
 
       /** Manages crs input options. */
       const showCrsInput = computed(
-        () => !settingsState.localCoordinates && Array.isArray(props.setup.crs),
+        () =>
+          !settingsState.value.localCoordinates &&
+          Array.isArray(props.setup.crs),
       );
 
       return {

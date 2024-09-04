@@ -551,8 +551,8 @@ export function getConfigAndState(pluginOptions, defaultOptions) {
       },
     },
     pluginState: {
-      step: 1,
-      highestStep: 1,
+      step: 0,
+      highestStep: 0,
       settingsCityModel: {
         selectedExportFormats: exportFormatDefault,
         selectedLod: lodDefault,

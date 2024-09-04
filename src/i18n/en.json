@@ -102,7 +102,9 @@
         "areaSelection": "Select the area you want to export by drawing a geometry.",
         "objectSelection": "Select city model objects by clicking on them. Only available in 3D view.",
         "currentImage": "Download the currently visible oblique image. Only available in oblique view."
-      }
+      },
+      "settings": "Choose between different options depending on the selected format.",
+      "email": "Please enter an email address to which the export should be sent."
     },
     "editor": {
       "dataSources": "Data sources",

@@ -1,40 +1,36 @@
 <template>
-  <VcsTooltip
-    tooltip-position="right"
-    :tooltip="isError ? 'export.validation.areaSelection' : ''"
-    color="error"
-  >
-    <template #activator="{ on, attrs }">
-      <v-sheet v-bind="attrs" v-on="on" class="px-1">
-        <v-input
-          :value="featureDrawn"
-          :rules="[(v) => !!v]"
-          hide-details
-          @update:error="
-            (errorState) => {
-              isError = errorState;
-            }
-          "
-        >
-          <VcsToolButton
-            v-for="(value, name) in allowedGeometries"
-            :key="name"
-            :icon="value"
-            :active="geometryState[name]"
-            :tooltip="$t('export.selectionTypes.draw' + name)"
-            @click="waitForGeometry(name)"
-          />
-        </v-input>
-      </v-sheet>
-    </template>
-  </VcsTooltip>
+  <v-sheet class="px-1">
+    <v-input
+      class="feature-input"
+      :model-value="featureDrawn"
+      :rules="[(v) => !!v || 'export.validation.areaSelection']"
+    >
+      <VcsToolButton
+        v-for="(value, name) in allowedGeometries"
+        :key="name"
+        :icon="value"
+        :active="geometryState[name]"
+        :tooltip="$st('export.selectionTypes.draw' + name)"
+        @click="waitForGeometry(name)"
+      />
+      <template #message="{ message }">
+        <v-tooltip
+          activator=".feature-input"
+          :v-if="message"
+          :text="$st(message)"
+          content-class="bg-error"
+          location="right"
+        />
+      </template>
+    </v-input>
+  </v-sheet>
 </template>
 
 <style scoped></style>
 
 <script>
-  import { VSheet, VInput } from 'vuetify/lib';
-  import { VcsToolButton, VcsTooltip, getDefaultPrimaryColor } from '@vcmap/ui';
+  import { VSheet, VInput, VTooltip } from 'vuetify/components';
+  import { VcsToolButton, getDefaultPrimaryColor } from '@vcmap/ui';
   import {
     VectorLayer,
     startCreateFeatureSession,
@@ -42,12 +38,11 @@
     mercatorProjection,
     VectorStyleItem,
   } from '@vcmap/core';
-  import { inject, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+  import { inject, onMounted, reactive, ref } from 'vue';
   import { Color } from '@vcmap-cesium/engine';
+  import { windowId } from './index.js';
 
   export const areaSelectionLayerName = Symbol('areaSelection');
-
-  const defaultPrimaryColor = getDefaultPrimaryColor();
 
   /**
    * Allowed geometry types for area selection. Key is the a value of {@link GeometryType}, value the corresponding VCS icon.
@@ -84,10 +79,11 @@
    */
   export default {
     name: 'SelectionArea',
-    components: { VcsToolButton, VSheet, VInput, VcsTooltip },
+    components: { VcsToolButton, VSheet, VInput, VTooltip },
     emits: ['sessionstart'],
     setup(props, { emit }) {
       const app = inject('vcsApp');
+      const defaultPrimaryColor = getDefaultPrimaryColor(app);
       /** State if there exists currently an area selection feature. */
       const featureDrawn = ref(false);
 
@@ -97,7 +93,7 @@
       function getAreaSelectionLayer() {
         if (!app.layers.hasKey(String(areaSelectionLayerName))) {
           const primary =
-            app.uiConfig.config.value.primaryColor ?? defaultPrimaryColor;
+            app.uiConfig.config.primaryColor ?? defaultPrimaryColor;
           const style = createSelectionLayerStyle(primary);
           app.layers.add(
             new VectorLayer({
@@ -166,23 +162,22 @@
         geometryState[geometryType] = true;
       }
 
-      watch(featureDrawn, () => emit('featurechange', featureDrawn));
-
       onMounted(() => {
         const layer = getAreaSelectionLayer(); // makes sure that layer exists and is active
         featureDrawn.value = layer.getFeatures().length !== 0;
       });
-      onUnmounted(() => {
-        getAreaSelectionLayer().deactivate();
-        listeners.forEach((listener) => listener());
-      });
 
+      app.windowManager.removed.addEventListener(({ id }) => {
+        if (id === windowId) {
+          getAreaSelectionLayer().deactivate();
+          listeners.forEach((listener) => listener());
+        }
+      });
       return {
         waitForGeometry,
         allowedGeometries,
         geometryState,
         featureDrawn,
-        isError: ref(false),
       };
     },
   };

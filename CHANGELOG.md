@@ -1,3 +1,7 @@
+# v2.0.0
+
+- Updates the plugin to Map Version 6.0
+
 # v1.0.15
 
 - Fixes a bug in the plugin config editor, where changing the max area was not possible

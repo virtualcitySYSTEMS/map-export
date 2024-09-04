@@ -6,7 +6,6 @@
         v-if="resultItems"
         :items="resultItems"
         v-model="selectedResults"
-        @input="$emit('input', selectedResults)"
         selectable
         :title="listTitle"
         :action-button-list-overflow-count="1"
@@ -18,8 +17,8 @@
 
 <script>
   import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue';
-  import { VcsList, NotificationType } from '@vcmap/ui';
-  import { VSheet, VIcon } from 'vuetify/lib';
+  import { VcsList, NotificationType, useProxiedAtomicModel } from '@vcmap/ui';
+  import { VSheet, VIcon } from 'vuetify/components';
   import { validatePolygonFeature } from './exportHelper.js';
   import { name } from '../package.json';
 
@@ -70,7 +69,7 @@
         type: Symbol,
         required: true,
       },
-      value: {
+      modelValue: {
         type: Array,
         required: true,
       },
@@ -87,13 +86,13 @@
         required: true,
       },
     },
-    setup(props) {
+    setup(props, { emit }) {
       const app = inject('vcsApp');
 
       const plugin = app.plugins.getByKey(name);
 
       const resultItems = ref();
-      const selectedResults = ref(props.value);
+      const selectedResults = useProxiedAtomicModel(props, 'modelValue', emit);
 
       const listTitle = computed(() =>
         props.selectedDataSource === 'geojson'

@@ -100,7 +100,9 @@
         "areaSelection": "Zeichnen Sie eine Geometrie, um einen Bereich zu exportieren.",
         "objectSelection": "Klicken Sie auf Objekte des Stadtmodells, um sie auszuwählen. Nur verfügbar in der 3D Ansicht.",
         "currentImage": "Lädt das aktuell sichtbare Schrägluftbild herunter. Nur verfügbar in der Ansicht \"Schrägluftbilder\"."
-      }
+      },
+      "settings": "Wählen Sie je nach ausgewähltem Format zwischen verschiedene Optionen.",
+      "email": "Bitte geben Sie eine Email an, an welche der Export geschickt werden soll."
     },
     "editor": {
       "dataSources": "Datenquellen",

@@ -2,19 +2,20 @@
   <v-sheet>
     <v-container>
       <v-row>
-        <v-col cols="8">
+        <v-col cols="7">
           <VcsLabel>
             {{ $t('export.settingsOblique.directionFilter') }}
           </VcsLabel>
         </v-col>
-        <v-col cols="4">
+        <v-col cols="5">
           <VcsSelect
             :items="directionFilterItems"
             v-model="settingsState.directionFilter"
+            :item-text="(item) => item.text"
+            :item-value="(item) => item.value"
             dense
             :rules="[(v) => !!v || 'Please select at least one option.']"
             :placeholder="$t('export.settingsOblique.directionPlaceholder')"
-            @change="$emit('change')"
           />
         </v-col>
       </v-row>
@@ -24,9 +25,8 @@
 
 <script>
   import { obliqueViewDirectionNames } from '@vcmap/core';
-  import { VSheet, VContainer, VRow, VCol } from 'vuetify/lib';
-  import { VcsLabel, VcsSelect } from '@vcmap/ui';
-  import { reactive, watch } from 'vue';
+  import { VSheet, VContainer, VRow, VCol } from 'vuetify/components';
+  import { useProxiedComplexModel, VcsLabel, VcsSelect } from '@vcmap/ui';
 
   /**
    * @description Component with the settings for the oblique export.
@@ -43,13 +43,13 @@
       VcsSelect,
     },
     props: {
-      value: {
+      modelValue: {
         type: Object,
         required: true,
       },
     },
     setup(props, { emit }) {
-      const settingsState = reactive(props.value);
+      const settingsState = useProxiedComplexModel(props, 'modelValue', emit);
 
       const { nadir, ...dirs } = obliqueViewDirectionNames;
       const directionFilterItems = Object.keys({ nadir, ...dirs }).map(
@@ -61,10 +61,6 @@
         },
       );
 
-      watch(settingsState, () => {
-        emit('input', settingsState);
-      });
-
       return {
         settingsState,
         directionFilterItems,
@@ -72,3 +68,11 @@
     },
   };
 </script>
+<style scoped lang="scss">
+  :deep(.v-field__input) {
+    padding-right: 0 !important;
+  }
+  :deep(.v-container) {
+    padding: 0 !important;
+  }
+</style>

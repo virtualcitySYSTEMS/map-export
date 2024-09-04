@@ -1,4 +1,4 @@
-import { VectorLayer, imageGeometryToMercatorGeometry } from '@vcmap/core';
+import { imageGeometryToMercatorGeometry, obliqueGeometry } from '@vcmap/core';
 import { downloadURI } from '@vcmap/ui';
 import { downloadObliqueImage } from './results/obliqueResult.js';
 
@@ -8,7 +8,7 @@ import { downloadObliqueImage } from './results/obliqueResult.js';
  * @returns {Promise<import("ol/geom/Geometry").default|null>}
  */
 export default async function reprojectObliqueGeometry(feature, app) {
-  const imageGeometry = feature[VectorLayer.obliqueGeometry];
+  const imageGeometry = feature[obliqueGeometry];
   if (imageGeometry) {
     const originalGeometry = imageGeometry.clone();
     const obliqueMap = /** @type {import("@vcmap/core").ObliqueMap} */ (

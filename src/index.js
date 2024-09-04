@@ -44,6 +44,7 @@ export default (options) => {
   let state = null;
   let defaultState = null;
   let moduleListeners = [];
+  let app;
 
   return {
     get name() {
@@ -89,6 +90,7 @@ export default (options) => {
         options,
         getDefaultOptions(),
       );
+      app = vcsUiApp;
       config = pluginConfig;
       state = reactive(pluginState);
       defaultState = JSON.parse(JSON.stringify(pluginState));
@@ -123,7 +125,11 @@ export default (options) => {
             infoUrlCallback: vcsUiApp.getHelpUrlCallback(
               '/tools/exportTool.html',
             ),
-            styles: { width: '350px', height: 'auto' },
+            styles: {
+              width: '350px',
+              height: 'auto',
+              overflow: 'none !important',
+            },
           },
         },
         vcsUiApp.windowManager,
@@ -171,13 +177,13 @@ export default (options) => {
         return contextEntries;
       }, name);
     },
-    updateDataSource(app, downloadState) {
+    updateDataSource(vcsApp, downloadState) {
       const dataSourceOptions = config.dataSourceOptionsList.find(
         (dataSourceOption) =>
           dataSourceOption.type === state.selectedDataSource,
       );
       if (dataSourceOptions) {
-        dataSource = createDataSourceFromConfig(dataSourceOptions, app);
+        dataSource = createDataSourceFromConfig(dataSourceOptions, vcsApp);
         if (dataSource instanceof ObliqueDataSource) {
           dataSource.viewDirectionFilter =
             state.settingsOblique.directionFilter;
@@ -215,7 +221,14 @@ export default (options) => {
       return customOptions;
     },
     getConfigEditors() {
-      return [{ component: ExportConfigEditor }];
+      return [
+        {
+          component: ExportConfigEditor,
+          infoUrlCallback: app?.getHelpUrlCallback(
+            '/components/plugins/exportToolConfig.html',
+          ),
+        },
+      ];
     },
     destroy() {
       moduleListeners.forEach((l) => l());
