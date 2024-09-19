@@ -59,7 +59,7 @@ export async function validatePolygonFeature(feature, app, maxSelectionArea) {
  * @param {import("./configManager").ExportConfig} pluginConfig The setup configuration of the plugin.
  * @param {import("./configManager").ExportState} pluginState The state of the plugin.
  * @param {string} selectionLayerName The name of the vector layer for the selection area.
- * @param {import("@vcmap/core").VcsApp} app
+ * @param {import("@vcmap/ui").VcsUiApp} app
  * @param {Object<string, any>} additionalParams
  * @returns {Promise<Response>} The promise of the fetch post request to the fme server.
  */
@@ -141,8 +141,8 @@ export async function prepareQueryAndSend(
     APP_THEME: selectedAppearanceTheme || 'none',
     HEIGHTMODE: !terrainExport ? selectedHeightMode : 'absolute',
     OPT_REQUESTEREMAIL: email,
-    EXPORT_NAME: exportName,
-    DESC: description,
+    nm_NAME: exportName,
+    nm_DESC: description,
   };
 
   query.TERRAIN = 'No';
@@ -200,7 +200,7 @@ export async function prepareQueryAndSend(
    * If selection type is area selection this variable contains the layer export objects for the current scene.
    */
   let sceneExport;
-  if (selectedSelectionType === SelectionTypes.AREA_SELECTION) {
+  if (selectedSelectionType === SelectionTypes.AREA_SELECTION && exportScene) {
     query.SELECTION = 'Polygon';
     const layer = app.layers.getByKey(selectionLayerName);
 
@@ -227,12 +227,10 @@ export async function prepareQueryAndSend(
       })
       .join(';');
     const bbox = new Extent({
-      ...mercatorProjection.toJSON(),
+      projection: mercatorProjection.toJSON(),
       coordinates: feature.getGeometry()?.getExtent(),
     });
-    if (exportScene) {
-      sceneExport = await collectScene(bbox, app);
-    }
+    sceneExport = await collectScene(bbox, app);
   } else {
     sceneExport = { selectedFeatures: selectedObjects };
   }

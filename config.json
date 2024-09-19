@@ -2,5 +2,13 @@
   "name": "@vcmap/export",
   "fmeSecurityToken": "securityToken",
   "fmeServerUrl": "serverUrl",
-  "dataSourceOptionsList": [{ "type": "cityModel" }]
+  "dataSourceOptionsList": [
+    { "type": "cityModel" },
+    {
+      "type": "oblique",
+      "obliqueCollectionName": "obliques",
+      "title": "foo bar"
+    }
+  ],
+  "exportScene": true
 }

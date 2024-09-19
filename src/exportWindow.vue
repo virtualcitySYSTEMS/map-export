@@ -220,7 +220,6 @@
               >
                 <VcsTextField
                   v-if="pluginConfig.allowEmail"
-                  :dense="true"
                   :label="undefined"
                   :placeholder="$t('export.userData.enterMail')"
                   v-model="pluginState.email"
@@ -231,7 +230,6 @@
                 />
                 <VcsTextField
                   v-if="pluginConfig.allowExportName"
-                  :dense="true"
                   :label="undefined"
                   :placeholder="$t('export.userData.enterExportName')"
                   :rules="[
@@ -644,9 +642,9 @@
       /** Resets the state and all form validations. */
       function resetExportWizard() {
         plugin.resetState();
-        formSelectionMode.value.resetValidation();
-        formSettings.value.resetValidation();
-        formExportDestination.value.resetValidation();
+        formSelectionMode.value?.resetValidation();
+        formSettings.value?.resetValidation();
+        formExportDestination.value?.resetValidation();
       }
 
       /**

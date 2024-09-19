@@ -7,7 +7,7 @@
       no-gutters
     >
       <v-col class="pa-0" cols="6">
-        <VcsLabel :html-for="name + 'Select'" :dense="true">
+        <VcsLabel :html-for="name + 'Select'">
           {{ $st(mainSetting.i18n) }}
         </VcsLabel>
       </v-col>
@@ -25,7 +25,6 @@
             }
           "
           v-model="settingsState[mainSetting.stateName]"
-          :dense="true"
           :multiple="mainSetting.multiple"
           :rules="[
             (v) => !!v.length || $t('export.validation.selectFieldMultiple'),
@@ -40,7 +39,6 @@
           <VcsCheckbox
             :label="formatSetting.i18n"
             v-model="settingsState[formatSetting.stateName]"
-            dense
           />
         </v-col>
       </v-row>
@@ -52,7 +50,7 @@
           class="ma-0 pl-6"
         >
           <v-col class="pa-0" cols="6">
-            <VcsLabel :html-for="selectField.name + 'Select'" :dense="true">
+            <VcsLabel :html-for="selectField.name + 'Select'">
               {{ $st(selectField.i18n) }}
             </VcsLabel>
           </v-col>
@@ -61,7 +59,6 @@
               :id="selectField.name + 'Select'"
               :items="selectField.items"
               v-model="settingsState[selectField.stateName]"
-              :dense="true"
             />
           </v-col>
         </v-row>
@@ -70,7 +67,7 @@
 
     <v-row v-if="showHeightMode" no-gutters>
       <v-col class="pa-0" cols="6">
-        <VcsLabel html-for="height-mode-select" :dense="true">
+        <VcsLabel html-for="height-mode-select">
           {{ $t('export.settingsCityModel.heightMode') }}
         </VcsLabel>
       </v-col>
@@ -78,15 +75,14 @@
         <VcsSelect
           id="height-mode-select"
           v-model="settingsState.selectedHeightMode"
-          :dense="true"
           :items="[
             {
               value: 'absolute',
-              text: $t('export.settingsCityModel.absolute'),
+              title: $t('export.settingsCityModel.absolute'),
             },
             {
               value: 'ellipsoid',
-              text: $t('export.settingsCityModel.ellipsoid'),
+              title: $t('export.settingsCityModel.ellipsoid'),
             },
           ]"
         />
@@ -94,7 +90,7 @@
     </v-row>
     <v-row v-if="showCrsInput" no-gutters>
       <v-col class="pa-0" cols="6">
-        <VcsLabel html-for="crs-input" :dense="true">
+        <VcsLabel html-for="crs-input">
           {{ $t('export.settingsCityModel.coordinateSystem') }}
         </VcsLabel>
       </v-col>
@@ -102,7 +98,6 @@
         <VcsSelect
           id="crs-input"
           v-model="settingsState.selectedCrs"
-          :dense="true"
           :items="setup.crs"
         />
       </v-col>

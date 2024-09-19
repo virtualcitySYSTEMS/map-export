@@ -224,6 +224,7 @@ export default (options) => {
       return [
         {
           component: ExportConfigEditor,
+          title: 'Export Editor',
           infoUrlCallback: app?.getHelpUrlCallback(
             '/components/plugins/exportToolConfig.html',
           ),

@@ -37,6 +37,7 @@
     GeometryType,
     mercatorProjection,
     VectorStyleItem,
+    markVolatile,
   } from '@vcmap/core';
   import { inject, onMounted, reactive, ref } from 'vue';
   import { Color } from '@vcmap-cesium/engine';
@@ -95,13 +96,13 @@
           const primary =
             app.uiConfig.config.primaryColor ?? defaultPrimaryColor;
           const style = createSelectionLayerStyle(primary);
-          app.layers.add(
-            new VectorLayer({
-              name: String(areaSelectionLayerName),
-              projection: mercatorProjection.toJSON(),
-              style,
-            }),
-          );
+          const layer = new VectorLayer({
+            name: String(areaSelectionLayerName),
+            projection: mercatorProjection.toJSON(),
+            style,
+          });
+          markVolatile(layer);
+          app.layers.add(layer);
         }
         const layer = app.layers.getByKey(String(areaSelectionLayerName));
         layer.activate();

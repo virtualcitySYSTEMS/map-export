@@ -5,6 +5,7 @@ import { checkMaybe, check } from '@vcsuite/check';
 import { getLogger } from '@vcsuite/logger';
 import {
   Extent,
+  markVolatile,
   mercatorProjection,
   ObliqueMap,
   VectorLayer,
@@ -28,6 +29,7 @@ export function validateOptions(options) {
 /**
  * @typedef {Object} AbstractDataSourceOptions
  * @property {import("../configManager.js").DataSourceOptions} type - type of export data source to be used by the factory, one of 'oblique' or 'geojson'. 'cityModel' is ignored by the factory but is a valid data source.
+ * @property {string} [title]
  * @property {string} [baseUrl]
  * @api
  */
@@ -57,6 +59,7 @@ class AbstractDataSource {
         altitudeMode: 'clambToGround',
         allowPicking: false,
       });
+      markVolatile(layer);
       this._app.layers.add(layer);
     }
     /**

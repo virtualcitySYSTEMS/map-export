@@ -13,7 +13,6 @@
             v-model="settingsState.directionFilter"
             :item-text="(item) => item.text"
             :item-value="(item) => item.value"
-            dense
             :rules="[(v) => !!v || 'Please select at least one option.']"
             :placeholder="$t('export.settingsOblique.directionPlaceholder')"
           />

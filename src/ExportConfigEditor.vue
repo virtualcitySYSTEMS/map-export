@@ -50,7 +50,7 @@
         </v-row>
         <v-row no-gutters>
           <v-col>
-            <VcsLabel html-for="general-max-selection-area" dense>
+            <VcsLabel html-for="general-max-selection-area">
               {{ $t('export.editor.maxSelectionArea') }}
             </VcsLabel>
           </v-col>
@@ -107,7 +107,7 @@
           <v-col>
             <v-row no-gutters>
               <v-col>
-                <VcsLabel html-for="data-source-oblique-name" dense>
+                <VcsLabel html-for="data-source-oblique-name">
                   {{ $t('export.editor.obliqueName') }}
                 </VcsLabel>
               </v-col>
@@ -129,7 +129,7 @@
             </v-row>
             <v-row no-gutters>
               <v-col>
-                <VcsLabel html-for="data-source-oblique-file-extension" dense>
+                <VcsLabel html-for="data-source-oblique-file-extension">
                   {{ $t('export.editor.fileExtension') }}
                 </VcsLabel>
               </v-col>
@@ -144,7 +144,7 @@
             </v-row>
             <v-row no-gutters>
               <v-col>
-                <VcsLabel html-for="data-source-oblique-resolution" dense>
+                <VcsLabel html-for="data-source-oblique-resolution">
                   {{ $t('export.editor.resolution') }}
                 </VcsLabel>
               </v-col>
@@ -173,7 +173,7 @@
               v-if="dataSourceList.oblique.properties.dedicatedSource"
             >
               <v-col>
-                <VcsLabel html-for="data-source-oblique-base-url" dense>
+                <VcsLabel html-for="data-source-oblique-base-url">
                   {{ $t('export.editor.baseUrl') }}
                 </VcsLabel>
               </v-col>
@@ -207,7 +207,7 @@
           <v-col>
             <v-row no-gutters>
               <v-col>
-                <VcsLabel html-for="data-source-geojson-title" dense>
+                <VcsLabel html-for="data-source-geojson-title">
                   {{ $t('export.editor.title') }}
                 </VcsLabel>
               </v-col>
@@ -227,7 +227,7 @@
             </v-row>
             <v-row no-gutters>
               <v-col>
-                <VcsLabel html-for="data-source-geojson-url" dense>
+                <VcsLabel html-for="data-source-geojson-url">
                   {{ $t('export.editor.geojsonUrl') }}
                 </VcsLabel>
               </v-col>
@@ -247,7 +247,7 @@
             </v-row>
             <v-row no-gutters>
               <v-col>
-                <VcsLabel html-for="data-source-geojson-base-url" dense>
+                <VcsLabel html-for="data-source-geojson-base-url">
                   {{ $t('export.editor.baseUrl') }}
                 </VcsLabel>
               </v-col>
@@ -282,7 +282,7 @@
           :key="key"
         >
           <v-col>
-            <VcsLabel :html-for="`settings-${key}`" dense>
+            <VcsLabel :html-for="`settings-${key}`">
               {{ $st(`export.editor.${key}`) }}
             </VcsLabel>
           </v-col>
@@ -298,7 +298,7 @@
         <div v-for="key in ['exportFormat', 'lod', 'thematicClass']" :key="key">
           <v-row no-gutters>
             <v-col cols="6">
-              <VcsLabel :html-for="`settings-${key}-list`" dense>
+              <VcsLabel :html-for="`settings-${key}-list`">
                 {{ $st(`export.editor.${key}List`) }}
               </VcsLabel>
             </v-col>
@@ -317,7 +317,7 @@
               />
             </v-col>
             <v-col cols="2">
-              <VcsLabel :html-for="`settings-${key}-default`" dense>
+              <VcsLabel :html-for="`settings-${key}-default`">
                 {{ $t(`export.editor.default`) }}
               </VcsLabel>
             </v-col>
@@ -337,7 +337,7 @@
         </div>
         <v-row no-gutters>
           <v-col cols="6">
-            <VcsLabel html-for="settings-appearance-theme-list" dense>
+            <VcsLabel html-for="settings-appearance-theme-list">
               {{ $t('export.settingsCityModel.appearanceTheme') }}
             </VcsLabel>
           </v-col>
@@ -448,7 +448,7 @@
         </v-row>
         <v-row no-gutters v-if="localConfig.allowTerrainExport">
           <v-col>
-            <VcsLabel html-for="settings-terrain-zoom-level" dense>
+            <VcsLabel html-for="settings-terrain-zoom-level">
               {{ $t('export.editor.terrainZoomLevel') }}
             </VcsLabel>
           </v-col>
@@ -501,7 +501,6 @@
 
   export default {
     name: 'ExportConfigEditor',
-    title: 'Export Editor',
     components: {
       VContainer,
       VRow,
@@ -525,8 +524,6 @@
       },
     },
     setup(props) {
-      /** @type {import("vue").Ref<import("./configManager").ExportOptions>} */
-      const localConfig = ref({});
       const dataSourceList = reactive({
         // TODO: Replace with ref
         cityModel: {
@@ -542,6 +539,22 @@
           properties: { ...defaultDataSourceOptions.geojson },
         },
       });
+
+      const defaultOptions = getDefaultOptions();
+      /** @type {import("vue").Ref<import("./configManager").ExportOptions>} */
+      const localConfig = ref({
+        ...structuredClone(defaultOptions),
+        ...props.getConfig(),
+      });
+
+      localConfig.value.dataSourceOptionsList.forEach((option) => {
+        // only takes first entry of array for each type
+        if (!dataSourceList[option.type].isSelected) {
+          dataSourceList[option.type].isSelected = true;
+          dataSourceList[option.type].properties = option;
+        }
+      });
+
       const heightModeItems = [
         {
           value: 'absolute',
@@ -552,21 +565,6 @@
           text: 'export.settingsCityModel.ellipsoid',
         },
       ];
-      const defaultOptions = getDefaultOptions();
-      props.getConfig().then((config) => {
-        localConfig.value = Object.assign(
-          structuredClone(defaultOptions),
-          config,
-        );
-
-        localConfig.value.dataSourceOptionsList.forEach((option) => {
-          // only takes first entry of array for each type
-          if (!dataSourceList[option.type].isSelected) {
-            dataSourceList[option.type].isSelected = true;
-            dataSourceList[option.type].properties = option;
-          }
-        });
-      });
 
       function resetDataSourceOption(option) {
         dataSourceList[option].properties = {
@@ -595,14 +593,14 @@
         }
       }
 
-      const apply = async () => {
+      const apply = () => {
         if (localConfig.value.crs.length === 1) {
           localConfig.value.crs = localConfig.value.crs[0];
         }
         localConfig.value.dataSourceOptionsList = Object.keys(dataSourceList)
           .filter((key) => dataSourceList[key].isSelected)
           .map((key) => dataSourceList[key].properties);
-        await props.setConfig(localConfig.value);
+        props.setConfig(localConfig.value);
       };
 
       return {
