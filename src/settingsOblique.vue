@@ -1,7 +1,7 @@
 <template>
   <v-sheet>
     <v-container>
-      <v-row>
+      <v-row no-gutters>
         <v-col cols="7">
           <VcsLabel>
             {{ $t('export.settingsOblique.directionFilter') }}

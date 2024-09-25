@@ -60,14 +60,14 @@
   },
   "peerDependencies": {
     "@vcmap-cesium/engine": "^11.0.2",
-    "@vcmap/core": "^6.0.0-rc.8",
-    "@vcmap/ui": "^6.0.0-rc.8",
-    "ol": "^10.0.0",
+    "@vcmap/core": "^6.0.0-rc.10",
+    "@vcmap/ui": "^6.0.0-rc.9",
+    "ol": "^10.2.0",
     "vue": "~3.4.38",
-    "vuetify": "^3.7.1"
+    "vuetify": "^3.7.2"
   },
   "devDependencies": {
-    "@vcmap/plugin-cli": "^4.0.0-rc.5",
+    "@vcmap/plugin-cli": "^4.0.0-rc.4",
     "@vcsuite/eslint-config": "^3.0.7",
     "@vitest/coverage-v8": "^2.1.1",
     "jest-canvas-mock": "^2.5.2",

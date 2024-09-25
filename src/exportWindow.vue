@@ -202,8 +202,8 @@
         "
         :heading="$st(heading)"
       >
-        <template #help>
-          {{ $t('export.help.email') }}
+        <template #help v-if="help">
+          {{ $t(help) }}
         </template>
         <template #default>
           <div class="px-1">
@@ -819,29 +819,44 @@
         },
       };
 
-      const heading = computed(() => {
+      const lastStep = computed(() => {
         if (
           pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL &&
           pluginConfig.allowEmail === false &&
           pluginConfig.allowExportName === true
         ) {
-          return 'export.stepTitles.exportName';
+          return 'exportName';
         } else if (
           pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL &&
           pluginConfig.allowEmail === true
         ) {
-          return 'export.stepTitles.exportDestination';
+          return 'exportDestination';
         } else if (
           pluginState.selectedDataSource === DataSourceOptions.OBLIQUE
         ) {
-          return 'export.stepTitles.selectImages';
+          return 'selectImages';
         } else if (
           pluginState.selectedDataSource === DataSourceOptions.GEOJSON
         ) {
-          return 'export.stepTitles.selectFiles';
+          return 'selectFiles';
         } else {
           return ''; // Default case if none of the conditions match
         }
+      });
+
+      const heading = computed(() =>
+        lastStep.value ? `export.stepTitles.${lastStep.value}` : '',
+      );
+      const help = computed(() => {
+        if (lastStep.value === 'exportDestination') {
+          return 'export.help.email';
+        } else if (
+          lastStep.value === 'selectFiles' ||
+          lastStep.value === 'selectImages'
+        ) {
+          return 'export.help.select';
+        }
+        return '';
       });
 
       return {
@@ -868,6 +883,7 @@
         resetActions,
         isReset,
         heading,
+        help,
         geoJsonItem: dataSourceItems.value.find(
           (item) => item.options.type === DataSourceOptions.GEOJSON,
         ),

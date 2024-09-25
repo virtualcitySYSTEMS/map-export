@@ -30,7 +30,7 @@
       "objectSelection2": "while holding down Ctrl key to select objects"
     },
     "settingsCityModel": {
-      "exportFromat": "Export format",
+      "exportFormat": "Export format",
       "lod": "Level of detail",
       "thematicClasses": "Thematic classes",
       "terrainExport": "Terrain export",
@@ -104,6 +104,7 @@
         "currentImage": "Download the currently visible oblique image. Only available in oblique view."
       },
       "settings": "Choose between different options depending on the selected format.",
+      "select": "Select the elements to be exported. Hold down CTRL to select more than one.",
       "email": "Please enter an email address to which the export should be sent."
     },
     "editor": {

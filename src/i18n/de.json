@@ -102,6 +102,7 @@
         "currentImage": "Lädt das aktuell sichtbare Schrägluftbild herunter. Nur verfügbar in der Ansicht \"Schrägluftbilder\"."
       },
       "settings": "Wählen Sie je nach ausgewähltem Format zwischen verschiedene Optionen.",
+      "select": "Wählen Sie die zu exportierenden Elemente aus. Halten Sie STRG gedrückt, um mehrere auszuwählen.",
       "email": "Bitte geben Sie eine Email an, an welche der Export geschickt werden soll."
     },
     "editor": {
