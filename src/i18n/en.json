@@ -55,9 +55,9 @@
       "directionPlaceholder": "Direction"
     },
     "userData": {
-      "enterMail": "Enter your email address",
-      "enterExportName": "Enter a name for the export",
-      "descriptionPlaceholder": "Describe your data export so you can identify it later.",
+      "email": "Email",
+      "exportName": "Export name",
+      "description": "Description",
       "accept": "I accept the",
       "termsOfUse": "terms of use"
     },

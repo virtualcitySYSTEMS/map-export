@@ -55,9 +55,9 @@
       "directionPlaceholder": "Richtung"
     },
     "userData": {
-      "enterMail": "Hier E-Mailadresse eingeben",
-      "enterExportName": "Hier einen Namen für den Export eingeben",
-      "descriptionPlaceholder": "Beschreiben Sie den Datensatz, um ihn später zuordnen zu können.",
+      "email": "E-Mail",
+      "exportName": "Exportname",
+      "description": "Beschreibung",
       "accept": "Ich akzeptiere die",
       "termsOfUse": "Nutzungsbedingungen"
     },

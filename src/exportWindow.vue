@@ -221,7 +221,7 @@
                 <VcsTextField
                   v-if="pluginConfig.allowEmail"
                   :label="undefined"
-                  :placeholder="$t('export.userData.enterMail')"
+                  :placeholder="$t('export.userData.email')"
                   v-model="pluginState.email"
                   :rules="[
                     (v) =>
@@ -231,7 +231,7 @@
                 <VcsTextField
                   v-if="pluginConfig.allowExportName"
                   :label="undefined"
-                  :placeholder="$t('export.userData.enterExportName')"
+                  :placeholder="$t('export.userData.exportName')"
                   :rules="[
                     (v) =>
                       pluginConfig.allowEmail ||
@@ -241,7 +241,7 @@
                   v-model="pluginState.exportName"
                 />
                 <VcsTextArea
-                  :placeholder="$t('export.userData.descriptionPlaceholder')"
+                  :placeholder="$t('export.userData.description')"
                   class="pb-2"
                   rows="2"
                   v-model="pluginState.description"
