@@ -224,9 +224,10 @@ export default (options) => {
       return [
         {
           component: ExportConfigEditor,
-          title: 'Export Editor',
+          title: 'export.editorTitle',
           infoUrlCallback: app?.getHelpUrlCallback(
             '/components/plugins/exportToolConfig.html',
+            'app-configurator',
           ),
         },
       ];

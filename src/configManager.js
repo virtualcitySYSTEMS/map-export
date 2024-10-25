@@ -188,7 +188,7 @@ export function mapThematicClasses(classes) {
   };
   return classes.map((key) => ({
     value: key,
-    text: thematicClassTitles[key],
+    title: thematicClassTitles[key],
     citygmlOnly: cityGmlOnly[key],
   }));
 }

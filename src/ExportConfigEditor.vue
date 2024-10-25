@@ -558,11 +558,11 @@
       const heightModeItems = [
         {
           value: 'absolute',
-          text: 'export.settingsCityModel.absolute',
+          title: 'export.settingsCityModel.absolute',
         },
         {
           value: 'ellipsoid',
-          text: 'export.settingsCityModel.ellipsoid',
+          title: 'export.settingsCityModel.ellipsoid',
         },
       ];
 

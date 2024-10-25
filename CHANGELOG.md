@@ -1,6 +1,6 @@
 # v2.0.0
 
-- Updates the plugin to Map Version 6.0
+- Updates @vcmap/core and @vcmap/ui to 6.x
 
 # v1.0.15
 

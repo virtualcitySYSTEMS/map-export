@@ -1,8 +1,9 @@
 {
   "export": {
     "name": "Export Tool",
-    "headerTitle": "Objekt Export Wizard",
-    "tooltip": "Export Tool",
+    "editorTitle": "Export Editor",
+    "headerTitle": "Data Export Assistent",
+    "tooltip": "Daten exportieren",
     "stepTitles": {
       "dataSources": "Datenquelle",
       "selectionType": "Datenauswahl",
