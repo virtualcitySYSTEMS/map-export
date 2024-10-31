@@ -88,7 +88,6 @@
             >
               <VcsSelect
                 :items="selectionTypeItems"
-                :item-text="(item) => item.text"
                 :placeholder="$t('export.select')"
                 v-model="pluginState.selectedSelectionType"
                 :rules="[(v) => !!v || $t('export.validation.selectField')]"
@@ -299,16 +298,22 @@
         </template>
       </VcsWizardStep>
     </VcsWizard>
-    <v-overlay v-if="obliqueDownload.running" absolute :opacity="0.8">
+    <v-overlay
+      v-model="obliqueDownload.running"
+      contained
+      opacity="0.8"
+      class="d-flex justify-center align-center"
+    >
       <v-progress-linear
-        :value="obliqueDownload.progress"
+        v-model="obliqueDownload.progress"
         height="20"
         style="width: 200px"
+        color="base-lighten-2"
       >
         <strong>{{ obliqueDownload.progress }} %</strong>
       </v-progress-linear>
-      <span
-        >{{ obliqueDownload.queue[0] }} / {{ obliqueDownload.queue[1] }}</span
+      <v-chip color="base-lighten-2"
+        >{{ obliqueDownload.queue[0] }} / {{ obliqueDownload.queue[1] }}</v-chip
       >
     </v-overlay>
   </v-sheet>
@@ -317,7 +322,13 @@
 <script>
   // @ts-check
   import { computed, inject, onUnmounted, reactive, ref, watch } from 'vue';
-  import { VSheet, VForm, VOverlay, VProgressLinear } from 'vuetify/components';
+  import {
+    VSheet,
+    VForm,
+    VOverlay,
+    VProgressLinear,
+    VChip,
+  } from 'vuetify/components';
   import {
     VcsFormButton,
     VcsSelect,
@@ -349,6 +360,7 @@
       VSheet,
       VForm,
       VOverlay,
+      VChip,
       VProgressLinear,
       VcsFormButton,
       VcsSelect,
@@ -464,20 +476,20 @@
       }
 
       /**
-       * Preprocessed selection types for the use in VcsSelect with value and i18n string/text.
+       * Preprocessed selection types for the use in VcsSelect with value and i18n string/title.
        */
       const selectionTypeItems = computed(() => {
         const items = [
           {
             value: SelectionTypes.AREA_SELECTION,
-            text: 'export.selectionTypes.areaSelection',
+            title: 'export.selectionTypes.areaSelection',
           },
         ];
         if (pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL) {
           if (!isObjectSelectionDisabled()) {
             items.push({
               value: SelectionTypes.OBJECT_SELECTION,
-              text: 'export.selectionTypes.objectSelection',
+              title: 'export.selectionTypes.objectSelection',
               props: {
                 disabled: activeMapName.value !== 'CesiumMap',
               },
@@ -487,7 +499,7 @@
         if (pluginState.selectedDataSource === DataSourceOptions.OBLIQUE) {
           items.push({
             value: SelectionTypes.CURRENT_IMAGE,
-            text: 'export.selectionTypes.currentImage',
+            title: 'export.selectionTypes.currentImage',
             props: { disabled: activeMapName.value !== 'ObliqueMap' },
           });
         }

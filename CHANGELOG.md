@@ -1,3 +1,7 @@
+# v2.0.1
+
+- Fix select field item titles and oblique progess bar
+
 # v2.0.0
 
 - Updates @vcmap/core and @vcmap/ui to 6.x

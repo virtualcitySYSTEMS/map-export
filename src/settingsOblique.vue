@@ -11,8 +11,6 @@
           <VcsSelect
             :items="directionFilterItems"
             v-model="settingsState.directionFilter"
-            :item-text="(item) => item.text"
-            :item-value="(item) => item.value"
             :rules="[(v) => !!v || 'Please select at least one option.']"
             :placeholder="$t('export.settingsOblique.directionPlaceholder')"
           />
@@ -55,7 +53,7 @@
         (dir) => {
           return {
             value: obliqueViewDirectionNames[dir],
-            text: `export.settingsOblique.${dir}`,
+            title: `export.settingsOblique.${dir}`,
           };
         },
       );

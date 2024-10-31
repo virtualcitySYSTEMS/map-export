@@ -15,15 +15,6 @@
         <VcsSelect
           :id="name + 'Select'"
           :items="mainSetting.items"
-          :item-text="
-            (item) => {
-              if (item.text) {
-                return item.text;
-              } else {
-                return item;
-              }
-            }
-          "
           v-model="settingsState[mainSetting.stateName]"
           :multiple="mainSetting.multiple"
           :rules="[
