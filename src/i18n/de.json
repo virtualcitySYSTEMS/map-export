@@ -2,7 +2,7 @@
   "export": {
     "name": "Export Tool",
     "editorTitle": "Export Editor",
-    "headerTitle": "Data Export Assistent",
+    "headerTitle": "Daten exportieren",
     "tooltip": "Daten exportieren",
     "stepTitles": {
       "dataSources": "Datenquelle",
@@ -83,7 +83,10 @@
       "objectSelection": "Bitte wählen Sie mindestens ein Objekt aus.",
       "areaSelection": "Bitte zeichnen Sie eine Auswahlfläche.",
       "polygonFeature": "Die Geometrie der Flächenauswahl ist nicht valide.",
-      "polygonFeatureArea": "Die maximale Größe der Auswahlfläche wurde überschritten."
+      "polygonFeatureArea": "Die maximale Größe der Auswahlfläche wurde überschritten.",
+      "negative": "Der Eingabewert muss größer als 0 sein.",
+      "negativeOne": "Der Eingabewert muss mindestens -1 sein.",
+      "integer": "Der Eingabewert muss ganzzahlig sein."
     },
     "context": { "cityModel": "Objekt exportieren" },
     "resetButtons": {
@@ -95,14 +98,18 @@
       "dataSources": {
         "cityModel": "Exportieren Sie Objekte des Stadtmodells wie z.B. Gebäude, Bäume oder Brücken.",
         "oblique": "Exportieren Sie hochaufgelöste Schrägluftbilder.",
-        "geojson": "Exportieren Sie räumliche Daten mittels Gebietsauswahl."
+        "geojson": "Exportieren Sie einen Ausschnitt aus statischen Daten"
       },
       "selectionTypes": {
         "areaSelection": "Zeichnen Sie eine Geometrie, um einen Bereich zu exportieren.",
         "objectSelection": "Klicken Sie auf Objekte des Stadtmodells, um sie auszuwählen. Nur verfügbar in der 3D Ansicht.",
         "currentImage": "Lädt das aktuell sichtbare Schrägluftbild herunter. Nur verfügbar in der Ansicht \"Schrägluftbilder\"."
       },
-      "settings": "Wählen Sie je nach ausgewähltem Format zwischen verschiedene Optionen.",
+      "settings": {
+        "oblique": "Wählen Sie, welche Bildausrichtung für den Bildexport übernommen werden soll.",
+        "cityModel": "Spezifizieren Sie, wie die Daten exportiert werden sollen."
+      },
+
       "select": "Wählen Sie die zu exportierenden Elemente aus. Halten Sie STRG gedrückt, um mehrere auszuwählen.",
       "email": "Bitte geben Sie eine Email an, an welche der Export geschickt werden soll."
     },

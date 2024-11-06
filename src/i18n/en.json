@@ -2,7 +2,7 @@
   "export": {
     "name": "Export Tool",
     "editorTitle": "Export Editor",
-    "headerTitle": "Data Export Wizard",
+    "headerTitle": "Export data",
     "tooltip": "Export data",
     "stepTitles": {
       "dataSources": "Data source",
@@ -83,7 +83,10 @@
       "objectSelection": "Please select at least one object.",
       "areaSelection": "Please draw a selection area.",
       "polygonFeature": "Geometry of area selection is not valid.",
-      "polygonFeatureArea": "Selection geometry exceeds maximum area."
+      "polygonFeatureArea": "Selection geometry exceeds maximum area.",
+      "negative": "The value must be above 0.",
+      "negativeOne": "The value must be at least -1.",
+      "integer": "The value must be an integer."
     },
     "context": {
       "cityModel": "Export object"
@@ -97,14 +100,17 @@
       "dataSources": {
         "cityModel": "Export city model objects like 3D buildings, trees or bridges.",
         "oblique": "Export high resolution oblique images.",
-        "geojson": "Export spatial data by area selection."
+        "geojson": "Export a section of static data."
       },
       "selectionTypes": {
         "areaSelection": "Select the area you want to export by drawing a geometry.",
         "objectSelection": "Select city model objects by clicking on them. Only available in 3D view.",
         "currentImage": "Download the currently visible oblique image. Only available in oblique view."
       },
-      "settings": "Choose between different options depending on the selected format.",
+      "settings": {
+        "oblique": "Select which image orientation should be used for the image export.",
+        "cityModel": "Specify how the data should be exported."
+      },
       "select": "Select the elements to be exported. Hold down CTRL to select more than one.",
       "email": "Please enter an email address to which the export should be sent."
     },

@@ -153,7 +153,18 @@
         "
       >
         <template #help>
-          {{ $t('export.help.settings') }}
+          <span
+            v-if="pluginState.selectedDataSource === DataSourceOptions.OBLIQUE"
+          >
+            {{ $t('export.help.settings.oblique') }}
+          </span>
+          <span
+            v-else-if="
+              pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL
+            "
+          >
+            {{ $t('export.help.settings.cityModel') }}
+          </span>
         </template>
         <template #default>
           <div class="px-1">
@@ -685,6 +696,8 @@
             stepValid.selectionMode) ||
           (pluginState.selectedDataSource === DataSourceOptions.GEOJSON &&
             stepValid.exportDestination &&
+            stepValid.selectionMode) ||
+          (pluginState.selectedSelectionType === SelectionTypes.CURRENT_IMAGE &&
             stepValid.selectionMode)
         ) {
           let promise;

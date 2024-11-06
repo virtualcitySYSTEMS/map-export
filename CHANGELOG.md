@@ -1,6 +1,7 @@
 # v2.0.1
 
 - Fix select field item titles and oblique progess bar
+- Fix issues with input rules in the Editor
 
 # v2.0.0
 

@@ -50,7 +50,7 @@
         </v-row>
         <v-row no-gutters>
           <v-col>
-            <VcsLabel html-for="general-max-selection-area">
+            <VcsLabel html-for="general-max-selection-area" required>
               {{ $t('export.editor.maxSelectionArea') }}
             </VcsLabel>
           </v-col>
@@ -61,7 +61,11 @@
               v-model.number="localConfig.maxSelectionArea"
               type="number"
               unit="m²"
-              :rules="[(v) => !!v || 'components.validation.required']"
+              :min="0"
+              :rules="[
+                (v) => !!v || 'components.validation.required',
+                (v) => v > 0 || 'export.validation.negative',
+              ]"
             />
           </v-col>
         </v-row>
@@ -83,9 +87,7 @@
                 (value) =>
                   value || resetDataSourceOption(DataSourceOptions.CITY_MODEL)
               "
-              :rules="[
-                someDataSourceSelected || 'export.editor.dataSourceRequired',
-              ]"
+              :error-messages="errorMessageDataSource"
             />
           </v-col>
         </v-row>
@@ -99,15 +101,17 @@
                 (value) =>
                   value || resetDataSourceOption(DataSourceOptions.OBLIQUE)
               "
-              :rules="[
-                someDataSourceSelected || 'export.editor.dataSourceRequired',
-              ]"
+              :error-messages="errorMessageDataSource"
             />
           </v-col>
-          <v-col>
+          <v-col v-if="dataSourceList.oblique.isSelected">
             <v-row no-gutters>
               <v-col>
-                <VcsLabel html-for="data-source-oblique-name">
+                <VcsLabel
+                  html-for="data-source-oblique-name"
+                  :required="dataSourceList.oblique.isSelected"
+                  :disabled="!dataSourceList.oblique.isSelected"
+                >
                   {{ $t('export.editor.obliqueName') }}
                 </VcsLabel>
               </v-col>
@@ -129,7 +133,10 @@
             </v-row>
             <v-row no-gutters>
               <v-col>
-                <VcsLabel html-for="data-source-oblique-file-extension">
+                <VcsLabel
+                  html-for="data-source-oblique-file-extension"
+                  :disabled="!dataSourceList.oblique.isSelected"
+                >
                   {{ $t('export.editor.fileExtension') }}
                 </VcsLabel>
               </v-col>
@@ -144,7 +151,10 @@
             </v-row>
             <v-row no-gutters>
               <v-col>
-                <VcsLabel html-for="data-source-oblique-resolution">
+                <VcsLabel
+                  html-for="data-source-oblique-resolution"
+                  :disabled="!dataSourceList.oblique.isSelected"
+                >
                   {{ $t('export.editor.resolution') }}
                 </VcsLabel>
               </v-col>
@@ -152,9 +162,18 @@
                 <VcsTextField
                   id="data-source-oblique-resolution"
                   type="number"
-                  v-model="dataSourceList.oblique.properties.resolution"
+                  :min="0"
+                  v-model.number="dataSourceList.oblique.properties.resolution"
                   :disabled="!dataSourceList.oblique.isSelected"
                   placeholder="1"
+                  :rules="[
+                    (v) =>
+                      v === undefined ||
+                      v === null ||
+                      v === '' ||
+                      v > 0 ||
+                      'export.validation.negative',
+                  ]"
                 />
               </v-col>
             </v-row>
@@ -173,7 +192,7 @@
               v-if="dataSourceList.oblique.properties.dedicatedSource"
             >
               <v-col>
-                <VcsLabel html-for="data-source-oblique-base-url">
+                <VcsLabel html-for="data-source-oblique-base-url" required>
                   {{ $t('export.editor.baseUrl') }}
                 </VcsLabel>
               </v-col>
@@ -199,15 +218,16 @@
                 (value) =>
                   value || resetDataSourceOption(DataSourceOptions.GEOJSON)
               "
-              :rules="[
-                someDataSourceSelected || 'export.editor.dataSourceRequired',
-              ]"
+              :error-messages="errorMessageDataSource"
             />
           </v-col>
-          <v-col>
+          <v-col v-if="dataSourceList.geojson.isSelected">
             <v-row no-gutters>
               <v-col>
-                <VcsLabel html-for="data-source-geojson-title">
+                <VcsLabel
+                  html-for="data-source-geojson-title"
+                  :required="dataSourceList.geojson.isSelected"
+                >
                   {{ $t('export.editor.title') }}
                 </VcsLabel>
               </v-col>
@@ -227,7 +247,10 @@
             </v-row>
             <v-row no-gutters>
               <v-col>
-                <VcsLabel html-for="data-source-geojson-url">
+                <VcsLabel
+                  html-for="data-source-geojson-url"
+                  :required="dataSourceList.geojson.isSelected"
+                >
                   {{ $t('export.editor.geojsonUrl') }}
                 </VcsLabel>
               </v-col>
@@ -247,7 +270,10 @@
             </v-row>
             <v-row no-gutters>
               <v-col>
-                <VcsLabel html-for="data-source-geojson-base-url">
+                <VcsLabel
+                  html-for="data-source-geojson-base-url"
+                  :required="dataSourceList.geojson.isSelected"
+                >
                   {{ $t('export.editor.baseUrl') }}
                 </VcsLabel>
               </v-col>
@@ -282,7 +308,7 @@
           :key="key"
         >
           <v-col>
-            <VcsLabel :html-for="`settings-${key}`">
+            <VcsLabel :html-for="`settings-${key}`" required>
               {{ $st(`export.editor.${key}`) }}
             </VcsLabel>
           </v-col>
@@ -298,7 +324,7 @@
         <div v-for="key in ['exportFormat', 'lod', 'thematicClass']" :key="key">
           <v-row no-gutters>
             <v-col cols="6">
-              <VcsLabel :html-for="`settings-${key}-list`">
+              <VcsLabel :html-for="`settings-${key}-list`" required>
                 {{ $st(`export.editor.${key}List`) }}
               </VcsLabel>
             </v-col>
@@ -354,7 +380,7 @@
         </v-row>
         <v-row no-gutters>
           <v-col>
-            <VcsLabel html-for="settings-appearance-theme-default">
+            <VcsLabel html-for="settings-appearance-theme-default" required>
               {{ $t('export.editor.appearanceThemeDefault') }}
             </VcsLabel>
           </v-col>
@@ -369,7 +395,7 @@
         </v-row>
         <v-row no-gutters>
           <v-col cols="6">
-            <VcsLabel html-for="settings-predefined-crs">
+            <VcsLabel html-for="settings-predefined-crs" required>
               {{ $t('export.editor.crsPredefined') }}
             </VcsLabel>
           </v-col>
@@ -394,7 +420,7 @@
             />
           </v-col>
           <v-col>
-            <VcsLabel html-for="settings-height-mode-default">
+            <VcsLabel html-for="settings-height-mode-default" required>
               {{ $t('export.editor.default') }}
             </VcsLabel>
           </v-col>
@@ -456,8 +482,14 @@
             <VcsTextField
               id="settings-terrain-zoom-level"
               clearable
-              v-model="localConfig.terrainZoomLevel"
+              v-model.number="localConfig.terrainZoomLevel"
+              :min="-1"
               type="number"
+              :rules="[
+                (v) =>
+                  Number.isInteger(Number(v)) || 'export.validation.integer',
+                (v) => v >= -1 || 'export.validation.negativeOne',
+              ]"
             />
           </v-col>
         </v-row>
@@ -477,7 +509,7 @@
     VcsCheckbox,
     VcsChipArrayInput,
   } from '@vcmap/ui';
-  import { computed, reactive, ref } from 'vue';
+  import { computed, ref, toRaw, watch } from 'vue';
   import getDefaultOptions from './defaultOptions.js';
   import { DataSourceOptions, mapThematicClasses } from './configManager.js';
 
@@ -488,7 +520,7 @@
       obliqueCollectionName: undefined, // XXX get first oblique collections name from VcsApp?
       fileExtension: 'jpg',
       dedicatedSource: false,
-      resolution: undefined,
+      resolution: null,
       baseUrl: undefined,
     },
     geojson: {
@@ -524,8 +556,7 @@
       },
     },
     setup(props) {
-      const dataSourceList = reactive({
-        // TODO: Replace with ref
+      const dataSourceList = ref({
         cityModel: {
           isSelected: false,
           properties: { ...defaultDataSourceOptions.cityModel },
@@ -540,6 +571,8 @@
         },
       });
 
+      const errorMessageDataSource = ref(undefined);
+
       const defaultOptions = getDefaultOptions();
       /** @type {import("vue").Ref<import("./configManager").ExportOptions>} */
       const localConfig = ref({
@@ -549,9 +582,12 @@
 
       localConfig.value.dataSourceOptionsList.forEach((option) => {
         // only takes first entry of array for each type
-        if (!dataSourceList[option.type].isSelected) {
-          dataSourceList[option.type].isSelected = true;
-          dataSourceList[option.type].properties = option;
+        if (!dataSourceList.value[option.type].isSelected) {
+          dataSourceList.value[option.type].isSelected = true;
+          dataSourceList.value[option.type].properties = {
+            ...defaultDataSourceOptions[option.type],
+            ...option,
+          };
         }
       });
 
@@ -567,7 +603,7 @@
       ];
 
       function resetDataSourceOption(option) {
-        dataSourceList[option].properties = {
+        dataSourceList.value[option].properties = {
           ...defaultDataSourceOptions[option],
         };
       }
@@ -597,11 +633,36 @@
         if (localConfig.value.crs.length === 1) {
           localConfig.value.crs = localConfig.value.crs[0];
         }
-        localConfig.value.dataSourceOptionsList = Object.keys(dataSourceList)
-          .filter((key) => dataSourceList[key].isSelected)
-          .map((key) => dataSourceList[key].properties);
-        props.setConfig(localConfig.value);
+        localConfig.value.dataSourceOptionsList = Object.keys(
+          dataSourceList.value,
+        )
+          .filter((key) => dataSourceList.value[key].isSelected)
+          .map((type) => {
+            const properties = toRaw(dataSourceList.value[type].properties);
+            const listDataSourceItem = {};
+            Object.keys(properties).forEach((key) => {
+              if (properties[key] !== defaultDataSourceOptions[type][key]) {
+                listDataSourceItem[key] = properties[key];
+              }
+            });
+            return listDataSourceItem;
+          });
+        props.setConfig(structuredClone(toRaw(localConfig.value)));
       };
+
+      watch(
+        dataSourceList,
+        (newValue) => {
+          if (
+            Object.values(newValue).some((dataSource) => dataSource.isSelected)
+          ) {
+            errorMessageDataSource.value = undefined;
+          } else {
+            errorMessageDataSource.value = 'export.editor.dataSourceRequired';
+          }
+        },
+        { deep: true },
+      );
 
       return {
         localConfig,
@@ -628,13 +689,8 @@
             }
           },
         }),
-        someDataSourceSelected: computed(
-          () =>
-            !!Object.keys(dataSourceList).some(
-              (key) => dataSourceList[key].isSelected,
-            ),
-        ),
         apply,
+        errorMessageDataSource,
       };
     },
   };
