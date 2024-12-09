@@ -113,6 +113,7 @@
               createListItems(feature, plugin.dataSource, resultItems),
             )
             .catch((error) => {
+              emit('invalidArea');
               app.notifier.add({
                 type: NotificationType.ERROR,
                 message: error.message,

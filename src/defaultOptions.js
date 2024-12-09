@@ -58,7 +58,7 @@ export default () => {
     allowAddGenericAttrs: true,
     allowTiledExport: true,
     allowTerrainExport: true,
-    termsOfUse: 'https://linktoprivacy',
+    termsOfUse: null,
     terrainAppearanceOptions: {},
     terrainUrl: null,
     terrainZoomLevel: -1,

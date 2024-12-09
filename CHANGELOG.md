@@ -1,3 +1,8 @@
+# v2.0.2
+
+- Fix a bug in the editor where configuration was incorrectly saved
+- Improve UX by stepping back to geometry selection when selection is invalid
+
 # v2.0.1
 
 - Fix select field item titles and oblique progess bar

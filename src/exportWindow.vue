@@ -269,6 +269,7 @@
                 v-model="pluginState.selectedResultItems"
                 :active="pluginState.step === stepOrder.EXPORT_DESTINATION"
                 :max-selection-area="pluginConfig.maxSelectionArea"
+                @invalid-area="pluginState.step = stepOrder.SELECTION_MODE"
               />
               <VcsCheckbox
                 v-if="pluginConfig.termsOfUse"

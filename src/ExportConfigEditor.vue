@@ -21,8 +21,17 @@
             <VcsTextField
               id="general-terms-of-use-url"
               clearable
+              ref="generalTermsOfUseUrl"
+              placeholder="https://linktoprivacy"
               v-model="localConfig.termsOfUse"
               :disabled="!hasTermsOfUse"
+              :rules="[
+                (v) => {
+                  return (
+                    !hasTermsOfUse || !!v || 'components.validation.required'
+                  );
+                },
+              ]"
             />
           </v-col>
         </v-row>
@@ -608,7 +617,9 @@
         };
       }
 
-      function useHasKey(key) {
+      const generalTermsOfUseUrl = ref();
+
+      function useHasKey(key, triggerValidation) {
         return computed({
           get() {
             return localConfig.value[key] !== null;
@@ -616,8 +627,14 @@
           set(value) {
             if (value) {
               localConfig.value[key] = defaultOptions[key] || '';
+              if (triggerValidation) {
+                triggerValidation();
+              }
             } else {
               localConfig.value[key] = null;
+              if (triggerValidation) {
+                triggerValidation();
+              }
             }
           },
         });
@@ -645,6 +662,7 @@
                 listDataSourceItem[key] = properties[key];
               }
             });
+            listDataSourceItem.type = type;
             return listDataSourceItem;
           });
         props.setConfig(structuredClone(toRaw(localConfig.value)));
@@ -665,12 +683,16 @@
       );
 
       return {
+        generalTermsOfUseUrl,
         localConfig,
         dataSourceList,
         resetDataSourceOption,
         DataSourceOptions,
         defaultOptions,
-        hasTermsOfUse: useHasKey('termsOfUse'),
+        hasTermsOfUse: useHasKey('termsOfUse', () => {
+          // XXX this is needed until vuetify fixes: https://github.com/vuetifyjs/vuetify/issues/20765
+          generalTermsOfUseUrl.value?.$refs?.textFieldRef?.validate();
+        }),
         hasTerrainUrl: useHasKey('terrainUrl'),
         mapThematicClasses,
         heightModeItems,
