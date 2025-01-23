@@ -200,7 +200,7 @@ export async function prepareQueryAndSend(
    * If selection type is area selection this variable contains the layer export objects for the current scene.
    */
   let sceneExport;
-  if (selectedSelectionType === SelectionTypes.AREA_SELECTION && exportScene) {
+  if (selectedSelectionType === SelectionTypes.AREA_SELECTION) {
     query.SELECTION = 'Polygon';
     const layer = app.layers.getByKey(selectionLayerName);
 
@@ -230,7 +230,9 @@ export async function prepareQueryAndSend(
       projection: mercatorProjection.toJSON(),
       coordinates: feature.getGeometry()?.getExtent(),
     });
-    sceneExport = await collectScene(bbox, app);
+    if (exportScene) {
+      sceneExport = await collectScene(bbox, app);
+    }
   } else {
     sceneExport = { selectedFeatures: selectedObjects };
   }

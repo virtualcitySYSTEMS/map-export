@@ -1,3 +1,7 @@
+# v2.0.3
+
+- Fix a bug, where polygon query param was only added for `exportScene: true`.
+
 # v2.0.2
 
 - Fix a bug in the editor where configuration was incorrectly saved
