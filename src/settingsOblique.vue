@@ -9,8 +9,8 @@
         </v-col>
         <v-col cols="5">
           <VcsSelect
-            :items="directionFilterItems"
             v-model="settingsState.directionFilter"
+            :items="directionFilterItems"
             :rules="[(v) => !!v || 'Please select at least one option.']"
             :placeholder="$t('export.settingsOblique.directionPlaceholder')"
           />

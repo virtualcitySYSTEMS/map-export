@@ -4,8 +4,8 @@
     <div class="list-height">
       <VcsList
         v-if="resultItems"
-        :items="resultItems"
         v-model="selectedResults"
+        :items="resultItems"
         selectable
         :title="listTitle"
         :action-button-list-overflow-count="1"
@@ -86,6 +86,7 @@
         required: true,
       },
     },
+    emits: ['invalidArea'],
     setup(props, { emit }) {
       const app = inject('vcsApp');
 

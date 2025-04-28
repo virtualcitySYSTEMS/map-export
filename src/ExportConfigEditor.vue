@@ -1,8 +1,8 @@
 <template>
   <AbstractConfigEditor
-    @submit="apply"
-    v-bind="{ ...$attrs, ...$props }"
     v-if="localConfig"
+    v-bind="{ ...$attrs, ...$props }"
+    @submit="apply"
   >
     <VcsFormSection
       heading="export.editor.general"
@@ -13,17 +13,17 @@
           <v-col cols="6">
             <VcsCheckbox
               id="general-has-terms-of-use"
-              label="export.editor.termsOfUse"
               v-model="hasTermsOfUse"
+              label="export.editor.termsOfUse"
             />
           </v-col>
           <v-col>
             <VcsTextField
               id="general-terms-of-use-url"
-              clearable
               ref="generalTermsOfUseUrl"
-              placeholder="https://linktoprivacy"
               v-model="localConfig.termsOfUse"
+              clearable
+              placeholder="https://linktoprivacy"
               :disabled="!hasTermsOfUse"
               :rules="[
                 (v) => {
@@ -39,10 +39,10 @@
           <v-col>
             <VcsCheckbox
               id="general-allow-email"
+              v-model="localConfig.allowEmail"
               label="export.editor.email"
               :true-value="true"
               :false-value="false"
-              v-model="localConfig.allowEmail"
             />
           </v-col>
         </v-row>
@@ -50,10 +50,10 @@
           <v-col>
             <VcsCheckbox
               id="general-allow-description"
+              v-model="localConfig.allowDescription"
               label="export.editor.allowDescription"
               :true-value="true"
               :false-value="false"
-              v-model="localConfig.allowDescription"
             />
           </v-col>
         </v-row>
@@ -66,8 +66,8 @@
           <v-col cols="3">
             <VcsTextField
               id="general-max-selection-area"
-              clearable
               v-model.number="localConfig.maxSelectionArea"
+              clearable
               type="number"
               unit="m²"
               :min="0"
@@ -90,13 +90,13 @@
           <v-col cols="6">
             <VcsCheckbox
               id="data-source-city-model"
-              label="export.dataSources.cityModel"
               v-model="dataSourceList.cityModel.isSelected"
+              label="export.dataSources.cityModel"
+              :error-messages="errorMessageDataSource"
               @change="
                 (value) =>
                   value || resetDataSourceOption(DataSourceOptions.CITY_MODEL)
               "
-              :error-messages="errorMessageDataSource"
             />
           </v-col>
         </v-row>
@@ -104,13 +104,13 @@
           <v-col>
             <VcsCheckbox
               id="data-source-oblique"
-              label="export.dataSources.oblique"
               v-model="dataSourceList.oblique.isSelected"
+              label="export.dataSources.oblique"
+              :error-messages="errorMessageDataSource"
               @change="
                 (value) =>
                   value || resetDataSourceOption(DataSourceOptions.OBLIQUE)
               "
-              :error-messages="errorMessageDataSource"
             />
           </v-col>
           <v-col v-if="dataSourceList.oblique.isSelected">
@@ -170,9 +170,9 @@
               <v-col>
                 <VcsTextField
                   id="data-source-oblique-resolution"
+                  v-model.number="dataSourceList.oblique.properties.resolution"
                   type="number"
                   :min="0"
-                  v-model.number="dataSourceList.oblique.properties.resolution"
                   :disabled="!dataSourceList.oblique.isSelected"
                   placeholder="1"
                   :rules="[
@@ -190,15 +190,15 @@
               <v-col>
                 <VcsCheckbox
                   id="data-source-oblique-dedicated"
-                  label="export.editor.dedicatedSource"
                   v-model="dataSourceList.oblique.properties.dedicatedSource"
+                  label="export.editor.dedicatedSource"
                   :disabled="!dataSourceList.oblique.isSelected"
                 />
               </v-col>
             </v-row>
             <v-row
-              no-gutters
               v-if="dataSourceList.oblique.properties.dedicatedSource"
+              no-gutters
             >
               <v-col>
                 <VcsLabel html-for="data-source-oblique-base-url" required>
@@ -208,8 +208,8 @@
               <v-col>
                 <VcsTextField
                   id="data-source-oblique-base-url"
-                  clearable
                   v-model="dataSourceList.oblique.properties.baseUrl"
+                  clearable
                   :rules="[(v) => !!v || 'components.validation.required']"
                   :placeholder="$t('export.editor.placeholder.baseUrl')"
                 />
@@ -221,13 +221,13 @@
           <v-col cols="6">
             <VcsCheckbox
               id="data-source-geojson"
-              label="export.dataSources.geojson"
               v-model="dataSourceList.geojson.isSelected"
+              label="export.dataSources.geojson"
+              :error-messages="errorMessageDataSource"
               @change="
                 (value) =>
                   value || resetDataSourceOption(DataSourceOptions.GEOJSON)
               "
-              :error-messages="errorMessageDataSource"
             />
           </v-col>
           <v-col v-if="dataSourceList.geojson.isSelected">
@@ -312,9 +312,9 @@
     >
       <v-container class="py-0 px-1">
         <v-row
-          no-gutters
           v-for="key in ['fmeSecurityToken', 'fmeServerUrl']"
           :key="key"
+          no-gutters
         >
           <v-col>
             <VcsLabel :html-for="`settings-${key}`" required>
@@ -340,15 +340,15 @@
             <v-col cols="2">
               <VcsSelect
                 :id="`settings-${key}-list`"
-                multiple
                 v-model="localConfig[`${key}List`]"
+                multiple
                 :items="
                   key === 'thematicClass'
                     ? mapThematicClasses(defaultOptions.thematicClassList)
                     : defaultOptions[`${key}List`]
                 "
-                @input="(v) => updateDefault(`${key}Default`, key !== 'lod', v)"
                 :rules="[(v) => !!v.length || 'components.validation.required']"
+                @input="(v) => updateDefault(`${key}Default`, key !== 'lod', v)"
               />
             </v-col>
             <v-col cols="2">
@@ -379,11 +379,11 @@
           <v-col>
             <VcsChipArrayInput
               id="settings-appearance-theme-list"
-              column
               v-model="localConfig.appearanceThemeList"
-              @input="(v) => updateDefault('appearanceThemeDefault', false, v)"
+              column
               placeholder="rgbTexture"
               :input-width="100"
+              @input="(v) => updateDefault('appearanceThemeDefault', false, v)"
             />
           </v-col>
         </v-row>
@@ -396,8 +396,8 @@
           <v-col>
             <VcsSelect
               id="settings-appearance-theme-default"
-              :items="localConfig.appearanceThemeList"
               v-model="localConfig.appearanceThemeDefault"
+              :items="localConfig.appearanceThemeList"
               :rules="[(v) => !!v || 'components.validation.required']"
             />
           </v-col>
@@ -422,10 +422,10 @@
           <v-col cols="6">
             <VcsCheckbox
               id="settings-allow-height-mode"
+              v-model="localConfig.allowHeightMode"
               label="export.editor.allowHeightMode"
               :true-value="true"
               :false-value="false"
-              v-model="localConfig.allowHeightMode"
             />
           </v-col>
           <v-col>
@@ -436,14 +436,13 @@
           <v-col>
             <VcsSelect
               id="settings-height-mode-default"
-              :items="heightModeItems"
               v-model="localConfig.heightModeDefault"
+              :items="heightModeItems"
               :rules="[(v) => !!v || 'components.validation.required']"
             />
           </v-col>
         </v-row>
         <v-row
-          no-gutters
           v-for="key in [
             'exportScene',
             'allowTextureExport',
@@ -452,36 +451,37 @@
             'allowTerrainExport',
           ]"
           :key="key"
+          no-gutters
         >
           <v-col>
             <VcsCheckbox
               :id="`settings-${key}`"
+              v-model="localConfig[key]"
               :label="`export.editor.${key}`"
               :true-value="true"
               :false-value="false"
-              v-model="localConfig[key]"
             />
           </v-col>
         </v-row>
-        <v-row no-gutters v-if="localConfig.allowTerrainExport">
+        <v-row v-if="localConfig.allowTerrainExport" no-gutters>
           <v-col>
             <VcsCheckbox
               id="settings-has-terrain-url"
-              label="export.editor.terrainUrl"
               v-model="hasTerrainUrl"
+              label="export.editor.terrainUrl"
             />
           </v-col>
           <v-col>
             <VcsTextField
               id="settings-terrain-url"
-              clearable
               v-model="localConfig.terrainUrl"
+              clearable
               :disabled="!hasTerrainUrl"
               :placeholder="$t('export.editor.placeholder.terrainUrl')"
             />
           </v-col>
         </v-row>
-        <v-row no-gutters v-if="localConfig.allowTerrainExport">
+        <v-row v-if="localConfig.allowTerrainExport" no-gutters>
           <v-col>
             <VcsLabel html-for="settings-terrain-zoom-level">
               {{ $t('export.editor.terrainZoomLevel') }}
@@ -490,8 +490,8 @@
           <v-col cols="3">
             <VcsTextField
               id="settings-terrain-zoom-level"
-              clearable
               v-model.number="localConfig.terrainZoomLevel"
+              clearable
               :min="-1"
               type="number"
               :rules="[

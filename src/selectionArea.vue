@@ -26,8 +26,6 @@
   </v-sheet>
 </template>
 
-<style scoped></style>
-
 <script>
   import { VSheet, VInput, VTooltip } from 'vuetify/components';
   import { VcsToolButton, getDefaultPrimaryColor } from '@vcmap/ui';
@@ -183,3 +181,5 @@
     },
   };
 </script>
+
+<style scoped></style>

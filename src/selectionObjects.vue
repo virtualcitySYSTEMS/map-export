@@ -41,9 +41,9 @@
         </template>
       </v-input>
     </v-row>
-    <v-row no-gutters v-if="buttonShow">
+    <v-row v-if="buttonShow" no-gutters>
       <v-col class="d-flex flex-row-reverse">
-        <VcsFormButton @click="$emit('continue')" :disabled="buttonDisabled">
+        <VcsFormButton :disabled="buttonDisabled" @click="$emit('continue')">
           {{ $t('export.continue') }}
         </VcsFormButton>
       </v-col>
@@ -117,6 +117,7 @@
         required: true,
       },
     },
+    emits: ['continue'],
     setup(props, { emit }) {
       const app = inject('vcsApp');
       const plugin = app.plugins.getByKey(name);

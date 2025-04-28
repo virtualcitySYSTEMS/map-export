@@ -2,11 +2,11 @@
   <v-sheet class="pb-2">
     <VcsWizard v-model.number="pluginState.step">
       <VcsWizardStep
+        v-model.number="pluginState.step"
         :step="stepOrder.DATASOURCE"
         editable
         :complete="!!pluginState.selectedDataSource"
         heading="export.stepTitles.dataSources"
-        v-model.number="pluginState.step"
       >
         <template #help>
           <ul>
@@ -48,7 +48,7 @@
             :model-value="pluginState.selectedDataSource"
             :item-value="(item) => item.options.type"
             :placeholder="$t('export.select')"
-            @update:modelValue="
+            @update:model-value="
               (selectedDataSource) => updateDataSource(selectedDataSource)
             "
           />
@@ -56,12 +56,12 @@
       </VcsWizardStep>
       <VcsWizardStep
         v-show="pluginState.highestStep >= stepOrder.SELECTION_MODE"
+        v-model.number="pluginState.step"
         :step="stepOrder.SELECTION_MODE"
         editable
         :complete="!!pluginState.selectedSelectionType"
         :rules="[() => stepValid.selectionMode !== false]"
         heading="export.stepTitles.selectionType"
-        v-model.number="pluginState.step"
         :header-actions="
           pluginState.selectedSelectionType === SelectionTypes.OBJECT_SELECTION
             ? [resetActions.objectSelection]
@@ -82,14 +82,14 @@
         <template #default>
           <div class="px-1">
             <v-form
-              v-model="stepValid.selectionMode"
               ref="formSelectionMode"
+              v-model="stepValid.selectionMode"
               lazy-validation
             >
               <VcsSelect
+                v-model="pluginState.selectedSelectionType"
                 :items="selectionTypeItems"
                 :placeholder="$t('export.select')"
-                v-model="pluginState.selectedSelectionType"
                 :rules="[(v) => !!v || $t('export.validation.selectField')]"
                 class="pb-2"
               />
@@ -140,12 +140,12 @@
           pluginState.highestStep >= stepOrder.SETTINGS &&
           pluginState.selectedDataSource !== DataSourceOptions.GEOJSON
         "
+        v-model="pluginState.step"
         :step="stepOrder.SETTINGS"
         editable
         :complete="pluginState.highestStep >= stepOrder.SETTINGS"
         :rules="[() => !!stepValid.settings]"
         heading="export.stepTitles.settings"
-        v-model="pluginState.step"
         :header-actions="
           pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL
             ? [resetActions.settingsCityModel]
@@ -169,8 +169,8 @@
         <template #default>
           <div class="px-1">
             <v-form
-              v-model="stepValid.settings"
               ref="formSettings"
+              v-model="stepValid.settings"
               lazy-validation
             >
               <SettingsCityModel
@@ -178,8 +178,8 @@
                   pluginState.selectedDataSource ===
                   DataSourceOptions.CITY_MODEL
                 "
-                :setup="pluginConfig.settingsCityModel"
                 v-model="pluginState.settingsCityModel"
+                :setup="pluginConfig.settingsCityModel"
                 :button-disabled="!stepValid.settings"
                 :button-show="pluginState.highestStep <= stepOrder.SETTINGS"
                 @continue="increaseStep(stepOrder.SETTINGS)"
@@ -192,7 +192,7 @@
                     SelectionTypes.AREA_SELECTION
                 "
                 v-model="pluginState.settingsOblique"
-                @update:modelValue="increaseStep(stepOrder.SETTINGS)"
+                @update:model-value="increaseStep(stepOrder.SETTINGS)"
               />
             </v-form>
           </div>
@@ -200,11 +200,11 @@
       </VcsWizardStep>
       <VcsWizardStep
         v-show="pluginState.highestStep >= stepOrder.EXPORT_DESTINATION"
+        v-model="pluginState.step"
         :step="stepOrder.EXPORT_DESTINATION"
         editable
         :complete="pluginState.highestStep >= stepOrder.EXPORT_DESTINATION"
         :rules="[() => stepValid.exportDestination !== false]"
-        v-model="pluginState.step"
         :header-actions="
           pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL
             ? [resetActions.exportDestination]
@@ -212,14 +212,14 @@
         "
         :heading="$st(heading)"
       >
-        <template #help v-if="help">
+        <template v-if="help" #help>
           {{ $t(help) }}
         </template>
         <template #default>
           <div class="px-1">
             <v-form
-              v-model="stepValid.exportDestination"
               ref="formExportDestination"
+              v-model="stepValid.exportDestination"
               lazy-validation
             >
               <div
@@ -230,9 +230,9 @@
               >
                 <VcsTextField
                   v-if="pluginConfig.allowEmail"
+                  v-model="pluginState.email"
                   :label="undefined"
                   :placeholder="$t('export.userData.email')"
-                  v-model="pluginState.email"
                   :rules="[
                     (v) =>
                       isValidEmail(v) || $t('export.validation.provideEmail'),
@@ -240,6 +240,7 @@
                 />
                 <VcsTextField
                   v-if="pluginConfig.allowExportName"
+                  v-model="pluginState.exportName"
                   :label="undefined"
                   :placeholder="$t('export.userData.exportName')"
                   :rules="[
@@ -248,14 +249,13 @@
                       v.length > 0 ||
                       $t('components.validation.required'),
                   ]"
-                  v-model="pluginState.exportName"
                 />
                 <VcsTextArea
+                  v-if="pluginConfig.allowDescription"
+                  v-model="pluginState.description"
                   :placeholder="$t('export.userData.description')"
                   class="pb-2"
                   rows="2"
-                  v-model="pluginState.description"
-                  v-if="pluginConfig.allowDescription"
                 />
               </div>
               <ResultList
@@ -264,9 +264,9 @@
                     DataSourceOptions.OBLIQUE ||
                   pluginState.selectedDataSource === DataSourceOptions.GEOJSON
                 "
+                v-model="pluginState.selectedResultItems"
                 :selection-layer-name="areaSelectionLayerName"
                 :selected-data-source="pluginState.selectedDataSource"
-                v-model="pluginState.selectedResultItems"
                 :active="pluginState.step === stepOrder.EXPORT_DESTINATION"
                 :max-selection-area="pluginConfig.maxSelectionArea"
                 @invalid-area="pluginState.step = stepOrder.SELECTION_MODE"
@@ -291,18 +291,18 @@
         </template>
       </VcsWizardStep>
       <VcsWizardStep
+        v-model="pluginState.step"
         :step="stepOrder.SEND_REQUEST"
         :complete="pluginState.step > stepOrder.SEND_REQUEST"
         :editable="requestEnabled && !running"
-        v-model="pluginState.step"
       >
         <template #title>
           <div class="d-flex flex-grow-1 flex-row-reverse pa-2">
             <VcsFormButton
               variant="filled"
               :disabled="!requestEnabled || running"
-              @click="sendRequest()"
               :loading="running"
+              @click="sendRequest()"
             >
               {{ $t('export.sendRequest') }}
             </VcsFormButton>
@@ -789,17 +789,17 @@
                 });
               }
             })
+            .finally(() => {
+              running.value = false;
+              obliqueDownload.running = false;
+              obliqueDownload.queue = [1, 1];
+            })
             .catch(() => {
               app.notifier.add({
                 type: NotificationType.ERROR,
                 message: 'export.notification.error.standard',
                 timeout: 5000,
               });
-            })
-            .finally(() => {
-              running.value = false;
-              obliqueDownload.running = false;
-              obliqueDownload.queue = [1, 1];
             });
         } else {
           app.notifier.add({

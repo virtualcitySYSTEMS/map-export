@@ -28,7 +28,7 @@ function getMimeTypeForExtension(fileExtension) {
  * @api
  * @export
  */
-// eslint-disable-next-line import/prefer-default-export
+
 export function downloadObliqueImage(
   obliqueImage,
   downloadState,
@@ -112,21 +112,26 @@ export function downloadObliqueImage(
   });
 
   return new Promise((resolve, reject) => {
-    Promise.all(imagePromises).then(() => {
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          reject(
-            new Error(
-              'Image conversion failed. If using Firefox try using Chrome or Edge.',
-            ),
-          );
-        } else {
-          downloadBlob(blob, `${obliqueImage.name}.${fileExtension}`);
-          resolve();
-        }
+    Promise.all(imagePromises)
+      .then(() => {
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            reject(
+              new Error(
+                'Image conversion failed. If using Firefox try using Chrome or Edge.',
+              ),
+            );
+          } else {
+            downloadBlob(blob, `${obliqueImage.name}.${fileExtension}`);
+            resolve();
+          }
+          downloadState.progress = 0;
+        }, getMimeTypeForExtension(fileExtension));
+      })
+      .catch((error) => {
+        reject(error);
         downloadState.progress = 0;
-      }, getMimeTypeForExtension(fileExtension));
-    });
+      });
   });
 }
 

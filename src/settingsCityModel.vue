@@ -14,8 +14,8 @@
       <v-col class="pa-0" cols="6">
         <VcsSelect
           :id="name + 'Select'"
-          :items="mainSetting.items"
           v-model="settingsState[mainSetting.stateName]"
+          :items="mainSetting.items"
           :multiple="mainSetting.multiple"
           :rules="[
             (v) => !!v.length || $t('export.validation.selectFieldMultiple'),
@@ -28,16 +28,16 @@
       <v-row no-gutters>
         <v-col class="pa-0">
           <VcsCheckbox
-            :label="formatSetting.i18n"
             v-model="settingsState[formatSetting.stateName]"
+            :label="formatSetting.i18n"
           />
         </v-col>
       </v-row>
       <template v-if="settingsState[formatSetting.stateName]">
         <v-row
           v-for="selectField in formatSetting.selectFields"
-          no-gutter
           :key="selectField.name"
+          no-gutter
           class="ma-0 pl-6"
         >
           <v-col class="pa-0" cols="6">
@@ -48,8 +48,8 @@
           <v-col class="pa-0" cols="6">
             <VcsSelect
               :id="selectField.name + 'Select'"
-              :items="selectField.items"
               v-model="settingsState[selectField.stateName]"
+              :items="selectField.items"
             />
           </v-col>
         </v-row>
@@ -95,15 +95,13 @@
     </v-row>
     <v-row v-if="buttonShow" no-gutters>
       <v-col cols="12" class="px-1 d-flex flex-row-reverse">
-        <VcsFormButton @click="$emit('continue')" :disabled="buttonDisabled">
+        <VcsFormButton :disabled="buttonDisabled" @click="$emit('continue')">
           {{ $t('export.continue') }}
         </VcsFormButton>
       </v-col>
     </v-row>
   </v-container>
 </template>
-
-<style scoped></style>
 
 <script>
   // @ts-check
@@ -156,6 +154,7 @@
         default: true,
       },
     },
+    emits: ['continue'],
     setup(props, { emit }) {
       /** State object of the city model export settings. */
       const settingsState = useProxiedComplexModel(props, 'modelValue', emit);
@@ -318,3 +317,5 @@
     },
   };
 </script>
+
+<style scoped></style>
