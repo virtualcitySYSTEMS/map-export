@@ -304,10 +304,9 @@
       const showCrsInput = computed(
         () =>
           Array.isArray(props.setup.crs) &&
-          (!settingsState.value.localCoordinates ||
-            !settingsState.value.selectedExportFormats.some(
-              (formatType) => exportFormats[formatType].localCoordinates,
-            )),
+          settingsState.value.selectedExportFormats.some(
+            (formatType) => !exportFormats[formatType].localCoordinates,
+          ),
       );
 
       return {

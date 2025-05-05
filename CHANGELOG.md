@@ -1,3 +1,7 @@
+# v2.0.5
+
+- Fix a bug, where the CRS selector would not show up when required
+
 # v2.0.4
 
 - Fix a bug, where configuring export of multiple Oblique sources would block their export.
