@@ -154,7 +154,7 @@
         default: true,
       },
     },
-    emits: ['continue'],
+    emits: ['continue', 'update:modelValue'],
     setup(props, { emit }) {
       /** State object of the city model export settings. */
       const settingsState = useProxiedComplexModel(props, 'modelValue', emit);
@@ -303,8 +303,11 @@
       /** Manages crs input options. */
       const showCrsInput = computed(
         () =>
-          !settingsState.value.localCoordinates &&
-          Array.isArray(props.setup.crs),
+          Array.isArray(props.setup.crs) &&
+          (!settingsState.value.localCoordinates ||
+            !settingsState.value.selectedExportFormats.some(
+              (formatType) => exportFormats[formatType].localCoordinates,
+            )),
       );
 
       return {

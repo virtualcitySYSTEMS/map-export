@@ -48,3 +48,34 @@ export default function createDataSourceFromConfig(options, app) {
     throw new Error(`Datasource "${options.type}" not supported`);
   }
 }
+
+/**
+ * @param {import("@vcmap/core").VcsApp} app The VcsApp instance.
+ * @param {import("./abstractDataSource").AbstractDataSourceOptions} options
+ * @returns {boolean} Whether the options are valid.
+ */
+export function validateDataSourceOptions(app, options) {
+  if (
+    options.type === DataSourceOptions.GEOJSON &&
+    validateGeoJSONOptions(
+      /** @type {import("./geojsonDataSource").GeoJSONDataSourceOptions} */ (
+        options
+      ),
+    )
+  ) {
+    return true;
+  } else if (
+    options.type === DataSourceOptions.OBLIQUE &&
+    validateObliqueOptions(
+      /** @type {import("./obliqueDataSource").ObliqueDataSourceOptions} */ (
+        options
+      ),
+      app,
+    )
+  ) {
+    return true;
+  } else if (options.type === DataSourceOptions.CITY_MODEL) {
+    return true;
+  }
+  return false;
+}

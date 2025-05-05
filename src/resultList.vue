@@ -81,8 +81,8 @@
         type: Number,
         required: true,
       },
-      selectedDataSource: {
-        type: String,
+      selectedDataSourceOptions: {
+        type: Object,
         required: true,
       },
     },
@@ -96,7 +96,7 @@
       const selectedResults = useProxiedAtomicModel(props, 'modelValue', emit);
 
       const listTitle = computed(() =>
-        props.selectedDataSource === 'geojson'
+        props.selectedDataSourceOptions.type === 'geojson'
           ? plugin.dataSource.title
           : 'export.dataSources.oblique',
       );

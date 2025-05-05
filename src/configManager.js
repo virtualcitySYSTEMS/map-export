@@ -313,7 +313,7 @@ export const LodOptions = {
  * @property {string | null} exportName Name provided by the user for the exportet file.
  * @property {string} description A description that the user can add to the exported dataset to make it easier for him to identify the exported data.
  * @property {SelectionTypes | null} selectedSelectionType The selected selection type.
- * @property {DataSourceOptions | null} selectedDataSource The selected dataSource.
+ * @property {import('./dataSources/abstractDataSource').AbstractDataSourceOptions | null} selectedDataSourceOptions The selected dataSource options.
  * @property {Array<string>} selectedObjects The IDs of the selected city model objects via the object selection using mouse click.
  * @property {{name: string, title: string, tooltip: string, selectionChanged: Function}[]} selectedResultItems The selected dataSource results (geojson or oblique). Objects are VcsListItems.
  */
@@ -575,7 +575,7 @@ export function getConfigAndState(pluginOptions, defaultOptions) {
       exportName: null,
       description: '',
       selectedSelectionType: null,
-      selectedDataSource: null,
+      selectedDataSourceOptions: null,
       selectedObjects: [],
       selectedResultItems: [],
     },

@@ -165,7 +165,10 @@ export default (options) => {
                 }
                 const plugin = vcsUiApp.plugins.getByKey(name);
                 // XXX Should this be a function of the plugin? `set dataSource` and `set selectionType`
-                plugin.state.selectedDataSource = 'cityModel';
+                plugin.state.selectedDataSourceOptions = {
+                  type: 'cityModel',
+                  title: 'export.dataSources.cityModel',
+                };
                 plugin.state.step = 2;
                 plugin.state.highestStep = 2;
                 plugin.state.selectedSelectionType = 'objectSelection';
@@ -177,20 +180,11 @@ export default (options) => {
         return contextEntries;
       }, name);
     },
-    updateDataSource(vcsApp, downloadState) {
-      const dataSourceOptions = config.dataSourceOptionsList.find(
-        (dataSourceOption) =>
-          dataSourceOption.type === state.selectedDataSource,
-      );
-      if (dataSourceOptions) {
-        dataSource = createDataSourceFromConfig(dataSourceOptions, vcsApp);
-        if (dataSource instanceof ObliqueDataSource) {
-          dataSource.viewDirectionFilter =
-            state.settingsOblique.directionFilter;
-          dataSource.downloadState = downloadState;
-        }
-      } else {
-        dataSource = null;
+    updateDataSource(vcsApp, dataSourceOptions, downloadState) {
+      dataSource = createDataSourceFromConfig(dataSourceOptions, vcsApp);
+      if (dataSource instanceof ObliqueDataSource) {
+        dataSource.viewDirectionFilter = state.settingsOblique.directionFilter;
+        dataSource.downloadState = downloadState;
       }
     },
     resetState: () =>

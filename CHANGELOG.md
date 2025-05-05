@@ -1,3 +1,9 @@
+# v2.0.4
+
+- Fix a bug, where configuring export of multiple Oblique sources would block their export.
+- Fix a bug, where a GeoJSON export would fail when no terms of use are configured.
+- Fix a bug, where enabling local coordinates for a city model export would then block any CRS selection.
+
 # v2.0.3
 
 - Fix a bug, where polygon query param was only added for `exportScene: true`.

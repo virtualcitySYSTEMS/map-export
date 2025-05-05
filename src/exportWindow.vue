@@ -5,7 +5,7 @@
         v-model.number="pluginState.step"
         :step="stepOrder.DATASOURCE"
         editable
-        :complete="!!pluginState.selectedDataSource"
+        :complete="!!pluginState.selectedDataSourceOptions"
         heading="export.stepTitles.dataSources"
       >
         <template #help>
@@ -13,7 +13,7 @@
             <li
               v-if="
                 dataSourceItems.some(
-                  (item) => item.options.type === DataSourceOptions.CITY_MODEL,
+                  (item) => item.type === DataSourceOptions.CITY_MODEL,
                 )
               "
             >
@@ -23,7 +23,7 @@
             <li
               v-if="
                 dataSourceItems.some(
-                  (item) => item.options.type === DataSourceOptions.OBLIQUE,
+                  (item) => item.type === DataSourceOptions.OBLIQUE,
                 )
               "
             >
@@ -33,11 +33,11 @@
             <li
               v-if="
                 dataSourceItems.some(
-                  (item) => item.options.type === DataSourceOptions.GEOJSON,
+                  (item) => item.type === DataSourceOptions.GEOJSON,
                 )
               "
             >
-              {{ $st(geoJsonItem.title) }}: {{ $st(geoJsonItem.options.help) }}
+              {{ $st(geoJsonItem.title) }}: {{ $st(geoJsonItem.help) }}
             </li>
           </ul>
         </template>
@@ -45,12 +45,14 @@
           <VcsSelect
             class="px-1 pb-3"
             :items="dataSourceItems"
-            :model-value="pluginState.selectedDataSource"
-            :item-value="(item) => item.options.type"
-            :placeholder="$t('export.select')"
-            @update:model-value="
-              (selectedDataSource) => updateDataSource(selectedDataSource)
+            :model-value="pluginState.selectedDataSourceOptions"
+            :item-value="
+              (item) =>
+                item.obliqueCollectionName ?? item.geojsonUrl ?? item.type
             "
+            return-object
+            :placeholder="$t('export.select')"
+            @update:model-value="(options) => updateDataSource(options)"
           />
         </template>
       </VcsWizardStep>
@@ -116,7 +118,7 @@
               <VcsCheckbox
                 v-else-if="
                   pluginState.selectedSelectionType ===
-                  SelectionTypes.CURRENT_IMAGE
+                    SelectionTypes.CURRENT_IMAGE && pluginConfig.termsOfUse
                 "
                 v-model="pluginState.termsConsented"
                 :rules="[(v) => !!v || $t('export.validation.termsOfUse')]"
@@ -138,7 +140,8 @@
       <VcsWizardStep
         v-show="
           pluginState.highestStep >= stepOrder.SETTINGS &&
-          pluginState.selectedDataSource !== DataSourceOptions.GEOJSON
+          pluginState.selectedDataSourceOptions?.type !==
+            DataSourceOptions.GEOJSON
         "
         v-model="pluginState.step"
         :step="stepOrder.SETTINGS"
@@ -147,20 +150,25 @@
         :rules="[() => !!stepValid.settings]"
         heading="export.stepTitles.settings"
         :header-actions="
-          pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL
+          pluginState.selectedDataSourceOptions?.type ===
+          DataSourceOptions.CITY_MODEL
             ? [resetActions.settingsCityModel]
             : []
         "
       >
         <template #help>
           <span
-            v-if="pluginState.selectedDataSource === DataSourceOptions.OBLIQUE"
+            v-if="
+              pluginState.selectedDataSourceOptions.type ===
+              DataSourceOptions.OBLIQUE
+            "
           >
             {{ $t('export.help.settings.oblique') }}
           </span>
           <span
             v-else-if="
-              pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL
+              pluginState.selectedDataSourceOptions.type ===
+              DataSourceOptions.CITY_MODEL
             "
           >
             {{ $t('export.help.settings.cityModel') }}
@@ -175,7 +183,7 @@
             >
               <SettingsCityModel
                 v-if="
-                  pluginState.selectedDataSource ===
+                  pluginState.selectedDataSourceOptions.type ===
                   DataSourceOptions.CITY_MODEL
                 "
                 v-model="pluginState.settingsCityModel"
@@ -186,7 +194,7 @@
               />
               <SettingsOblique
                 v-else-if="
-                  pluginState.selectedDataSource ===
+                  pluginState.selectedDataSourceOptions.type ===
                     DataSourceOptions.OBLIQUE &&
                   pluginState.selectedSelectionType ===
                     SelectionTypes.AREA_SELECTION
@@ -206,7 +214,8 @@
         :complete="pluginState.highestStep >= stepOrder.EXPORT_DESTINATION"
         :rules="[() => stepValid.exportDestination !== false]"
         :header-actions="
-          pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL
+          pluginState.selectedDataSourceOptions?.type ===
+          DataSourceOptions.CITY_MODEL
             ? [resetActions.exportDestination]
             : []
         "
@@ -224,7 +233,7 @@
             >
               <div
                 v-if="
-                  pluginState.selectedDataSource ===
+                  pluginState.selectedDataSourceOptions.type ===
                   DataSourceOptions.CITY_MODEL
                 "
               >
@@ -260,13 +269,16 @@
               </div>
               <ResultList
                 v-else-if="
-                  pluginState.selectedDataSource ===
+                  pluginState.selectedDataSourceOptions.type ===
                     DataSourceOptions.OBLIQUE ||
-                  pluginState.selectedDataSource === DataSourceOptions.GEOJSON
+                  pluginState.selectedDataSourceOptions.type ===
+                    DataSourceOptions.GEOJSON
                 "
                 v-model="pluginState.selectedResultItems"
                 :selection-layer-name="areaSelectionLayerName"
-                :selected-data-source="pluginState.selectedDataSource"
+                :selected-data-source-options="
+                  pluginState.selectedDataSourceOptions
+                "
                 :active="pluginState.step === stepOrder.EXPORT_DESTINATION"
                 :max-selection-area="pluginConfig.maxSelectionArea"
                 @invalid-area="pluginState.step = stepOrder.SELECTION_MODE"
@@ -282,8 +294,8 @@
                     target="_blank"
                     :href="pluginConfig.termsOfUse.toString()"
                     @click.stop
-                    >{{ $t('export.userData.termsOfUse') }}</a
-                  >
+                    >{{ $t('export.userData.termsOfUse') }}
+                  </a>
                 </template>
               </VcsCheckbox>
             </v-form>
@@ -351,7 +363,7 @@
     VcsWizardStep,
     NotificationType,
   } from '@vcmap/ui';
-  import { CesiumTilesetLayer } from '@vcmap/core';
+  import { CesiumTilesetLayer, ObliqueMap } from '@vcmap/core';
   import SelectionArea, { areaSelectionLayerName } from './selectionArea.vue';
   import SelectionObjects from './selectionObjects.vue';
   import SettingsCityModel from './settingsCityModel.vue';
@@ -362,6 +374,7 @@
   import ObliqueDataSource from './dataSources/obliqueDataSource.js';
   import { downloadCurrentImage } from './obliqueHelper.js';
   import { name } from '../package.json';
+  import { validateDataSourceOptions } from './dataSources/dataSourceFactory.js';
 
   /**
    * @description Main window of the export plugin. Base component is the VcsWizard wich guides through the different steps.
@@ -388,13 +401,14 @@
       ResultList,
     },
     setup() {
+      /** @type import("@vcmap/ui").VcsUiApp */
       const app = inject('vcsApp');
 
       const plugin = app.plugins.getByKey(name);
 
-      /** @type import("./configManager").ExportState */
+      /** @type import("./configManager.js").ExportState */
       const pluginState = plugin.state;
-      /** @type import("./configManager").ExportConfig */
+      /** @type import("./configManager.js").ExportConfig */
       const pluginConfig = plugin.config;
       const running = ref(false);
       const obliqueDownload = reactive({
@@ -419,7 +433,7 @@
       const stepValid = reactive({
         selectionMode: false,
         settings: false,
-        exportDestination: false,
+        exportDestination: !pluginConfig.termsOfUse,
       });
 
       const formSelectionMode = ref(null);
@@ -451,31 +465,33 @@
       }
 
       const activeMapName = ref(app.maps.activeMap.className);
+      const activeObliqueCollectionName = ref(
+        app.maps.activeMap.collection?.name,
+      );
 
       /**
        * Creates dataSource items for the rendering in the vue component.
        * @param {Array<import("./dataSources/abstractDataSource").AbstractDataSourceOptions>} dataSourceOptionsList List of dataSources to be available.
-       * @returns {Array<{options: import("./dataSources/abstractDataSource").AbstractDataSourceOptions, text: string }>} Array of dataSource items
+       * @returns {Array<import("./dataSources/abstractDataSource.js").AbstractDataSourceOptions>} Array of dataSource items
        */
       const dataSourceItems = computed(() => {
-        return pluginConfig.dataSourceOptionsList.map((dataSourceOption) => {
-          let title;
-          if (dataSourceOption.type === DataSourceOptions.CITY_MODEL) {
-            title = dataSourceOption.title || 'export.dataSources.cityModel';
-          } else if (dataSourceOption.type === DataSourceOptions.OBLIQUE) {
-            title = dataSourceOption.title || 'export.dataSources.oblique';
-          } else if (dataSourceOption.type === DataSourceOptions.GEOJSON) {
-            ({ title } = dataSourceOption);
-          } else {
-            throw new Error(
-              `The following datasource type is not supported: "${dataSourceOption.type}"`,
-            );
-          }
-          return {
-            options: dataSourceOption,
-            title,
-          };
-        });
+        return pluginConfig.dataSourceOptionsList
+          .filter(validateDataSourceOptions.bind(null, app))
+          .map((dataSourceOption) => {
+            let title;
+            if (dataSourceOption.type === DataSourceOptions.CITY_MODEL) {
+              title = dataSourceOption.title || 'export.dataSources.cityModel';
+            } else if (dataSourceOption.type === DataSourceOptions.OBLIQUE) {
+              title = dataSourceOption.title || 'export.dataSources.oblique';
+            } else if (dataSourceOption.type === DataSourceOptions.GEOJSON) {
+              ({ title } = dataSourceOption);
+            } else {
+              throw new Error(
+                `The following datasource type is not supported: "${dataSourceOption.type}"`,
+              );
+            }
+            return { ...dataSourceOption, title };
+          });
       });
 
       function isObjectSelectionDisabled() {
@@ -497,7 +513,10 @@
             title: 'export.selectionTypes.areaSelection',
           },
         ];
-        if (pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL) {
+        if (
+          pluginState.selectedDataSourceOptions?.type ===
+          DataSourceOptions.CITY_MODEL
+        ) {
           if (!isObjectSelectionDisabled()) {
             items.push({
               value: SelectionTypes.OBJECT_SELECTION,
@@ -508,19 +527,29 @@
             });
           }
         }
-        if (pluginState.selectedDataSource === DataSourceOptions.OBLIQUE) {
+        if (
+          pluginState.selectedDataSourceOptions?.type ===
+          DataSourceOptions.OBLIQUE
+        ) {
           items.push({
             value: SelectionTypes.CURRENT_IMAGE,
             title: 'export.selectionTypes.currentImage',
-            props: { disabled: activeMapName.value !== 'ObliqueMap' },
+            props: {
+              disabled:
+                activeMapName.value !== 'ObliqueMap' ||
+                activeObliqueCollectionName.value !==
+                  pluginState.selectedDataSourceOptions.obliqueCollectionName,
+            },
           });
         }
         return items;
       });
 
+      let obliqueCollectionListener;
       const listeners = [
         app.maps.mapActivated.addEventListener((map) => {
           activeMapName.value = map.className;
+          activeObliqueCollectionName.value = map.collection?.name;
           // map specific changes
           if (
             (pluginState.selectedSelectionType ===
@@ -531,6 +560,22 @@
               map.className !== 'ObliqueMap')
           ) {
             pluginState.selectedSelectionType = undefined;
+          }
+          if (map instanceof ObliqueMap) {
+            obliqueCollectionListener = map.collectionChanged.addEventListener(
+              (collection) => {
+                activeObliqueCollectionName.value = collection.name;
+                if (
+                  SelectionTypes.CURRENT_IMAGE &&
+                  collection.name !==
+                    pluginState.selectedDataSourceOptions.obliqueCollectionName
+                ) {
+                  pluginState.selectedSelectionType = undefined;
+                }
+              },
+            );
+          } else {
+            obliqueCollectionListener?.();
           }
         }),
         app.layers.added.addEventListener(() => {
@@ -596,7 +641,10 @@
         const termsAccepted = pluginConfig.termsOfUse
           ? pluginState.termsConsented
           : true;
-        if (pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL) {
+        if (
+          pluginState.selectedDataSourceOptions?.type ===
+          DataSourceOptions.CITY_MODEL
+        ) {
           if (pluginConfig.allowEmail) {
             // Check if email is provided
             return termsAccepted && isValidEmail(pluginState.email);
@@ -605,7 +653,8 @@
             return termsAccepted && !!pluginState.exportName;
           }
         } else if (
-          pluginState.selectedDataSource === DataSourceOptions.OBLIQUE
+          pluginState.selectedDataSourceOptions?.type ===
+          DataSourceOptions.OBLIQUE
         ) {
           if (
             pluginState.selectedSelectionType === SelectionTypes.AREA_SELECTION
@@ -619,7 +668,8 @@
             return termsAccepted;
           }
         } else if (
-          pluginState.selectedDataSource === DataSourceOptions.GEOJSON
+          pluginState.selectedDataSourceOptions?.type ===
+          DataSourceOptions.GEOJSON
         ) {
           return termsAccepted && pluginState.selectedResultItems.length > 0;
         }
@@ -656,7 +706,8 @@
         if (feature) {
           // if datasource is geojson no settings are availabe therefore this step has to be skipped.
           const increaseBy =
-            pluginState.selectedDataSource === DataSourceOptions.GEOJSON
+            pluginState.selectedDataSourceOptions.type ===
+            DataSourceOptions.GEOJSON
               ? currentStep + 1
               : currentStep;
           increaseStep(increaseBy);
@@ -673,16 +724,20 @@
 
       /**
        * Resets plugin in case datasource is changed.
-       * @param {import("./configManager").DataSourceOptions} selectedDataSource The selected data source option.
+       * @param {import("./dataSources/abstractDataSource.js").AbstractDataSourceOptions} selectedDataSourceOptions The selected data source option.
        */
-      function updateDataSource(selectedDataSource) {
+      function updateDataSource(selectedDataSourceOptions) {
         // if there was a previsouly selected datasource -> reset export wizard
-        if (pluginState.selectedDataSource) {
+        if (pluginState.selectedDataSourceOptions) {
           resetExportWizard();
         }
         plugin.dataSource?.clear();
-        pluginState.selectedDataSource = selectedDataSource;
-        plugin.updateDataSource(app, obliqueDownload);
+        pluginState.selectedDataSourceOptions = selectedDataSourceOptions;
+        plugin.updateDataSource(
+          app,
+          selectedDataSourceOptions,
+          obliqueDownload,
+        );
         increaseStep(stepOrder.DATASOURCE);
       }
 
@@ -695,7 +750,8 @@
           (stepValid.settings &&
             stepValid.exportDestination &&
             stepValid.selectionMode) ||
-          (pluginState.selectedDataSource === DataSourceOptions.GEOJSON &&
+          (pluginState.selectedDataSourceOptions.type ===
+            DataSourceOptions.GEOJSON &&
             stepValid.exportDestination &&
             stepValid.selectionMode) ||
           (pluginState.selectedSelectionType === SelectionTypes.CURRENT_IMAGE &&
@@ -703,7 +759,10 @@
         ) {
           let promise;
           running.value = true;
-          if (pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL) {
+          if (
+            pluginState.selectedDataSourceOptions.type ===
+            DataSourceOptions.CITY_MODEL
+          ) {
             promise = prepareQueryAndSend(
               pluginConfig,
               pluginState,
@@ -712,8 +771,10 @@
               plugin.additionalParams,
             );
           } else if (
-            pluginState.selectedDataSource === DataSourceOptions.OBLIQUE ||
-            pluginState.selectedDataSource === DataSourceOptions.GEOJSON
+            pluginState.selectedDataSourceOptions.type ===
+              DataSourceOptions.OBLIQUE ||
+            pluginState.selectedDataSourceOptions.type ===
+              DataSourceOptions.GEOJSON
           ) {
             obliqueDownload.running = true;
             // Ensures that ui does not freeze.
@@ -769,7 +830,7 @@
               promise = Promise.resolve();
             } else {
               throw new Error(
-                `Selected SelectionType is not supported for ${pluginState.selectedDataSource} export.`,
+                `Selected SelectionType is not supported for ${pluginState.selectedDataSourceOptions.type} export.`,
               );
             }
           } else {
@@ -779,7 +840,8 @@
           promise
             .then(() => {
               if (
-                pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL
+                pluginState.selectedDataSourceOptions.type ===
+                DataSourceOptions.CITY_MODEL
               ) {
                 // assigns the default state to the actual state to achieve a reset.
                 app.notifier.add({
@@ -811,6 +873,7 @@
       }
 
       onUnmounted(() => {
+        obliqueCollectionListener?.();
         listeners.forEach((listener) => listener());
       });
       const isReset = ref(false);
@@ -847,22 +910,26 @@
 
       const lastStep = computed(() => {
         if (
-          pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL &&
+          pluginState.selectedDataSourceOptions?.type ===
+            DataSourceOptions.CITY_MODEL &&
           pluginConfig.allowEmail === false &&
           pluginConfig.allowExportName === true
         ) {
           return 'exportName';
         } else if (
-          pluginState.selectedDataSource === DataSourceOptions.CITY_MODEL &&
+          pluginState.selectedDataSourceOptions?.type ===
+            DataSourceOptions.CITY_MODEL &&
           pluginConfig.allowEmail === true
         ) {
           return 'exportDestination';
         } else if (
-          pluginState.selectedDataSource === DataSourceOptions.OBLIQUE
+          pluginState.selectedDataSourceOptions?.type ===
+          DataSourceOptions.OBLIQUE
         ) {
           return 'selectImages';
         } else if (
-          pluginState.selectedDataSource === DataSourceOptions.GEOJSON
+          pluginState.selectedDataSourceOptions?.type ===
+          DataSourceOptions.GEOJSON
         ) {
           return 'selectFiles';
         } else {
@@ -911,7 +978,7 @@
         heading,
         help,
         geoJsonItem: dataSourceItems.value.find(
-          (item) => item.options.type === DataSourceOptions.GEOJSON,
+          (item) => item.type === DataSourceOptions.GEOJSON,
         ),
       };
     },
