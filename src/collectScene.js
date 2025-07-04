@@ -156,7 +156,6 @@ async function convertFeaturesToSceneFeatures(
  * @property {Array<SceneFeature>} features
  * @property {import("@vcmap/core").VectorPropertiesOptions} vcsMeta
  * @property {import("@vcmap/core").StyleItemOptions} style
- * @property {Object<string, number> | undefined} hiddenObjects
  */
 
 /**
@@ -230,7 +229,6 @@ async function exportVectorLayer(app, layer, bbox) {
     features: sceneFeatures,
     vcsMeta: layer.getVcsMeta(),
     style: layer.style.toJSON(),
-    hiddenObjects: layer.globalHider?.hiddenObjectIds,
   };
 }
 
@@ -272,7 +270,6 @@ async function exportVectorTileLayer(app, layer, bbox) {
     features: sceneFeatures,
     vcsMeta: layer.vectorProperties.getVcsMeta(),
     style: layer.style.toJSON(),
-    hiddenObjects: layer.globalHider?.hiddenObjectIds,
   };
 }
 
@@ -320,15 +317,6 @@ export default async function collectScene(bbox, app) {
   });
   return {
     baseLayers,
-    hiddenObjects: baseLayers.reduce((hiddenObjects, layerExport) => {
-      if (
-        layerExport &&
-        layerExport.type === LayerType.GEOJSON &&
-        layerExport.hiddenObjects
-      ) {
-        hiddenObjects.concat(layerExport.hiddenObjects);
-      }
-      return hiddenObjects;
-    }, []),
+    hiddenObjects: [...app.hiddenObject].map((object) => object.id),
   };
 }

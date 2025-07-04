@@ -1,3 +1,8 @@
+# v2.0.6
+
+- Made `fmeSecurityToken` optional in the plugin's config
+- Fix a bug, where the `hiddenObjects` array would be empty
+
 # v2.0.5
 
 - Fix a bug, where the CRS selector would not show up when required

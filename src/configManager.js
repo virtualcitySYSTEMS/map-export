@@ -272,7 +272,7 @@ export const LodOptions = {
  * @property {import("@vcmap/core").ProjectionOptions} dataProjection The datas projection, defaults to EPSG:25832.
  * @property {boolean} exportScene export entire scene, not just the city model.
  * @property {string=} fmeServerUrl The FME server URL.
- * @property {string=} fmeSecurityToken The FME security token for the given server.
+ * @property {string=} [fmeSecurityToken] The FME security token for the given server.
  */
 
 /**
@@ -417,8 +417,8 @@ export function getConfigAndState(pluginOptions, defaultOptions) {
         dataSourceOption.type === DataSourceOptions.CITY_MODEL,
     )
   ) {
-    check(pluginOptions.fmeSecurityToken, String);
     check(pluginOptions.fmeServerUrl, String);
+    checkMaybe(pluginOptions.fmeSecurityToken, String);
   }
 
   const exportFormatList =

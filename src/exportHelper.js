@@ -250,7 +250,9 @@ export async function prepareQueryAndSend(
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      Authorization: `fmetoken token=${fmeSecurityToken}`, // TODO: Ensure in configManager that token exists
+      ...(fmeSecurityToken
+        ? { Authorization: `fmetoken token=${fmeSecurityToken}` }
+        : {}),
     },
     body: JSON.stringify(combinedData),
   });
