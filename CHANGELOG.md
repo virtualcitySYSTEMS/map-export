@@ -2,6 +2,7 @@
 
 - Made `fmeSecurityToken` optional in the plugin's config
 - Fix a bug, where the `hiddenObjects` array would be empty
+- Adds `dataProjection` option to config editor
 
 # v2.0.5
 

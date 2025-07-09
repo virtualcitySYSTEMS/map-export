@@ -137,6 +137,7 @@
       "heightModeDefault": "Height mode default",
       "general": "General settings",
       "allowHeightMode": "Height mode configurable",
+      "overrideMapProjection": "Override map projection",
       "crsPredefined": "Predefined CRS",
       "fmeSecurityToken": "FME Security Token",
       "fmeServerUrl": "FME Server URL",

@@ -134,6 +134,7 @@
       "thematicClassList": "Thematische Klassen",
       "appearanceThemeDefault": "Default Objekttextur",
       "heightModeDefault": "Default Höhenmodus",
+      "overrideMapProjection": "Kartenprojektion überschreiben",
       "general": "Allgemeine Einstellungen",
       "allowHeightMode": "Höhenmodus konfigurierbar",
       "fmeSecurityToken": "FME Security Token",

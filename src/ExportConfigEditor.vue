@@ -311,22 +311,32 @@
       :start-open="true"
     >
       <v-container class="py-0 px-1">
-        <v-row
-          v-for="key in ['fmeSecurityToken', 'fmeServerUrl']"
-          :key="key"
-          no-gutters
-        >
+        <v-row no-gutters>
           <v-col>
-            <VcsLabel :html-for="`settings-${key}`" required>
-              {{ $st(`export.editor.${key}`) }}
+            <VcsLabel html-for="settings-fmeSecurityToken">
+              {{ $st('export.editor.fmeSecurityToken') }}
             </VcsLabel>
           </v-col>
           <v-col>
             <VcsTextField
-              :id="`settings-${key}`"
-              v-model="localConfig[key]"
+              id="settings-fmeSecurityToken"
+              v-model="localConfig.fmeSecurityToken"
+              :placeholder="$st('export.editor.fmeSecurityToken')"
+            />
+          </v-col>
+        </v-row>
+        <v-row no-gutters>
+          <v-col>
+            <VcsLabel html-for="settings-fmeServerUrl" required>
+              {{ $st('export.editor.fmeServerUrl') }}
+            </VcsLabel>
+          </v-col>
+          <v-col>
+            <VcsTextField
+              id="settings-fmeServerUrl"
+              v-model="localConfig.fmeServerUrl"
               :rules="[(v) => !!v || 'components.validation.required']"
-              :placeholder="$st(`export.editor.${key}`)"
+              :placeholder="$st('export.editor.fmeServerUrl')"
             />
           </v-col>
         </v-row>
@@ -442,6 +452,24 @@
             />
           </v-col>
         </v-row>
+        <v-row no-gutters>
+          <v-col cols="12">
+            <VcsCheckbox
+              id="settings-data-projection"
+              v-model="hasDataProjection"
+              label="export.editor.overrideMapProjection"
+              :true-value="true"
+              :false-value="false"
+            />
+          </v-col>
+          <VcsProjection
+            v-if="hasDataProjection"
+            id="settings-data-projection"
+            v-model="localConfig.dataProjection"
+            hide-alias
+            required
+          />
+        </v-row>
         <v-row
           v-for="key in [
             'exportScene',
@@ -509,6 +537,7 @@
 
 <script>
   import { VContainer, VRow, VCol } from 'vuetify/components';
+  import { getDefaultProjection } from '@vcmap/core';
   import {
     AbstractConfigEditor,
     VcsFormSection,
@@ -517,6 +546,7 @@
     VcsSelect,
     VcsCheckbox,
     VcsChipArrayInput,
+    VcsProjection,
   } from '@vcmap/ui';
   import { computed, ref, toRaw, watch } from 'vue';
   import getDefaultOptions from './defaultOptions.js';
@@ -553,6 +583,7 @@
       VcsTextField,
       VcsCheckbox,
       VcsChipArrayInput,
+      VcsProjection,
     },
     props: {
       getConfig: {
@@ -618,6 +649,11 @@
       }
 
       const generalTermsOfUseUrl = ref();
+      const hasDataProjection = ref(
+        props.getConfig().dataProjection &&
+          props.getConfig().dataProjection?.epsg !==
+            getDefaultProjection().epsg,
+      );
 
       function useHasKey(key, triggerValidation) {
         return computed({
@@ -649,6 +685,9 @@
       const apply = () => {
         if (localConfig.value.crs.length === 1) {
           localConfig.value.crs = localConfig.value.crs[0];
+        }
+        if (!hasDataProjection.value) {
+          delete localConfig.value.dataProjection;
         }
         localConfig.value.dataSourceOptionsList = Object.keys(
           dataSourceList.value,
@@ -696,6 +735,7 @@
         hasTerrainUrl: useHasKey('terrainUrl'),
         mapThematicClasses,
         heightModeItems,
+        hasDataProjection,
         updateDefault,
         predefinedCrs: computed({
           get() {
