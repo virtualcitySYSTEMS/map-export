@@ -1,3 +1,7 @@
+# v2.0.7
+
+- Fix a bug in ConfigEditor, where defaults value would not be updated, leading to an invalid configuration
+
 # v2.0.6
 
 - Made `fmeSecurityToken` optional in the plugin's config

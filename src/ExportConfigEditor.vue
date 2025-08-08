@@ -358,7 +358,9 @@
                     : defaultOptions[`${key}List`]
                 "
                 :rules="[(v) => !!v.length || 'components.validation.required']"
-                @input="(v) => updateDefault(`${key}Default`, key !== 'lod', v)"
+                @update:model-value="
+                  (v) => updateDefault(`${key}Default`, key !== 'lod', v)
+                "
               />
             </v-col>
             <v-col cols="2">
@@ -393,7 +395,9 @@
               column
               placeholder="rgbTexture"
               :input-width="100"
-              @input="(v) => updateDefault('appearanceThemeDefault', false, v)"
+              @update:model-value="
+                (v) => updateDefault('appearanceThemeDefault', false, v)
+              "
             />
           </v-col>
         </v-row>
