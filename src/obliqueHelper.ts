@@ -1,19 +1,21 @@
+import type { ObliqueMap } from '@vcmap/core';
 import { imageGeometryToMercatorGeometry, obliqueGeometry } from '@vcmap/core';
+import type { VcsUiApp } from '@vcmap/ui';
 import { downloadURI } from '@vcmap/ui';
+import type Feature from 'ol/Feature.js';
+import type Geometry from 'ol/geom/Geometry.js';
+import type { ObliqueDownloadState } from './results/obliqueResult.js';
 import { downloadObliqueImage } from './results/obliqueResult.js';
+import type ObliqueDataSource from './dataSources/obliqueDataSource.js';
 
-/**
- * @param {import("ol").Feature<import("ol/geom/Geometry").default>} feature
- * @param {import("@vcmap/core").VcsApp} app
- * @returns {Promise<import("ol/geom/Geometry").default|null>}
- */
-export default async function reprojectObliqueGeometry(feature, app) {
+export default async function reprojectObliqueGeometry(
+  feature: Feature,
+  app: VcsUiApp,
+): Promise<Geometry | null> {
   const imageGeometry = feature[obliqueGeometry];
   if (imageGeometry) {
     const originalGeometry = imageGeometry.clone();
-    const obliqueMap = /** @type {import("@vcmap/core").ObliqueMap} */ (
-      app.maps.activeMap
-    );
+    const obliqueMap = app.maps.activeMap as ObliqueMap;
     const image = obliqueMap.currentImage;
     if (image) {
       return imageGeometryToMercatorGeometry(
@@ -28,15 +30,16 @@ export default async function reprojectObliqueGeometry(feature, app) {
 
 /**
  * Downloads the currently visible oblique image.
- * @param {import("@vcmap/core").VcsApp} app The VcsApp instance.
- * @param {import("./dataSources/obliqueDataSource").default} obliqueDataSource The obliqueDataSource instance
- * @param {{progress: number, queue: Array<number>, running: boolean}} downloadState The state of the download process including progress from 0 to 100, how many images are downloaded and which one is the current, if the download is running or not
- * @returns {Promise<void>}
+ * @param app The VcsApp instance.
+ * @param obliqueDataSource The obliqueDataSource instance
+ * @param downloadState The state of the download process including progress from 0 to 100, how many images are downloaded and which one is the current, if the download is running or not
  */
-export function downloadCurrentImage(app, obliqueDataSource, downloadState) {
-  const { currentImage } = /** @type {import("@vcmap/core").ObliqueMap} */ (
-    app.maps.activeMap
-  );
+export function downloadCurrentImage(
+  app: VcsUiApp,
+  obliqueDataSource: ObliqueDataSource,
+  downloadState: ObliqueDownloadState,
+): Promise<void> {
+  const { currentImage } = app.maps.activeMap as ObliqueMap;
   if (currentImage) {
     if (obliqueDataSource.dedicatedSource) {
       downloadURI(

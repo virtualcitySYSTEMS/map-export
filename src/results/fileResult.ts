@@ -1,28 +1,19 @@
 import { downloadURI } from '@vcmap/ui';
+import type { AbstractResultOptions } from './abstractResult.js';
 import AbstractResult from './abstractResult.js';
 
-/**
- * @typedef {Object} FileResultOptionAdditions
- * @property {string} href
- * @typedef {import("./abstractResult").AbstractResultOptions & FileResultOptionAdditions} FileResultOptions
- */
+type FileResultOptionAdditions = { href: string };
 
-/**
- * @class
- * @api
- * @extends {AbstractResult}
- * @export
- */
+type FileResultOptions = AbstractResultOptions & FileResultOptionAdditions;
+
 class FileExportResult extends AbstractResult {
-  /**
-   * @param {FileResultOptions} options
-   */
-  constructor(options) {
+  href: string;
+  constructor(options: FileResultOptions) {
     super(options);
     this.href = options.href;
   }
 
-  download() {
+  download(): Promise<void> {
     // TODO: Security - make sure that the url is trusted
     downloadURI(this.href, '');
     return Promise.resolve();

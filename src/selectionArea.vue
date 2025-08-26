@@ -6,12 +6,12 @@
       :rules="[(v) => !!v || 'export.validation.areaSelection']"
     >
       <VcsToolButton
-        v-for="(value, name) in allowedGeometries"
+        v-for="(value, name) in AllowedGeometries"
         :key="name"
         :icon="value"
         :active="geometryState[name]"
         :tooltip="$st('export.selectionTypes.draw' + name)"
-        @click="waitForGeometry(name)"
+        @click="waitForGeometry(GeometryType[name])"
       />
       <template #message="{ message }">
         <v-tooltip
@@ -26,8 +26,9 @@
   </v-sheet>
 </template>
 
-<script>
+<script lang="ts">
   import { VSheet, VInput, VTooltip } from 'vuetify/components';
+  import type { VcsUiApp } from '@vcmap/ui';
   import { VcsToolButton, getDefaultPrimaryColor } from '@vcmap/ui';
   import {
     VectorLayer,
@@ -37,28 +38,29 @@
     VectorStyleItem,
     markVolatile,
   } from '@vcmap/core';
-  import { inject, onMounted, reactive, ref } from 'vue';
+  import { defineComponent, inject, onMounted, reactive, ref } from 'vue';
   import { Color } from '@vcmap-cesium/engine';
+  import type Feature from 'ol/Feature.js';
   import { windowId } from './index.js';
 
   export const areaSelectionLayerName = Symbol('areaSelection');
 
-  /**
-   * Allowed geometry types for area selection. Key is the a value of {@link GeometryType}, value the corresponding VCS icon.
-   * @type {Object<string, string>}
-   */
-  const allowedGeometries = {
-    Polygon: '$vcsTriangle',
-    BBox: '$vcsBoundingBox',
-  };
+  /** Allowed geometry types for area selection. Key is the a value of {@link GeometryType}, value the corresponding VCS icon. */
+  enum AllowedGeometries {
+    Polygon = '$vcsTriangle',
+    BBox = '$vcsBoundingBox',
+  }
 
   /** The state for each geometry type if create feature session is active. Key is the a value of {@link GeometryType}. */
-  const geometryState = reactive({
-    Polygon: false,
-    BBox: false,
+  const geometryState = reactive<{
+    [GeometryType.BBox]: boolean;
+    [GeometryType.Polygon]: boolean;
+  }>({
+    [GeometryType.Polygon]: false,
+    [GeometryType.BBox]: false,
   });
 
-  export function createSelectionLayerStyle(color) {
+  export function createSelectionLayerStyle(color: string): VectorStyleItem {
     return new VectorStyleItem({
       fill: {
         color: Color.fromCssColorString(color)
@@ -76,25 +78,25 @@
    * @description Component for drawing a selection area.
    * @vue-event {Promise<import("ol").Feature | null} sessionstart - Emits Promise that resolves with drawn feature.
    */
-  export default {
+  export default defineComponent({
     name: 'SelectionArea',
     components: { VcsToolButton, VSheet, VInput, VTooltip },
     emits: ['sessionstart'],
-    setup(props, { emit }) {
-      const app = inject('vcsApp');
+    setup(_, { emit }) {
+      const app = inject('vcsApp') as VcsUiApp;
       const defaultPrimaryColor = getDefaultPrimaryColor(app);
       /** State if there exists currently an area selection feature. */
       const featureDrawn = ref(false);
 
-      /**
-       * @returns {import("@vcmap/core").VectorLayer}
-       */
-      function getAreaSelectionLayer() {
-        if (!app.layers.hasKey(String(areaSelectionLayerName))) {
+      function getAreaSelectionLayer(): VectorLayer {
+        let layer = app.layers.getByKey(
+          String(areaSelectionLayerName),
+        ) as VectorLayer;
+        if (!layer) {
           const primary =
             app.uiConfig.config.primaryColor ?? defaultPrimaryColor;
           const style = createSelectionLayerStyle(primary);
-          const layer = new VectorLayer({
+          layer = new VectorLayer({
             name: String(areaSelectionLayerName),
             projection: mercatorProjection.toJSON(),
             style,
@@ -102,8 +104,7 @@
           markVolatile(layer);
           app.layers.add(layer);
         }
-        const layer = app.layers.getByKey(String(areaSelectionLayerName));
-        layer.activate();
+        layer.activate().catch(() => {});
         return layer;
       }
 
@@ -111,7 +112,7 @@
         app.uiConfig.added.addEventListener((item) => {
           if (item?.name === 'primaryColor') {
             getAreaSelectionLayer().setStyle(
-              createSelectionLayerStyle(item.value),
+              createSelectionLayerStyle(item.value as string),
             );
           }
         }),
@@ -126,9 +127,11 @@
 
       /**
        * Handles the geometry creation with the @vcmap/core editor.
-       * @param {string} geometryType Value of {@link GeometryType}
+       * @param geometryType Value of {@link GeometryType}
        */
-      function waitForGeometry(geometryType) {
+      function waitForGeometry(
+        geometryType: GeometryType.BBox | GeometryType.Polygon,
+      ): void {
         const layer = getAreaSelectionLayer();
         if (layer) {
           layer.removeAllFeatures();
@@ -143,7 +146,7 @@
         emit(
           'sessionstart',
           new Promise((resolve) => {
-            let feature = null;
+            let feature: Feature | null = null;
             session.stopped.addEventListener(() => {
               geometryState[geometryType] = false;
               resolve(feature); // may be null if finished before feature was valid
@@ -169,17 +172,20 @@
       app.windowManager.removed.addEventListener(({ id }) => {
         if (id === windowId) {
           getAreaSelectionLayer().deactivate();
-          listeners.forEach((listener) => listener());
+          listeners.forEach((listener) => {
+            listener();
+          });
         }
       });
       return {
+        GeometryType,
         waitForGeometry,
-        allowedGeometries,
+        AllowedGeometries,
         geometryState,
         featureDrawn,
       };
     },
-  };
+  });
 </script>
 
 <style scoped></style>

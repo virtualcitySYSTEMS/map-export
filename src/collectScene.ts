@@ -1,3 +1,16 @@
+import type {
+  Extent,
+  FeatureStoreLayer,
+  ExtrusionHeightInfo,
+  DeclarativeStyleItemOptions,
+  VectorPropertiesModelOptions,
+  VectorStyleItemOptions,
+  StyleItem,
+  VectorProperties,
+  VcsApp,
+  VcsMeta,
+  StyleItemOptions,
+} from '@vcmap/core';
 import {
   wgs84Projection,
   mercatorProjection,
@@ -15,33 +28,39 @@ import {
   CesiumMap,
   getExtrusionHeightInfo,
 } from '@vcmap/core';
+import type { VcsUiApp } from '@vcmap/ui';
+import type Geometry from 'ol/geom/Geometry';
+import type { Extent as OLExtent } from 'ol/extent';
 import { intersects } from 'ol/extent';
 import { satisfies } from 'semver';
+import type { FeatureCollection } from 'geojson';
+import type { SimpleGeometry } from 'ol/geom.js';
+import type Feature from 'ol/Feature';
+import type { Scene } from '@vcmap-cesium/engine';
 
-/**
- * @enum {string}
- */
-const LayerType = {
-  SINGLE_IMAGE: 'singleImage',
-  GEOJSON: 'geojson',
-  FEATURE_COLLECTION: 'FeatureCollection',
+enum LayerType {
+  SINGLE_IMAGE = 'singleImage',
+  GEOJSON = 'geojson',
+  FEATURE_COLLECTION = 'FeatureCollection',
+}
+
+type SingleImageExport = {
+  type: LayerType.SINGLE_IMAGE;
+  extent: OLExtent;
+  opacity: number;
+  url: string;
 };
 
 /**
- * @typedef {Object} SingleImageExport
- * @property {string} type
- * @property {import("ol/extent").Extent} extent the layers extent
- * @property {number} opacity
- * @property {string} url
- */
-
-/**
  * Prepares SingleImageLayer for the export with the VC Warehouse.
- * @param {import("@vcmap/core").SingleImageLayer} layer Single image layer that should be exported.
- * @param {import("@vcmap/core").Extent} bbox Bounding box of the area to be exported.
- * @returns {SingleImageExport | null} An object with the necessary information for the export.
+ * @param layer Single image layer that should be exported.
+ * @param bbox Bounding box of the area to be exported.
+ * @returns An object with the necessary information for the export.
  */
-function exportSingleImageLayer(layer, bbox) {
+function exportSingleImageLayer(
+  layer: SingleImageLayer,
+  bbox: Extent,
+): SingleImageExport | null {
   const layerExtentWgs84 =
     layer.extent?.getCoordinatesInProjection(wgs84Projection);
   const bboxWgs84 = bbox.getCoordinatesInProjection(wgs84Projection);
@@ -49,7 +68,6 @@ function exportSingleImageLayer(layer, bbox) {
   if (!layerExtentWgs84 || !intersects(layerExtentWgs84, bboxWgs84)) {
     return null;
   }
-
   return {
     type: LayerType.SINGLE_IMAGE,
     opacity: layer.opacity,
@@ -58,33 +76,25 @@ function exportSingleImageLayer(layer, bbox) {
   };
 }
 
-/**
- * @typedef {import("@vcmap/core").FeatureStoreLayer & { fetchFeatureCollection: function(options: {
- *     asJson: boolean;
- *     onlyStatic: boolean;
- *     bbox: number[];
- *   }): Promise<import("geojson").FeatureCollection> }} PlanningFeatureStoreLayer
- */
+type PlanningFeatureStoreLayer = FeatureStoreLayer & {
+  fetchFeatureCollection(options: {
+    asJson: boolean;
+    onlyStatic?: boolean;
+    bbox: number[];
+  }): Promise<FeatureCollection>;
+};
 
-/**
- * @typedef {import("@vcmap/core").ExtrusionHeightInfo} ExtrusionInfo
- * @property {number} groundLevel
- */
+type ExtrusionInfo = ExtrusionHeightInfo & { groundLevel: number };
 
-/**
- * @typedef {Object} SceneFeature
- * @property {*} geometry
- * @property {*} properties
- * @property {import("@vcmap/core").VectorPropertiesModelOptions|null} [model]
- * @property {ExtrusionInfo} heightInfo
- * @property {import("@vcmap/core").VectorStyleItemOptions | import("@vcmap/core").DeclarativeStyleItemOptions} [style]
- */
+type SceneFeature = {
+  geometry: Geometry;
+  properties: object;
+  model?: VectorPropertiesModelOptions | null;
+  heightInfo: ExtrusionInfo;
+  style?: VectorStyleItemOptions | DeclarativeStyleItemOptions;
+};
 
-/**
- * @param {import("ol/geom").SimpleGeometry} geometry
- * @returns {number}
- */
-function getGeometryMinHeight(geometry) {
+function getGeometryMinHeight(geometry: SimpleGeometry): number {
   let minZ = Infinity;
   const stride = geometry.getStride();
   if (stride > 2) {
@@ -95,40 +105,34 @@ function getGeometryMinHeight(geometry) {
       minZ = z < minZ ? z : minZ;
     }
   }
-
   return minZ !== Infinity ? minZ : 0;
 }
 
 /**
  * This functions converts VC Map feature to an interface of the VC Warehouse
  * // TODO discuss whether VC Warehouse can directly support geojson with vcsMeta, because this seems a bit cumbersome especially for FeatureStoreLayer
- * @param {import("ol").Feature[]} olFeatures
- * @param {import("@vcmap/core").VectorProperties} vectorProperties
- * @param {import("@vcmap/core").StyleItem} defaultStyle
- * @param {import("@vcmap-cesium/engine").Scene} scene
- * @returns {Promise<SceneFeature[]>}
  */
 async function convertFeaturesToSceneFeatures(
-  olFeatures,
-  vectorProperties,
-  defaultStyle,
-  scene,
-) {
+  olFeatures: Feature[],
+  vectorProperties: VectorProperties,
+  defaultStyle: StyleItem,
+  scene: Scene,
+): Promise<SceneFeature[]> {
   return Promise.all(
     olFeatures.map(async (feature) => {
-      /** @type {import("ol").Feature} */
-      const absoluteFeature = await createAbsoluteFeature(
+      const absoluteFeature = (await createAbsoluteFeature(
         feature,
         vectorProperties,
         scene,
-      );
+      )) as Feature;
 
-      /** @type {SceneFeature} */
       const geojsonFeature = writeGeoJSONFeature(absoluteFeature, {
         asObject: true,
-      });
+      }) as object as SceneFeature;
 
-      const groundLevel = getGeometryMinHeight(absoluteFeature.getGeometry());
+      const groundLevel = getGeometryMinHeight(
+        absoluteFeature.getGeometry() as SimpleGeometry,
+      );
       geojsonFeature.heightInfo = {
         ...getExtrusionHeightInfo(absoluteFeature, vectorProperties),
         groundLevel,
@@ -139,7 +143,7 @@ async function convertFeaturesToSceneFeatures(
         geojsonFeature.model = model;
       }
 
-      const styleItem = olFeatures[vectorStyleSymbol] ?? defaultStyle;
+      const styleItem = feature[vectorStyleSymbol] ?? defaultStyle;
       if (styleItem instanceof VectorStyleItem) {
         geojsonFeature.style = styleItem.getOptionsForFeature(absoluteFeature);
       } else {
@@ -150,28 +154,30 @@ async function convertFeaturesToSceneFeatures(
   );
 }
 
-/**
- * @typedef {Object} GeojsonExport
- * @property {string} type
- * @property {Array<SceneFeature>} features
- * @property {import("@vcmap/core").VectorPropertiesOptions} vcsMeta
- * @property {import("@vcmap/core").StyleItemOptions} style
- */
+type GeojsonExport = {
+  type: LayerType.GEOJSON | LayerType.FEATURE_COLLECTION;
+  features: Array<SceneFeature>;
+  style: StyleItemOptions;
+  vcsMeta: Partial<VcsMeta>;
+};
 
 /**
  * Prepares featureStoreLayer for the export with the VC Warehouse.
- * @param {import("@vcmap/ui").VcsUiApp} app
- * @param {PlanningFeatureStoreLayer} layer Layer to be exported.
- * @param {import("@vcmap/core").Extent} bbox Bounding box of the area to be exported.
- * @returns {Promise<GeojsonExport|null>}
+ * @param app
+ * @param layer Layer to be exported.
+ * @param bbox Bounding box of the area to be exported.
  */
-async function exportFeatureStoreLayer(app, layer, bbox) {
-  const planningVersion = app.plugins.getByKey('@vcmap/planning').version;
+async function exportFeatureStoreLayer(
+  app: VcsUiApp,
+  layer: PlanningFeatureStoreLayer,
+  bbox: Extent,
+): Promise<GeojsonExport | null> {
+  const planningVersion = app.plugins.getByKey('@vcmap/planning')!.version;
   const range = '>=6.0.0-0 <7.0.0';
 
   if (satisfies(planningVersion, range, { includePrerelease: true })) {
     const [cesiumMap] = app.maps.getByType(CesiumMap.className);
-    const scene = cesiumMap.getScene();
+    const scene = (cesiumMap as CesiumMap).getScene();
     if (!scene) {
       return null;
     }
@@ -179,27 +185,34 @@ async function exportFeatureStoreLayer(app, layer, bbox) {
       bbox: bbox.getCoordinatesInProjection(wgs84Projection),
       asJson: true,
     });
-    const geojson = parseGeoJSON(collection);
-    geojson.features = await convertFeaturesToSceneFeatures(
-      geojson.features,
+    const {
+      features: geojsonFeatures,
+      style,
+      vcsMeta,
+    } = parseGeoJSON(collection);
+    const features = await convertFeaturesToSceneFeatures(
+      geojsonFeatures,
       layer.vectorProperties,
       layer.style,
       scene,
     );
-    return geojson;
+    return {
+      features,
+      style: style!.toJSON(),
+      vcsMeta: vcsMeta!,
+      type: LayerType.FEATURE_COLLECTION,
+    };
   }
   return null;
 }
 
-/**
- * @param {import("@vcmap/core").VcsApp} app
- * @param {import("@vcmap/core").VectorLayer} layer
- * @param {import("@vcmap/core").Extent} bbox
- * @returns {Promise<GeojsonExport|null>}
- */
-async function exportVectorLayer(app, layer, bbox) {
+async function exportVectorLayer(
+  app: VcsApp,
+  layer: VectorLayer,
+  bbox: Extent,
+): Promise<GeojsonExport | null> {
   const [cesiumMap] = app.maps.getByType(CesiumMap.className);
-  const scene = cesiumMap.getScene();
+  const scene = (cesiumMap as CesiumMap).getScene();
   if (!scene) {
     return null;
   }
@@ -232,20 +245,17 @@ async function exportVectorLayer(app, layer, bbox) {
   };
 }
 
-/**
- * @param {import("@vcmap/core").VcsApp} app
- * @param {import("@vcmap/core").VectorTileLayer} layer
- * @param {import("@vcmap/core").Extent} bbox
- * @returns {Promise<GeojsonExport|null>}
- */
-
-async function exportVectorTileLayer(app, layer, bbox) {
+async function exportVectorTileLayer(
+  app: VcsApp,
+  layer: VectorTileLayer,
+  bbox: Extent,
+): Promise<GeojsonExport | null> {
   if (!layer.tileProvider) {
     return null;
   }
 
   const [cesiumMap] = app.maps.getByType(CesiumMap.className);
-  const scene = cesiumMap.getScene();
+  const scene = (cesiumMap as CesiumMap).getScene();
   if (!scene) {
     return null;
   }
@@ -275,17 +285,22 @@ async function exportVectorTileLayer(app, layer, bbox) {
 
 /**
  * Collects all layers that should be exported.
- * @param {import("@vcmap/core").Extent} bbox The area that defines which objects should be exported.
- * @param {import("@vcmap/ui").VcsUiApp} app The VcsApp instance.
- * @returns {Promise<{ baseLayers: Array<GeojsonExport | SingleImageExport>, hiddenObjects: [] | [string]}>}
+ * @param bbox The area that defines which objects should be exported.
+ * @param app The VcsApp instance.
  */
-export default async function collectScene(bbox, app) {
+export default async function collectScene(
+  bbox: Extent,
+  app: VcsUiApp,
+): Promise<{
+  baseLayers: Array<GeojsonExport | SingleImageExport>;
+  hiddenObjects: string[];
+}> {
   const { activeMap } = app.maps;
   const promises = [...app.layers]
     .filter(
       (layer) =>
         layer.active &&
-        layer.isSupported(activeMap) &&
+        layer.isSupported(activeMap!) &&
         layer[moduleIdSymbol] !== volatileModuleId,
     )
     .map((layer) => {
@@ -293,7 +308,11 @@ export default async function collectScene(bbox, app) {
         return exportSingleImageLayer(layer, bbox);
       } else if (layer instanceof VectorLayer) {
         if (layer.className === 'PlanningFeatureStoreLayer') {
-          return exportFeatureStoreLayer(app, layer, bbox);
+          return exportFeatureStoreLayer(
+            app,
+            layer as PlanningFeatureStoreLayer,
+            bbox,
+          );
         } else {
           return exportVectorLayer(app, layer, bbox);
         }
@@ -303,18 +322,20 @@ export default async function collectScene(bbox, app) {
       return null;
     });
   const promiseAll = await Promise.all(promises);
-  const baseLayers = promiseAll.filter((baseLayer) => {
-    if (baseLayer) {
-      if (
-        baseLayer.type === LayerType.GEOJSON ||
-        baseLayer.type === LayerType.FEATURE_COLLECTION
-      ) {
-        return baseLayer.features.length > 0;
+  const baseLayers = promiseAll
+    .filter((baseLayer) => {
+      if (baseLayer) {
+        if (
+          baseLayer.type === LayerType.GEOJSON ||
+          baseLayer.type === LayerType.FEATURE_COLLECTION
+        ) {
+          return baseLayer.features.length > 0;
+        }
+        return true;
       }
-      return true;
-    }
-    return false;
-  });
+      return false;
+    })
+    .filter((layer) => layer !== null);
   return {
     baseLayers,
     hiddenObjects: [...app.hiddenObject].map((object) => object.id),

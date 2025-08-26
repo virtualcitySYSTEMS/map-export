@@ -1,9 +1,8 @@
 import { getDefaultProjection } from '@vcmap/core';
+import type { ExportOptions } from './configManager.js';
+import { HeightModes } from './configManager.js';
 
-/**
- * @returns {import("./configManager").ExportOptions} the default plugin options
- */
-export default () => {
+export default (): ExportOptions => {
   const defaultProjection = getDefaultProjection();
   return {
     exportFormatList: [
@@ -52,7 +51,7 @@ export default () => {
     dataSourceOptionsList: [],
     appearanceThemeList: ['rgbTexture'],
     appearanceThemeDefault: 'rgbTexture',
-    heightModeDefault: 'absolute',
+    heightModeDefault: HeightModes.ABSOLUTE,
     allowHeightMode: true,
     allowTextureExport: true,
     allowAddGenericAttrs: true,

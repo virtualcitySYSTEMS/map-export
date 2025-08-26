@@ -1,7 +1,7 @@
 import disjoint from '@turf/boolean-disjoint';
 import Feature from 'ol/Feature';
 import GeoJSON from 'ol/format/GeoJSON.js';
-import { checkMaybe, check } from '@vcsuite/check';
+import { check, maybe } from '@vcsuite/check';
 import { getLogger } from '@vcsuite/logger';
 import {
   Extent,
@@ -10,87 +10,86 @@ import {
   ObliqueMap,
   VectorLayer,
 } from '@vcmap/core';
+import type { VcsUiApp } from '@vcmap/ui';
+import { name } from '../../package.json';
 import reprojectObliqueGeometry from '../obliqueHelper.js';
+import type AbstractResult from '../results/abstractResult.js';
+import type { GeoJSONDataSourceOptions } from './geojsonDataSource';
+import type { ObliqueDataSourceOptions } from './obliqueDataSource';
+import type { DataSourceOptions } from '../configManager.js';
 
-/**
- * @param {AbstractDataSourceOptions} options
- * @returns {boolean}
- */
-export function validateOptions(options) {
+export type AbstractDataSourceOptions = {
+  baseUrl?: string;
+  title?: string;
+  help?: string;
+  /** type of export data source to be used by the factory, one of 'oblique' or 'geojson'. 'cityModel' is ignored by the factory but is a valid data source. */
+  type: DataSourceOptions;
+};
+
+export type OneOfDataSourceOptions =
+  | ObliqueDataSourceOptions
+  | GeoJSONDataSourceOptions
+  | AbstractDataSourceOptions;
+
+export function validateOptions(
+  options: AbstractDataSourceOptions,
+): options is AbstractDataSourceOptions {
   try {
-    checkMaybe(options.baseUrl, String);
-  } catch (e) {
-    getLogger('@vcmap/export').error(e.message);
+    check(options.baseUrl, maybe(String));
+  } catch (e: unknown) {
+    getLogger(name).error((e as Error).message);
     return false;
   }
   return true;
 }
 
-/**
- * @typedef {Object} AbstractDataSourceOptions
- * @property {import("../configManager.js").DataSourceOptions} type - type of export data source to be used by the factory, one of 'oblique' or 'geojson'. 'cityModel' is ignored by the factory but is a valid data source.
- * @property {string} [title]
- * @property {string} [baseUrl]
- * @api
- */
-
-/**
- * @class
- * @export
- * @api
- */
 class AbstractDataSource {
-  /**
-   * @param {AbstractDataSourceOptions} options
-   * @param {import("@vcmap/core").VcsApp} app
-   */
-  constructor(options, app) {
-    /** @type {string} */
-    this.url = options.baseUrl ? options.baseUrl.replace(/\/$/, '') : '';
-    /** @type {import("@vcmap/core").VcsApp} */
-    this._app = app;
+  type: DataSourceOptions;
+  url: string;
 
-    let layer = this._app.layers.getByKey('_exportResultLayer');
+  protected _app: VcsUiApp;
+
+  private _resultLayer: VectorLayer;
+
+  /** the results of the last query */
+  results: Array<AbstractResult>;
+
+  constructor(options: AbstractDataSourceOptions, app: VcsUiApp) {
+    this._app = app;
+    this.type = options.type;
+    this.url = options.baseUrl ? options.baseUrl.replace(/\/$/, '') : '';
+
+    let layer = this._app.layers.getByKey('_exportResultLayer') as VectorLayer;
     if (!layer) {
       layer = new VectorLayer({
         projection: mercatorProjection,
         name: '_exportResultLayer',
-        classificationType: 'both',
-        altitudeMode: 'clambToGround',
         allowPicking: false,
+        vectorProperties: {
+          classificationType: 'both',
+          altitudeMode: 'clampToGround',
+        },
       });
       markVolatile(layer);
       this._app.layers.add(layer);
     }
-    /**
-     * @type {import("@vcmap/core").VectorLayer}
-     * @private
-     */
-    this._resultLayer = /** @type {import("@vcmap/core").VectorLayer} */ (
-      layer
-    );
+    this._resultLayer = layer;
     /**
      * the results of the last query
      * @type {Array<import("../results/abstractResult").default>}
-     * @api
      */
     this.results = [];
   }
 
-  /**
-   * @returns {import("@vcmap/core").VectorLayer}
-   */
-  get resultLayer() {
+  get resultLayer(): VectorLayer {
     return this._resultLayer;
   }
 
   /**
    * query the given data source based on a features geometry
-   * @param {import("ol").Feature<import("ol/geom/Geometry").default>} feature The feature that is used to query the overlapping data sources.
-   * @api
-   * @returns {Promise<void>}
+   * @param feature The feature that is used to query the overlapping data sources.
    */
-  async query(feature) {
+  async query(feature: Feature): Promise<void> {
     check(feature, Feature);
     this.clear();
 
@@ -119,11 +118,11 @@ class AbstractDataSource {
             }
             return null;
           })
-          .filter((f) => f);
+          .filter((f) => !!f);
 
         this._resultLayer.addFeatures(features);
         this._resultLayer.featureVisibility.hideObjects(
-          features.map((f) => f.getId()),
+          features.map((f) => f.getId()!),
         );
       }
     }
@@ -131,30 +130,19 @@ class AbstractDataSource {
 
   /**
    * clears the results and the result layer
-   * @api
    */
-  clear() {
+  clear(): void {
     this.results.splice(0);
     this._resultLayer.removeAllFeatures();
   }
 
-  /**
-   * @param {import("ol").Feature<import("ol/geom/Geometry").default>} feature
-   * @returns {import("../results/abstractResult").default}
-   * @abstract
-   */
-  // eslint-disable-next-line no-unused-vars,class-methods-use-this
-  getResultFromFeature(feature) {
+  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
+  getResultFromFeature(_feature?: Feature): AbstractResult {
     throw new Error('Implementation Error');
   }
 
-  /**
-   * @param {import("@vcmap/core").Extent} extent
-   * @returns {Promise<Array<import("ol").Feature<import("ol/geom/Geometry").default>>>}
-   * @abstract
-   */
-  // eslint-disable-next-line no-unused-vars,class-methods-use-this
-  async getFeaturesInExtent(extent) {
+  // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars, @typescript-eslint/require-await
+  async getFeaturesInExtent(_extent: Extent): Promise<Array<Feature>> {
     throw new Error('Implementation Error');
   }
 }

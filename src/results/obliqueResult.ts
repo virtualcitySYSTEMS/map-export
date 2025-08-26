@@ -1,13 +1,13 @@
 import { ObliqueView, ObliqueImage, hasSameOrigin } from '@vcmap/core';
-import { checkMaybe, check } from '@vcsuite/check';
+import { check, maybe, ofLiteralType } from '@vcsuite/check';
+import type { VcsUiApp } from '@vcmap/ui';
 import { downloadBlob } from '@vcmap/ui';
+import type { TileImage } from 'ol/source.js';
+import { toSize } from 'ol/size.js';
+import type { AbstractResultOptions } from './abstractResult.js';
 import AbstractResult from './abstractResult.js';
 
-/**
- * @param {string} fileExtension
- * @returns {string}
- */
-function getMimeTypeForExtension(fileExtension) {
+function getMimeTypeForExtension(fileExtension: string): string {
   if (/jpe?g$/i.test(fileExtension)) {
     return 'image/jpeg';
   } else if (/png$/i.test(fileExtension)) {
@@ -18,26 +18,32 @@ function getMimeTypeForExtension(fileExtension) {
   return '';
 }
 
+export type ObliqueDownloadState = {
+  progress: number;
+  queue: Array<number>;
+  running: boolean;
+};
+
 /**
  * Downloads a given oblique image by stitching the tiles together
- * @param {ObliqueImage} obliqueImage
- * @param {{progress: number, queue: Array<number>, running: boolean}} downloadState The state of the download process including progress from 0 to 100, how many images are downloaded and which one is the current, if the download is running or not
- * @param {?number=} resolution
- * @param {string} [fileExtension='jpg'] Image file extension. Allowed values are 'jpg', 'jpeg', 'png', 'tif', 'tiff'
- * @returns {Promise<void>}
- * @api
- * @export
+ * @param obliqueImage
+ * @param downloadState The state of the download process including progress from 0 to 100, how many images are downloaded and which one is the current, if the download is running or not
+ * @param resolution
+ * @param fileExtension Image file extension. Allowed values are 'jpg', 'jpeg', 'png', 'tif', 'tiff'
  */
 
 export function downloadObliqueImage(
-  obliqueImage,
-  downloadState,
-  resolution,
+  obliqueImage: ObliqueImage,
+  downloadState: ObliqueDownloadState,
+  resolution?: number,
   fileExtension = 'jpg',
-) {
+): Promise<void> {
   check(obliqueImage, ObliqueImage);
-  checkMaybe(fileExtension, ['jpg', 'jpeg', 'png', 'tif', 'tiff']);
-  checkMaybe(resolution, Number);
+  check(
+    fileExtension,
+    maybe(ofLiteralType(['jpg', 'jpeg', 'png', 'tif', 'tiff'])),
+  );
+  check(resolution, maybe(Number));
 
   const view = new ObliqueView(obliqueImage.meta, {
     maxZoom: 0,
@@ -46,9 +52,8 @@ export function downloadObliqueImage(
     hideLevels: 0,
   });
   view.setImageName(obliqueImage.name);
-  const source = /** @type {import("ol/source").TileImage} */ (
-    view.layer.getSource()
-  );
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
+  const source = view.layer.getSource() as TileImage;
   const tileGrid = source.getTileGrid();
   if (!tileGrid) {
     throw new Error('tileGrid not available');
@@ -61,7 +66,7 @@ export function downloadObliqueImage(
 
   const { size } = obliqueImage.meta;
   const canvas = document.createElement('canvas');
-  const tileSize = tileGrid.getTileSize(zoomLevel);
+  const tileSize = toSize(tileGrid.getTileSize(zoomLevel));
   const canvasSize = size.slice();
   if (resolution) {
     canvasSize[0] /= resolution;
@@ -72,8 +77,8 @@ export function downloadObliqueImage(
   // XXX always scale down to firefox size????????
   canvas.width = canvasSize[0];
   canvas.height = canvasSize[1];
-  const context = canvas.getContext('2d');
-  const imagePromises = [];
+  const context = canvas.getContext('2d')!;
+  const imagePromises: Array<Promise<void>> = [];
   let completed = 0;
 
   tileGrid.forEachTileCoord([0, 0, size[0], size[1]], zoomLevel, (coord) => {
@@ -83,7 +88,7 @@ export function downloadObliqueImage(
     }
     imagePromises.push(
       new Promise((resolve, reject) => {
-        img.onload = () => {
+        img.onload = (): void => {
           context.drawImage(
             img,
             0,
@@ -105,7 +110,7 @@ export function downloadObliqueImage(
         };
 
         img.onerror = reject;
-        // @ts-ignore XXX ignored, since the typedef includes resolution and projection. something we dont support or need
+        // @ts-expect-error XXX ignored, since the typedef includes resolution and projection. something we dont support or need
         img.src = tileUrlFunction(coord);
       }),
     );
@@ -128,23 +133,26 @@ export function downloadObliqueImage(
           downloadState.progress = 0;
         }, getMimeTypeForExtension(fileExtension));
       })
-      .catch((error) => {
-        reject(error);
+      .catch((e: unknown) => {
+        reject(new Error(`Image download failed: ${String(e)}`));
         downloadState.progress = 0;
       });
   });
 }
 
 /**
- * @typedef {Object} ObliqueResultOptionAdditions
- * @property {string} obliqueCollectionName
- * @property {string} imageName
- * @property {string} fileExtension
- * @property {number|undefined} resolution
- * @property {{progress: number, queue: Array<number>, running: boolean}} downloadState The state of the download process including progress from 0 to 100, how many images are downloaded and which one is the current, if the download is running or not
- * @typedef {import("./abstractResult").AbstractResultOptions & ObliqueResultOptionAdditions} ObliqueResultOptions
- * @api
+ * Options for ObliqueExportResult that extend AbstractResultOptions
  */
+type ObliqueResultOptionAdditions = {
+  obliqueCollectionName: string;
+  imageName: string;
+  fileExtension: string;
+  resolution?: number;
+  downloadState: ObliqueDownloadState;
+};
+
+type ObliqueResultOptions = AbstractResultOptions &
+  ObliqueResultOptionAdditions;
 
 /**
  * @class
@@ -152,40 +160,38 @@ export function downloadObliqueImage(
  * @export
  */
 class ObliqueExportResult extends AbstractResult {
-  /**
-   * @param {ObliqueResultOptions} options
-   * @param {import("@vcmap/core").VcsApp} app
-   */
-  constructor(options, app) {
+  obliqueCollectionName: string;
+  imageName: string;
+  fileExtension: string;
+  resolution?: number;
+  downloadState: ObliqueDownloadState;
+
+  private _app: VcsUiApp;
+
+  constructor(options: ObliqueResultOptions, app: VcsUiApp) {
     super(options);
-    /** @type {string} */
     this.obliqueCollectionName = options.obliqueCollectionName;
-    /** @type {string} */
     this.imageName = options.imageName;
-    /** @type {string} */
     this.fileExtension = options.fileExtension;
-    /** @type {number|undefined} */
     this.resolution = options.resolution;
-    /** @type {Object} */
     this.downloadState = options.downloadState;
-    /**
-     * @type {import("@vcmap/core").VcsApp}
-     * @private
-     */
     this._app = app;
   }
 
-  download() {
+  download(): Promise<void> {
     const obliqueCollection = this._app.obliqueCollections.getByKey(
       this.obliqueCollectionName,
     );
-    const obliqueImage = obliqueCollection.getImageByName(this.imageName);
-    return downloadObliqueImage(
-      obliqueImage,
-      this.downloadState,
-      this.resolution,
-      this.fileExtension,
-    );
+    const obliqueImage = obliqueCollection?.getImageByName(this.imageName);
+    if (obliqueImage) {
+      return downloadObliqueImage(
+        obliqueImage,
+        this.downloadState,
+        this.resolution,
+        this.fileExtension,
+      );
+    }
+    throw new Error('Oblique image not found');
   }
 }
 

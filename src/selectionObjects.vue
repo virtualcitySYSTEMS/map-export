@@ -51,10 +51,19 @@
   </v-container>
 </template>
 
-<script>
+<script lang="ts">
   import { CesiumTilesetLayer } from '@vcmap/core';
+  import type { VcsUiApp } from '@vcmap/ui';
   import { useProxiedComplexModel, VcsFormButton } from '@vcmap/ui';
-  import { computed, inject, ref, shallowRef, watch } from 'vue';
+  import type { PropType } from 'vue';
+  import {
+    computed,
+    defineComponent,
+    inject,
+    ref,
+    shallowRef,
+    watch,
+  } from 'vue';
   import {
     VContainer,
     VRow,
@@ -67,18 +76,17 @@
   import { windowId } from './index.js';
   import ObjectSelectionInteraction from './selectionObjectsInteraction.js';
   import { SelectionTypes } from './configManager.js';
+  import type { ExportPlugin } from './index.js';
 
-  /**
-   * @param {import("@vcmap/ui").VcsUiApp} app
-   * @param {string} fmeServerUrl
-   * @returns {Array<import("@vcmap/core").CesiumTilesetLayer>}
-   */
-  function getSelectableLayers(app, fmeServerUrl) {
+  function getSelectableLayers(
+    app: VcsUiApp,
+    fmeServerUrl: string,
+  ): Array<CesiumTilesetLayer> {
     return [...app.layers].filter(
       (layer) =>
         layer instanceof CesiumTilesetLayer &&
         layer.properties.exportWorkbench === fmeServerUrl,
-    );
+    ) as Array<CesiumTilesetLayer>;
   }
 
   /**
@@ -87,7 +95,7 @@
    * @vue-prop {boolean} buttonDisabled - If the continue button is disabled or not.
    * @vue-prop {boolean} [buttonShow=true] - If the continue button is shown or not.
    */
-  export default {
+  export default defineComponent({
     name: 'SelectionObjects',
     components: {
       VContainer,
@@ -100,7 +108,7 @@
     },
     props: {
       modelValue: {
-        type: Array,
+        type: Array as PropType<string[]>,
         required: true,
       },
       buttonDisabled: {
@@ -109,7 +117,6 @@
       },
       buttonShow: {
         type: Boolean,
-        required: false,
         default: true,
       },
       isReset: {
@@ -117,12 +124,12 @@
         required: true,
       },
     },
-    emits: ['continue'],
+    emits: ['continue', 'update:modelValue'],
     setup(props, { emit }) {
-      const app = inject('vcsApp');
-      const plugin = app.plugins.getByKey(name);
+      const app = inject('vcsApp') as VcsUiApp;
+      const plugin = app.plugins.getByKey(name) as ExportPlugin;
       const selectableLayers = shallowRef(
-        getSelectableLayers(app, plugin.config.settingsCityModel.fmeServerUrl),
+        getSelectableLayers(app, plugin.config.settingsCityModel.fmeServerUrl!),
       );
       const selectedObjects = useProxiedComplexModel(props, 'modelValue', emit);
 
@@ -137,14 +144,16 @@
       interaction.id = 'objectSelectionInteractionId';
 
       const selectableLayerNames = computed(() => {
-        return selectableLayers.value.map((l) => l.properties?.title ?? l.name);
+        return selectableLayers.value.map(
+          (l) => (l.properties?.title as string) ?? l.name,
+        );
       });
 
-      let destroy = () => {};
+      let destroy = (): void => {};
 
-      let stopWatching = () => {};
+      let stopWatching = (): void => {};
 
-      destroy = () => {
+      destroy = (): void => {
         stopWatching();
         selectedObjects.value = [];
         count.value = 0;
@@ -164,7 +173,9 @@
               SelectionTypes.OBJECT_SELECTION
           ) {
             app.windowManager.remove(windowId);
-            listeners.forEach((cb) => cb());
+            listeners.forEach((cb) => {
+              cb();
+            });
           }
         }),
         eventHandler.addExclusiveInteraction(
@@ -177,24 +188,32 @@
         ),
 
         app.layers.added.addEventListener((layer) => {
-          if (layer.properties.exportWorkbench === plugin.config.fmeServerUrl) {
+          if (
+            layer.properties.exportWorkbench ===
+            plugin.config.settingsCityModel.fmeServerUrl!
+          ) {
             selectableLayers.value = getSelectableLayers(
               app,
-              plugin.config.settingsCityModel.fmeServerUrl,
+              plugin.config.settingsCityModel.fmeServerUrl!,
             );
           }
         }),
         app.layers.removed.addEventListener((layer) => {
-          if (layer.properties.exportWorkbench === plugin.config.fmeServerUrl) {
+          if (
+            layer.properties.exportWorkbench ===
+            plugin.config.settingsCityModel.fmeServerUrl!
+          ) {
             selectableLayers.value = getSelectableLayers(
               app,
-              plugin.config.settingsCityModel.fmeServerUrl,
+              plugin.config.settingsCityModel.fmeServerUrl!,
             );
           }
         }),
         app.windowManager.removed.addEventListener(({ id }) => {
           if (id === windowId) {
-            listeners.forEach((cb) => cb());
+            listeners.forEach((cb) => {
+              cb();
+            });
             destroy();
           }
         }),
@@ -210,8 +229,8 @@
         { immediate: true },
       );
 
-      function objectSelectionRule(v) {
-        return !!v || 'export.validation.objectSelection';
+      function objectSelectionRule(value: unknown): string | boolean {
+        return !!value || 'export.validation.objectSelection';
       }
 
       return {
@@ -220,7 +239,7 @@
         objectSelectionRule,
       };
     },
-  };
+  });
 </script>
 
 <style lang="scss">

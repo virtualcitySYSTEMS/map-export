@@ -1,3 +1,7 @@
+# v2.0.8
+
+- Update plugin code to TypeScript
+
 # v2.0.7
 
 - Fix a bug in ConfigEditor, where defaults value would not be updated, leading to an invalid configuration

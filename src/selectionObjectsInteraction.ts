@@ -1,3 +1,4 @@
+import type { CesiumTilesetLayer, InteractionEvent } from '@vcmap/core';
 import {
   AbstractInteraction,
   EventType,
@@ -5,75 +6,51 @@ import {
   VcsEvent,
   vcsLayerName,
 } from '@vcmap/core';
+import type { FeatureType, VcsUiApp } from '@vcmap/ui';
 import {
   getDefaultPrimaryColor,
   getHighlightStyle,
   NotificationType,
 } from '@vcmap/ui';
 
-/** @typedef {import("ol").Feature<import("ol/geom/Geometry").default>|import("@vcmap/cesium").Cesium3DTileFeature|import("@vcmap/cesium").Cesium3DTilePointFeature|import("@vcmap/cesium").Entity} FeatureType */
-
-/**
- * Class handling the selection of city model objects
- * @class
- */
+/** Class handling the selection of city model objects */
 class SelectionObjectInteraction extends AbstractInteraction {
-  /**
-   * @param {import("@vcmap/ui").VcsUiApp} app
-   * @param {Array<import("@vcmap/core"):CesiumTilesetLayer>} layers
-   */
-  constructor(app, layers) {
+  private _app: VcsUiApp;
+
+  /** All layers that are supported for export with object selection. */
+  private _selectableLayers: CesiumTilesetLayer[];
+
+  /** Array with the ids of selected features. */
+  private _selectedFeatures: string[] = [];
+
+  private _featureClicked = new VcsEvent<string[]>();
+  constructor(app: VcsUiApp, layers: CesiumTilesetLayer[]) {
     super(EventType.CLICK, ModificationKeyType.CTRL);
-    /**
-     * @type {import("@vcmap/ui").VcsUiApp}
-     * @private
-     */
     this._app = app;
-    /**
-     * All layers that are supported for export with object selection.
-     * @type {Array<import("@vcmap/core").CesiumTilesetLayer>}
-     * @private
-     */
-    this.selectableLayers = layers;
-    /**
-     * Array with the ids of selected features.
-     * @type {string[]}
-     * @private
-     */
-    this._selectedFeatures = [];
-    /**
-     * @type {import("@vcmap/core").VcsEvent<Array<string>>}
-     * @private
-     */
-    this._featureClicked = new VcsEvent();
+    this._selectableLayers = layers;
   }
 
-  /**
-   * Getter for featureClicked Event
-   * @type {import("@vcmap/core").VcsEvent<Array<string>>}
-   */
-  get featureClicked() {
+  get featureClicked(): VcsEvent<string[]> {
     return this._featureClicked;
   }
 
   /**
    * Either adds or removes a feature from the selected features and also adds and removes style.
-   * @param {FeatureType} feature A clicked feature.
+   * @param feature A clicked feature.
    */
-  _selectFeature(feature) {
-    /** @type {string} */
-    const featureId = feature.getId();
+  private _selectFeature(feature: FeatureType): void {
+    const featureId = feature.getId() as string;
     // TODO: Only hightlight feature on clicked layer.
     if (this._selectedFeatures.indexOf(featureId) !== -1) {
       this._selectedFeatures = this._selectedFeatures.filter(
         (selectedFeatureId) => selectedFeatureId !== featureId,
       );
-      this.selectableLayers.forEach((layer) => {
+      this._selectableLayers.forEach((layer) => {
         layer.featureVisibility.unHighlight([featureId]);
       });
     } else {
       this._selectedFeatures.push(featureId);
-      this.selectableLayers.forEach((layer) => {
+      this._selectableLayers.forEach((layer) => {
         layer.featureVisibility.highlight({
           [featureId]: getHighlightStyle(
             feature,
@@ -86,14 +63,13 @@ class SelectionObjectInteraction extends AbstractInteraction {
     }
   }
 
-  /**
-   * Highlights selected features.
-   */
-  _highlightSelectedFeatures() {
+  /** Highlights selected features. */
+  private _highlightSelectedFeatures(): void {
     const toHighlight = this._selectedFeatures.reduce(
       (prev, curr) => ({
         ...prev,
         [curr]: getHighlightStyle(
+          // @ts-expect-error feature
           null,
           null,
           this._app.uiConfig.config.primaryColor ??
@@ -102,48 +78,40 @@ class SelectionObjectInteraction extends AbstractInteraction {
       }),
       {},
     );
-    this.selectableLayers.forEach((layer) =>
-      layer.featureVisibility.highlight(toHighlight),
-    );
+    this._selectableLayers.forEach((layer) => {
+      layer.featureVisibility.highlight(toHighlight);
+    });
   }
 
-  /**
-   * Removes highlight from selected features.
-   */
-  clearHighlighting() {
-    this.selectableLayers.forEach((layer) =>
-      layer.featureVisibility.unHighlight(this._selectedFeatures),
-    );
+  /** Removes highlight from selected features. */
+  clearHighlighting(): void {
+    this._selectableLayers.forEach((layer) => {
+      layer.featureVisibility.unHighlight(this._selectedFeatures);
+    });
   }
 
-  /**
-   * Removes selection and clears highlighting.
-   */
-  clearSelection() {
+  /** Removes selection and clears highlighting. */
+  clearSelection(): void {
     this.clearHighlighting();
     this._selectedFeatures = [];
   }
 
   /**
    * Sets the selected features. All previously selected features are unselected.
-   * @param {string[]} features The ids of the features to select.
+   * @param features The ids of the features to select.
    */
-  set selectedFeatures(features) {
+  set selectedFeatures(features: string[]) {
     this.clearSelection();
     this._selectedFeatures = features;
     this._highlightSelectedFeatures();
   }
 
-  /**
-   * @inheritDoc
-   * @param {import("@vcmap/core").InteractionEvent} event
-   * @returns {Promise<import("@vcmap/core").InteractionEvent>}
-   */
-  async pipe(event) {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async pipe(event: InteractionEvent): Promise<InteractionEvent> {
     if (event.feature) {
       if (
-        this.selectableLayers.some(
-          (layer) => layer.name === event.feature[vcsLayerName],
+        this._selectableLayers.some(
+          (layer) => layer.name === event.feature![vcsLayerName],
         )
       ) {
         this._selectFeature(event.feature);
@@ -159,7 +127,7 @@ class SelectionObjectInteraction extends AbstractInteraction {
     return event;
   }
 
-  destroy() {
+  destroy(): void {
     super.destroy();
     this.clearSelection();
     this._featureClicked.destroy();

@@ -11,7 +11,9 @@
           <VcsSelect
             v-model="settingsState.directionFilter"
             :items="directionFilterItems"
-            :rules="[(v) => !!v || 'Please select at least one option.']"
+            :rules="[
+              (v: string) => !!v || 'Please select at least one option.',
+            ]"
             :placeholder="$t('export.settingsOblique.directionPlaceholder')"
           />
         </v-col>
@@ -20,16 +22,19 @@
   </v-sheet>
 </template>
 
-<script>
+<script lang="ts">
   import { obliqueViewDirectionNames } from '@vcmap/core';
   import { VSheet, VContainer, VRow, VCol } from 'vuetify/components';
   import { useProxiedComplexModel, VcsLabel, VcsSelect } from '@vcmap/ui';
+  import type { PropType } from 'vue';
+  import { defineComponent } from 'vue';
+  import type { SettingsObliqueState } from './configManager.js';
 
   /**
    * @description Component with the settings for the oblique export.
-   * @vue-prop {import("./configManager").SettingsObliqueState} value - The oblique settings state.
+   * @vue-prop {SettingsObliqueState} value - The oblique settings state.
    */
-  export default {
+  export default defineComponent({
     name: 'SettingsOblique',
     components: {
       VSheet,
@@ -41,7 +46,7 @@
     },
     props: {
       modelValue: {
-        type: Object,
+        type: Object as PropType<SettingsObliqueState>,
         required: true,
       },
     },
@@ -52,7 +57,10 @@
       const directionFilterItems = Object.keys({ nadir, ...dirs }).map(
         (dir) => {
           return {
-            value: obliqueViewDirectionNames[dir],
+            value:
+              obliqueViewDirectionNames[
+                dir as keyof typeof obliqueViewDirectionNames
+              ],
             title: `export.settingsOblique.${dir}`,
           };
         },
@@ -63,8 +71,9 @@
         directionFilterItems,
       };
     },
-  };
+  });
 </script>
+
 <style scoped lang="scss">
   :deep(.v-field__input) {
     padding-right: 0 !important;

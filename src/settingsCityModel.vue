@@ -14,11 +14,14 @@
       <v-col class="pa-0" cols="6">
         <VcsSelect
           :id="name + 'Select'"
-          v-model="settingsState[mainSetting.stateName]"
+          v-model="
+            settingsState[mainSetting.stateName as keyof SettingsCityModelState]
+          "
           :items="mainSetting.items"
           :multiple="mainSetting.multiple"
           :rules="[
-            (v) => !!v.length || $t('export.validation.selectFieldMultiple'),
+            (v: string) =>
+              !!v.length || $t('export.validation.selectFieldMultiple'),
           ]"
         />
       </v-col>
@@ -28,14 +31,24 @@
       <v-row no-gutters>
         <v-col class="pa-0">
           <VcsCheckbox
-            v-model="settingsState[formatSetting.stateName]"
+            v-model="
+              settingsState[
+                formatSetting.stateName as keyof SettingsCityModelState
+              ]
+            "
             :label="formatSetting.i18n"
           />
         </v-col>
       </v-row>
-      <template v-if="settingsState[formatSetting.stateName]">
+      <template
+        v-if="
+          settingsState[formatSetting.stateName as keyof SettingsCityModelState]
+        "
+      >
         <v-row
-          v-for="selectField in formatSetting.selectFields"
+          v-for="selectField in ('selectFields' in formatSetting
+            ? formatSetting.selectFields
+            : []) || []"
           :key="selectField.name"
           no-gutter
           class="ma-0 pl-6"
@@ -48,7 +61,11 @@
           <v-col class="pa-0" cols="6">
             <VcsSelect
               :id="selectField.name + 'Select'"
-              v-model="settingsState[selectField.stateName]"
+              v-model="
+                settingsState[
+                  selectField.stateName as keyof SettingsCityModelState
+                ]
+              "
               :items="selectField.items"
             />
           </v-col>
@@ -103,10 +120,10 @@
   </v-container>
 </template>
 
-<script>
-  // @ts-check
+<script lang="ts">
   import { TMSLayer, WMSLayer } from '@vcmap/core';
   import { VContainer, VRow, VCol } from 'vuetify/components';
+  import type { VcsUiApp } from '@vcmap/ui';
   import {
     VcsLabel,
     VcsSelect,
@@ -114,8 +131,14 @@
     VcsFormButton,
     useProxiedComplexModel,
   } from '@vcmap/ui';
-  import { computed, inject, onBeforeMount } from 'vue';
+  import type { PropType, Ref } from 'vue';
+  import { computed, defineComponent, inject, onBeforeMount } from 'vue';
   import { exportFormats, mapThematicClasses } from './configManager.js';
+  import type {
+    AlteredSettingsCityModelOutput,
+    SettingsCityModelSetup,
+    SettingsCityModelState,
+  } from './configManager.js';
 
   /**
    * @description Component with the settings for the city model export.
@@ -124,7 +147,7 @@
    * @vue-prop {boolean} buttonDisabled - If the continue button is disabled or not.
    * @vue-prop {boolean} [buttonShow=true] - If the continue button is shown or not.
    */
-  export default {
+  export default defineComponent({
     name: 'SettingsCityModel',
     components: {
       VContainer,
@@ -136,12 +159,14 @@
       VcsFormButton,
     },
     props: {
-      setup: {
-        type: Object,
+      modelValue: {
+        type: Object as PropType<SettingsCityModelState>,
         required: true,
       },
-      modelValue: {
-        type: Object,
+      setup: {
+        type: Object as PropType<
+          SettingsCityModelSetup & AlteredSettingsCityModelOutput
+        >,
         required: true,
       },
       buttonDisabled: {
@@ -150,14 +175,17 @@
       },
       buttonShow: {
         type: Boolean,
-        required: false,
         default: true,
       },
     },
     emits: ['continue', 'update:modelValue'],
     setup(props, { emit }) {
       /** State object of the city model export settings. */
-      const settingsState = useProxiedComplexModel(props, 'modelValue', emit);
+      const settingsState: Ref<SettingsCityModelState> = useProxiedComplexModel(
+        props,
+        'modelValue',
+        emit,
+      );
 
       /** Setup for the main settings. */
       const mainSettingsSetup = {
@@ -181,12 +209,12 @@
         },
       };
 
-      const terrainAppearanceOptions = {};
+      const terrainAppearanceOptions: Record<string, number> = {};
 
       /** Adds available TMS and WMS layers to terrainAppearanceOptions and makes them available for selection. */
-      function fillTerrainAppearences() {
-        if (Object.keys(props.setup.terrainAppearanceOptions).length === 0) {
-          const app = inject('vcsApp');
+      function fillTerrainAppearences(): void {
+        if (Object.keys(props.setup.terrainAppearanceOptions!).length === 0) {
+          const app = inject('vcsApp') as VcsUiApp;
           [...app.layers]
             .filter(
               (layer) => layer instanceof TMSLayer || layer instanceof WMSLayer,
@@ -269,20 +297,27 @@
           },
         };
         // remove all format specific settings that should not be rendered.
-        Object.keys(settings)
+        (Object.keys(settings) as (keyof typeof settings)[])
           .filter((key) => !settings[key].render)
           .forEach((falsyKey) => delete settings[falsyKey]);
         // remove all select fields of a format specific setting that are empty or should not be rendered.
-        Object.keys(settings)
-          .filter((key) => settings[key].selectFields)
+        (Object.keys(settings) as (keyof typeof settings)[])
+          .filter((key) =>
+            Object.prototype.hasOwnProperty.call(settings[key], 'selectFields'),
+          )
           .forEach((key) => {
-            const filteredFields = settings[key].selectFields.filter(
-              (selectField) => selectField.render,
-            );
-            if (filteredFields.length === 0) {
-              delete settings[key].selectFields;
-            } else {
-              settings[key].selectFields = filteredFields;
+            const setting = settings[key] as {
+              selectFields?: { render: boolean }[];
+            };
+            if ('selectFields' in setting) {
+              const filteredFields = setting.selectFields?.filter(
+                (selectField) => selectField.render,
+              );
+              if (filteredFields?.length === 0) {
+                delete setting.selectFields;
+              } else {
+                setting.selectFields = filteredFields;
+              }
             }
           });
 
@@ -317,7 +352,7 @@
         showCrsInput,
       };
     },
-  };
+  });
 </script>
 
 <style scoped></style>

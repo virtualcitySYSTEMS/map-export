@@ -26,7 +26,7 @@
               placeholder="https://linktoprivacy"
               :disabled="!hasTermsOfUse"
               :rules="[
-                (v) => {
+                (v: string) => {
                   return (
                     !hasTermsOfUse || !!v || 'components.validation.required'
                   );
@@ -72,8 +72,8 @@
               unit="m²"
               :min="0"
               :rules="[
-                (v) => !!v || 'components.validation.required',
-                (v) => v > 0 || 'export.validation.negative',
+                (v: number) => !!v || 'components.validation.required',
+                (v: number) => v > 0 || 'export.validation.negative',
               ]"
             />
           </v-col>
@@ -94,8 +94,8 @@
               label="export.dataSources.cityModel"
               :error-messages="errorMessageDataSource"
               @change="
-                (value) =>
-                  value || resetDataSourceOption(DataSourceOptions.CITY_MODEL)
+                (v: boolean) =>
+                  v || resetDataSourceOption(DataSourceOptions.CITY_MODEL)
               "
             />
           </v-col>
@@ -108,8 +108,8 @@
               label="export.dataSources.oblique"
               :error-messages="errorMessageDataSource"
               @change="
-                (value) =>
-                  value || resetDataSourceOption(DataSourceOptions.OBLIQUE)
+                (v: boolean) =>
+                  v || resetDataSourceOption(DataSourceOptions.OBLIQUE)
               "
             />
           </v-col>
@@ -128,12 +128,15 @@
                 <VcsTextField
                   id="data-source-oblique-name"
                   v-model="
-                    dataSourceList.oblique.properties.obliqueCollectionName
+                    (
+                      dataSourceList.oblique
+                        .properties as ObliqueDataSourceOptions
+                    ).obliqueCollectionName
                   "
                   :disabled="!dataSourceList.oblique.isSelected"
                   :rules="
                     dataSourceList.oblique.isSelected
-                      ? [(v) => !!v || 'components.validation.required']
+                      ? [(v: string) => !!v || 'components.validation.required']
                       : []
                   "
                   placeholder="ObliqueCollection"
@@ -152,7 +155,12 @@
               <v-col>
                 <VcsTextField
                   id="data-source-oblique-file-extension"
-                  v-model="dataSourceList.oblique.properties.fileExtension"
+                  v-model="
+                    (
+                      dataSourceList.oblique
+                        .properties as ObliqueDataSourceOptions
+                    ).fileExtension
+                  "
                   :disabled="!dataSourceList.oblique.isSelected"
                   placeholder="jpg"
                 />
@@ -170,16 +178,21 @@
               <v-col>
                 <VcsTextField
                   id="data-source-oblique-resolution"
-                  v-model.number="dataSourceList.oblique.properties.resolution"
+                  v-model.number="
+                    (
+                      dataSourceList.oblique
+                        .properties as ObliqueDataSourceOptions
+                    ).resolution
+                  "
                   type="number"
                   :min="0"
                   :disabled="!dataSourceList.oblique.isSelected"
                   placeholder="1"
                   :rules="[
-                    (v) =>
+                    (v: number) =>
                       v === undefined ||
                       v === null ||
-                      v === '' ||
+                      v.toString() === '' ||
                       v > 0 ||
                       'export.validation.negative',
                   ]"
@@ -190,14 +203,22 @@
               <v-col>
                 <VcsCheckbox
                   id="data-source-oblique-dedicated"
-                  v-model="dataSourceList.oblique.properties.dedicatedSource"
+                  v-model="
+                    (
+                      dataSourceList.oblique
+                        .properties as ObliqueDataSourceOptions
+                    ).dedicatedSource
+                  "
                   label="export.editor.dedicatedSource"
                   :disabled="!dataSourceList.oblique.isSelected"
                 />
               </v-col>
             </v-row>
             <v-row
-              v-if="dataSourceList.oblique.properties.dedicatedSource"
+              v-if="
+                (dataSourceList.oblique.properties as ObliqueDataSourceOptions)
+                  .dedicatedSource
+              "
               no-gutters
             >
               <v-col>
@@ -210,7 +231,9 @@
                   id="data-source-oblique-base-url"
                   v-model="dataSourceList.oblique.properties.baseUrl"
                   clearable
-                  :rules="[(v) => !!v || 'components.validation.required']"
+                  :rules="[
+                    (v: string) => !!v || 'components.validation.required',
+                  ]"
                   :placeholder="$t('export.editor.placeholder.baseUrl')"
                 />
               </v-col>
@@ -225,8 +248,8 @@
               label="export.dataSources.geojson"
               :error-messages="errorMessageDataSource"
               @change="
-                (value) =>
-                  value || resetDataSourceOption(DataSourceOptions.GEOJSON)
+                (v: boolean) =>
+                  v || resetDataSourceOption(DataSourceOptions.GEOJSON)
               "
             />
           </v-col>
@@ -247,7 +270,7 @@
                   :disabled="!dataSourceList.geojson.isSelected"
                   :rules="
                     dataSourceList.geojson.isSelected
-                      ? [(v) => !!v || 'components.validation.required']
+                      ? [(v: string) => !!v || 'components.validation.required']
                       : []
                   "
                   :placeholder="$t('export.editor.title')"
@@ -266,11 +289,16 @@
               <v-col>
                 <VcsTextField
                   id="data-source-geojson-url"
-                  v-model="dataSourceList.geojson.properties.geojsonUrl"
+                  v-model="
+                    (
+                      dataSourceList.geojson
+                        .properties as GeoJSONDataSourceOptions
+                    ).geojsonUrl
+                  "
                   :disabled="!dataSourceList.geojson.isSelected"
                   :rules="
                     dataSourceList.geojson.isSelected
-                      ? [(v) => !!v || 'components.validation.required']
+                      ? [(v: string) => !!v || 'components.validation.required']
                       : []
                   "
                   :placeholder="$t('export.editor.placeholder.geojsonUrl')"
@@ -293,7 +321,7 @@
                   :disabled="!dataSourceList.geojson.isSelected"
                   :rules="
                     dataSourceList.geojson.isSelected
-                      ? [(v) => !!v || 'components.validation.required']
+                      ? [(v: string) => !!v || 'components.validation.required']
                       : []
                   "
                   :placeholder="$t('export.editor.placeholder.baseUrl')"
@@ -335,7 +363,7 @@
             <VcsTextField
               id="settings-fmeServerUrl"
               v-model="localConfig.fmeServerUrl"
-              :rules="[(v) => !!v || 'components.validation.required']"
+              :rules="[(v: string) => !!v || 'components.validation.required']"
               :placeholder="$st('export.editor.fmeServerUrl')"
             />
           </v-col>
@@ -350,16 +378,26 @@
             <v-col cols="2">
               <VcsSelect
                 :id="`settings-${key}-list`"
-                v-model="localConfig[`${key}List`]"
+                v-model="localConfig[`${key}List` as keyof typeof localConfig]"
                 multiple
                 :items="
                   key === 'thematicClass'
                     ? mapThematicClasses(defaultOptions.thematicClassList)
-                    : defaultOptions[`${key}List`]
+                    : defaultOptions[
+                        `${key}List` as keyof typeof defaultOptions
+                      ]
                 "
-                :rules="[(v) => !!v.length || 'components.validation.required']"
+                :rules="[
+                  (v: string[]) =>
+                    !!v.length || 'components.validation.required',
+                ]"
                 @update:model-value="
-                  (v) => updateDefault(`${key}Default`, key !== 'lod', v)
+                  (v: string[]) =>
+                    updateDefault(
+                      `${key}Default` as keyof typeof localConfig,
+                      key !== 'lod',
+                      v,
+                    )
                 "
               />
             </v-col>
@@ -371,12 +409,14 @@
             <v-col cols="2">
               <VcsSelect
                 :id="`settings-${key}-default`"
-                v-model="localConfig[`${key}Default`]"
+                v-model="
+                  localConfig[`${key}Default` as keyof typeof localConfig]
+                "
                 :multiple="key !== 'lod'"
                 :items="
                   key === 'thematicClass'
                     ? mapThematicClasses(localConfig.thematicClassList)
-                    : localConfig[`${key}List`]
+                    : localConfig[`${key}List` as keyof typeof localConfig]
                 "
               />
             </v-col>
@@ -396,7 +436,8 @@
               placeholder="rgbTexture"
               :input-width="100"
               @update:model-value="
-                (v) => updateDefault('appearanceThemeDefault', false, v)
+                (v: string[]) =>
+                  updateDefault('appearanceThemeDefault', false, v)
               "
             />
           </v-col>
@@ -412,7 +453,7 @@
               id="settings-appearance-theme-default"
               v-model="localConfig.appearanceThemeDefault"
               :items="localConfig.appearanceThemeList"
-              :rules="[(v) => !!v || 'components.validation.required']"
+              :rules="[(v: string) => !!v || 'components.validation.required']"
             />
           </v-col>
         </v-row>
@@ -452,7 +493,7 @@
               id="settings-height-mode-default"
               v-model="localConfig.heightModeDefault"
               :items="heightModeItems"
-              :rules="[(v) => !!v || 'components.validation.required']"
+              :rules="[(v: string) => !!v || 'components.validation.required']"
             />
           </v-col>
         </v-row>
@@ -488,7 +529,7 @@
           <v-col>
             <VcsCheckbox
               :id="`settings-${key}`"
-              v-model="localConfig[key]"
+              v-model="localConfig[key as keyof typeof localConfig]"
               :label="`export.editor.${key}`"
               :true-value="true"
               :false-value="false"
@@ -527,9 +568,9 @@
               :min="-1"
               type="number"
               :rules="[
-                (v) =>
+                (v: string) =>
                   Number.isInteger(Number(v)) || 'export.validation.integer',
-                (v) => v >= -1 || 'export.validation.negativeOne',
+                (v: number) => v >= -1 || 'export.validation.negativeOne',
               ]"
             />
           </v-col>
@@ -539,7 +580,7 @@
   </AbstractConfigEditor>
 </template>
 
-<script>
+<script lang="ts">
   import { VContainer, VRow, VCol } from 'vuetify/components';
   import { getDefaultProjection } from '@vcmap/core';
   import {
@@ -552,18 +593,31 @@
     VcsChipArrayInput,
     VcsProjection,
   } from '@vcmap/ui';
-  import { computed, ref, toRaw, watch } from 'vue';
+  import type { PropType, Ref, WritableComputedRef } from 'vue';
+  import { computed, defineComponent, ref, toRaw, watch } from 'vue';
   import getDefaultOptions from './defaultOptions.js';
+  import type { ExportOptions } from './configManager.js';
   import { DataSourceOptions, mapThematicClasses } from './configManager.js';
+  import type {
+    AbstractDataSourceOptions,
+    OneOfDataSourceOptions,
+  } from './dataSources/abstractDataSource.js';
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  import type { ObliqueDataSourceOptions } from './dataSources/obliqueDataSource.js';
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  import type { GeoJSONDataSourceOptions } from './dataSources/geojsonDataSource.js';
 
-  export const defaultDataSourceOptions = {
+  export const defaultDataSourceOptions: Record<
+    DataSourceOptions,
+    { type: DataSourceOptions } & OneOfDataSourceOptions
+  > = {
     cityModel: { type: DataSourceOptions.CITY_MODEL },
     oblique: {
       type: DataSourceOptions.OBLIQUE,
       obliqueCollectionName: undefined, // XXX get first oblique collections name from VcsApp?
       fileExtension: 'jpg',
       dedicatedSource: false,
-      resolution: null,
+      resolution: undefined,
       baseUrl: undefined,
     },
     geojson: {
@@ -574,7 +628,7 @@
     },
   };
 
-  export default {
+  export default defineComponent({
     name: 'ExportConfigEditor',
     components: {
       VContainer,
@@ -591,16 +645,21 @@
     },
     props: {
       getConfig: {
-        type: Function,
+        type: Function as PropType<() => ExportOptions>,
         required: true,
       },
       setConfig: {
-        type: Function,
+        type: Function as PropType<(config: object) => void>,
         required: true,
       },
     },
     setup(props) {
-      const dataSourceList = ref({
+      const dataSourceList: Ref<
+        Record<
+          DataSourceOptions,
+          { isSelected: boolean; properties: AbstractDataSourceOptions }
+        >
+      > = ref({
         cityModel: {
           isSelected: false,
           properties: { ...defaultDataSourceOptions.cityModel },
@@ -615,11 +674,10 @@
         },
       });
 
-      const errorMessageDataSource = ref(undefined);
+      const errorMessageDataSource = ref<string | undefined>(undefined);
 
       const defaultOptions = getDefaultOptions();
-      /** @type {import("vue").Ref<import("./configManager").ExportOptions>} */
-      const localConfig = ref({
+      const localConfig: Ref<ExportOptions> = ref({
         ...structuredClone(defaultOptions),
         ...props.getConfig(),
       });
@@ -646,7 +704,7 @@
         },
       ];
 
-      function resetDataSourceOption(option) {
+      function resetDataSourceOption(option: DataSourceOptions): void {
         dataSourceList.value[option].properties = {
           ...defaultDataSourceOptions[option],
         };
@@ -659,7 +717,10 @@
             getDefaultProjection().epsg,
       );
 
-      function useHasKey(key, triggerValidation) {
+      function useHasKey(
+        key: keyof Pick<ExportOptions, 'termsOfUse' | 'terrainUrl'>,
+        triggerValidation?: () => void,
+      ): WritableComputedRef<boolean> {
         return computed({
           get() {
             return localConfig.value[key] !== null;
@@ -680,32 +741,43 @@
         });
       }
 
-      function updateDefault(prop, isArray, array) {
+      function updateDefault<K extends keyof ExportOptions>(
+        prop: K,
+        isArray: boolean,
+        array: ExportOptions[K][],
+      ): void {
         if (!array.includes(localConfig.value[prop])) {
-          localConfig.value[prop] = isArray ? [array[0]] : array[0];
+          localConfig.value[prop] = (
+            isArray ? [array[0]] : array[0]
+          ) as ExportOptions[K];
         }
       }
 
-      const apply = () => {
+      const apply = (): void => {
         if (localConfig.value.crs.length === 1) {
           localConfig.value.crs = localConfig.value.crs[0];
         }
         if (!hasDataProjection.value) {
           delete localConfig.value.dataProjection;
         }
-        localConfig.value.dataSourceOptionsList = Object.keys(
-          dataSourceList.value,
+        localConfig.value.dataSourceOptionsList = (
+          Object.keys(dataSourceList.value) as DataSourceOptions[]
         )
-          .filter((key) => dataSourceList.value[key].isSelected)
+          .filter((key) => dataSourceList.value[key]?.isSelected)
           .map((type) => {
             const properties = toRaw(dataSourceList.value[type].properties);
-            const listDataSourceItem = {};
-            Object.keys(properties).forEach((key) => {
-              if (properties[key] !== defaultDataSourceOptions[type][key]) {
+            const listDataSourceItem: AbstractDataSourceOptions = { type };
+            (
+              Object.keys(properties) as (keyof OneOfDataSourceOptions)[]
+            ).forEach((key) => {
+              if (
+                properties[key] &&
+                properties[key] !== defaultDataSourceOptions[type][key]
+              ) {
+                // @ts-expect-error type is not a string
                 listDataSourceItem[key] = properties[key];
               }
             });
-            listDataSourceItem.type = type;
             return listDataSourceItem;
           });
         props.setConfig(structuredClone(toRaw(localConfig.value)));
@@ -759,5 +831,5 @@
         errorMessageDataSource,
       };
     },
-  };
+  });
 </script>

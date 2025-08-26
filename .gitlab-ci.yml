@@ -9,6 +9,7 @@ stages:
   - test
   - bundle
   - deploy
+  - prepublish
   - version
   - publish
   - deployCluster
@@ -23,6 +24,7 @@ build:
   <<: *job_definition
   script:
     - npm ci
+    - npm run ensure-types
   before_script:
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
@@ -50,6 +52,12 @@ lint:
   stage: test
   script:
     - npm run lint
+
+type-check:
+  <<: *after_build_definition
+  stage: test
+  script:
+    - npm run type-check
 
 test:
   <<: *after_build_definition
@@ -95,7 +103,7 @@ deployStaging:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: ['']
   script:
-    - /kaniko/executor --context dist/ --dockerfile build/staging/Dockerfile --destination $CI_REGISTRY_IMAGE/staging:$CI_COMMIT_REF_SLUG
+    - /kaniko/executor --context dist/ --dockerfile node_modules/@vcmap/plugin-cli/assets/build/staging/Dockerfile --destination $CI_REGISTRY_IMAGE/staging:$CI_COMMIT_REF_SLUG
   before_script:
     - mkdir -p /kaniko/.docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
@@ -135,6 +143,24 @@ deployStagingCluster:
     project: vcsuite/devops/manifests
     branch: main
 
+sshDependenciesCheck:
+  <<: *after_build_definition
+  stage: prepublish
+  only:
+    variables:
+      - $PUBLISH
+    refs:
+      - /^(main|release-v.*)$/
+  script:
+    - echo "Checking for SSH dependencies in package.json..."
+    - |
+      if grep -E "git(\+ssh)?://git@gitlab|ssh://git@gitlab:|gitlab:" package.json; then
+        echo "Error: SSH link dependencies found in package.json."
+        exit 1
+      else
+        echo "No SSH link dependencies found."
+      fi
+
 version:
   <<: *after_build_definition
   stage: version
@@ -146,7 +172,7 @@ version:
   script:
     - npm version patch -m "%s [skip-ci]"
     - TAG=`git describe --abbrev=0`
-    - echo git push git@gitlab:"$CI_PROJECT_PATH".git
+    - echo git push git@gitlab:vcsuite/"$CI_PROJECT_PATH".git
     - git push git@gitlab:"$CI_PROJECT_PATH".git $TAG
     - git push git@gitlab:"$CI_PROJECT_PATH".git HEAD:$CI_COMMIT_REF_NAME
   before_script:

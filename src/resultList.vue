@@ -15,24 +15,45 @@
   </v-sheet>
 </template>
 
-<script>
-  import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue';
+<script lang="ts">
+  import type { PropType, Ref } from 'vue';
+  import {
+    computed,
+    defineComponent,
+    inject,
+    onMounted,
+    onUnmounted,
+    ref,
+    watch,
+  } from 'vue';
+  import type { VectorLayer } from '@vcmap/core';
+  import type { VcsUiApp, VcsListItem } from '@vcmap/ui';
   import { VcsList, NotificationType, useProxiedAtomicModel } from '@vcmap/ui';
   import { VSheet, VIcon } from 'vuetify/components';
+  import type Feature from 'ol/Feature.js';
   import { validatePolygonFeature } from './exportHelper.js';
   import { name } from '../package.json';
+  import type { OneOfDataSourceOptions } from './dataSources/abstractDataSource.js';
+  import type AbstractDataSource from './dataSources/abstractDataSource.js';
+  import type { ExportPlugin } from './index.js';
+  import type GeoJSONDataSource from './dataSources/geojsonDataSource.js';
+  import { DataSourceOptions } from './configManager.js';
 
-  export async function createListItems(feature, dataSource, resultItems) {
+  export async function createListItems(
+    feature: Feature,
+    dataSource: AbstractDataSource,
+    resultItems: Ref<VcsListItem[]>,
+  ): Promise<void> {
     await dataSource.query(feature);
     const { results } = dataSource;
     resultItems.value = results
       .sort((a, b) => (a.title < b.title ? -1 : 1))
       .map((result) => {
         return {
-          name: result.title,
-          title: result.title,
+          name: result.title as string,
+          title: result.title as string,
           tooltip: 'export.selectToDownload',
-          selectionChanged: (selected) => {
+          selectionChanged: (selected): void => {
             if (selected) {
               dataSource.resultLayer.featureVisibility.showObjects([
                 result.featureId,
@@ -45,7 +66,7 @@
           },
         };
       });
-    dataSource.resultLayer.activate();
+    await dataSource.resultLayer.activate();
     return Promise.resolve();
   }
 
@@ -57,20 +78,23 @@
    * @vue-prop {boolean} active - If the resultList component is active or not.
    * @vue-prop {number} maxSelectionArea - The maximum area for area selection. If selection area is bigger, a notification is shown that the area is too big.
    */
-  export default {
+  export default defineComponent({
     name: 'ResultList',
-    components: {
-      VSheet,
-      VIcon,
-      VcsList,
-    },
+    components: { VSheet, VIcon, VcsList },
     props: {
       selectionLayerName: {
         type: Symbol,
         required: true,
       },
       modelValue: {
-        type: Array,
+        type: Array as PropType<
+          {
+            name: string;
+            title: string;
+            tooltip: string;
+            selectionChanged: () => void;
+          }[]
+        >,
         required: true,
       },
       active: {
@@ -82,42 +106,45 @@
         required: true,
       },
       selectedDataSourceOptions: {
-        type: Object,
+        type: Object as PropType<OneOfDataSourceOptions>,
         required: true,
       },
     },
-    emits: ['invalidArea'],
+    emits: ['invalidArea', 'update:modelValue'],
     setup(props, { emit }) {
-      const app = inject('vcsApp');
-
-      const plugin = app.plugins.getByKey(name);
+      const app = inject('vcsApp') as VcsUiApp;
+      const plugin = app.plugins.getByKey(name) as ExportPlugin;
 
       const resultItems = ref();
       const selectedResults = useProxiedAtomicModel(props, 'modelValue', emit);
 
       const listTitle = computed(() =>
-        props.selectedDataSourceOptions.type === 'geojson'
-          ? plugin.dataSource.title
+        props.selectedDataSourceOptions.type === DataSourceOptions.GEOJSON
+          ? (plugin.dataSource as GeoJSONDataSource).title
           : 'export.dataSources.oblique',
       );
 
-      function loadAreas() {
+      function loadAreas(): void {
         const selectionLayer = app.layers.getByKey(
           String(props.selectionLayerName),
-        );
-        plugin.dataSource.clear();
+        ) as VectorLayer;
+        plugin.dataSource?.clear();
         const feature = selectionLayer?.getFeatures()[0];
         if (feature && feature.getGeometry()) {
           // TODO: Why are there multiple validations throughout the code? wouldn't be one validation when drawing enough?
           validatePolygonFeature(feature, app, props.maxSelectionArea)
             .then(() =>
-              createListItems(feature, plugin.dataSource, resultItems),
+              createListItems(
+                feature,
+                plugin.dataSource as AbstractDataSource,
+                resultItems,
+              ),
             )
-            .catch((error) => {
+            .catch((e: unknown) => {
               emit('invalidArea');
               app.notifier.add({
                 type: NotificationType.ERROR,
-                message: error.message,
+                message: (e as Error).message,
                 timeout: 5000,
               });
             });
@@ -148,7 +175,7 @@
         listTitle,
       };
     },
-  };
+  });
 </script>
 
 <style scoped>
