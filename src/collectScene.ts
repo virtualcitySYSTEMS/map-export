@@ -173,7 +173,7 @@ async function exportFeatureStoreLayer(
   bbox: Extent,
 ): Promise<GeojsonExport | null> {
   const planningVersion = app.plugins.getByKey('@vcmap/planning')!.version;
-  const range = '>=6.0.0-0 <7.0.0';
+  const range = '>=6.0.0-0';
 
   if (satisfies(planningVersion, range, { includePrerelease: true })) {
     const [cesiumMap] = app.maps.getByType(CesiumMap.className);
