@@ -1,10 +1,11 @@
 # v2.0.9
 
-- Fixed an issue where VC Plannings version 7.0 would not be exportable
+- Fixed a bug where area selection would be wrongly invalid
 
 # v2.0.8
 
 - Update plugin code to TypeScript
+- Fixed an issue where VC Plannings version 7.0 would not be exportable
 
 # v2.0.7
 

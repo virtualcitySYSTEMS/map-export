@@ -64,7 +64,7 @@
     "vue-tsc": "^2.2.12"
   },
   "dependencies": {
-    "@turf/boolean-disjoint": "~7.2.0",
+    "@turf/boolean-disjoint": "~6.5.0",
     "@vcsuite/check": "^3.1.0",
     "@vcsuite/logger": "^1.0.1",
     "@vcsuite/parsers": "^2.0.1",
