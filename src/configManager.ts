@@ -271,6 +271,12 @@ export type AlteredSettingsCityModelInput = {
 
 /** Configuration options for city model setup. */
 export type SettingsCityModelSetup = {
+  /** If the export formats can be configured by the user. */
+  exportFormatConfigurable: boolean;
+  /** If the level of detail can be configured by the user. */
+  lodConfigurable: boolean;
+  /** If the thematic classes can be configured by the user. */
+  thematicClassConfigurable: boolean;
   /** Available export formats the user can select from. */
   exportFormatList: string[];
   /** Available city model level of details the user can select from. */
@@ -508,6 +514,18 @@ export function getConfigAndState(
     check(pluginOptions.fmeSecurityToken, maybe(String));
   }
 
+  const exportFormatConfigurable = parseBoolean(
+    pluginOptions.exportFormatConfigurable,
+    defaultOptions.exportFormatConfigurable,
+  );
+  const lodConfigurable = parseBoolean(
+    pluginOptions.lodConfigurable,
+    defaultOptions.lodConfigurable,
+  );
+  const thematicClassConfigurable = parseBoolean(
+    pluginOptions.thematicClassConfigurable,
+    defaultOptions.thematicClassConfigurable,
+  );
   const exportFormatList =
     pluginOptions.exportFormatList || defaultOptions.exportFormatList;
   const exportFormatDefault =
@@ -605,6 +623,9 @@ export function getConfigAndState(
   return {
     pluginConfig: {
       settingsCityModel: {
+        exportFormatConfigurable,
+        lodConfigurable,
+        thematicClassConfigurable,
         exportFormatList,
         lodList,
         thematicClassList,

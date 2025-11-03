@@ -1,3 +1,7 @@
+# v2.1.1
+
+- Added new config options: `exportFormatConfigurable`, `lodConfigurable` and `thematicClassConfigurable` allowing to present the parameters of the export and therefore not offering the choice to the final user
+
 # v2.1.0
 
 - Add new Area Selection option: file import

@@ -370,15 +370,70 @@
         </v-row>
         <div v-for="key in ['exportFormat', 'lod', 'thematicClass']" :key="key">
           <v-row no-gutters>
-            <v-col cols="6">
-              <VcsLabel :html-for="`settings-${key}-list`" required>
+            <v-col>
+              <VcsLabel :html-for="`settings-${key}-default`" required>
                 {{ $st(`export.editor.${key}List`) }}
               </VcsLabel>
             </v-col>
-            <v-col cols="2">
+            <v-col>
+              <!-- If user-configurable, available items are the one allowed -->
               <VcsSelect
-                :id="`settings-${key}-list`"
+                v-if="
+                  localConfig[`${key}Configurable` as keyof typeof localConfig]
+                "
+                :id="`settings-${key}-default`"
+                v-model="
+                  localConfig[`${key}Default` as keyof typeof localConfig]
+                "
+                :multiple="key !== 'lod'"
+                :items="
+                  key === 'thematicClass'
+                    ? mapThematicClasses(localConfig.thematicClassList)
+                    : localConfig[`${key}List` as keyof typeof localConfig]
+                "
+              />
+              <!-- Otherwise, available items are all items -->
+              <VcsSelect
+                v-else
+                :id="`settings-${key}-default`"
+                v-model="
+                  localConfig[`${key}Default` as keyof typeof localConfig]
+                "
+                :multiple="key !== 'lod'"
+                :rules="[
+                  (v: string[]) =>
+                    !!v.length || 'components.validation.required',
+                ]"
+                :items="
+                  key === 'thematicClass'
+                    ? mapThematicClasses(defaultOptions.thematicClassList)
+                    : defaultOptions[
+                        `${key}List` as keyof typeof defaultOptions
+                      ]
+                "
+              />
+            </v-col>
+          </v-row>
+          <v-row no-gutters>
+            <v-col>
+              <VcsCheckbox
+                v-model="
+                  localConfig[`${key}Configurable` as keyof typeof localConfig]
+                "
+                label="export.editor.userConfigurable"
+                :true-value="true"
+                :false-value="false"
+                class="pl-2 py-1"
+                @update:model-value="(v: boolean) => updateSelection(v, key)"
+              />
+            </v-col>
+            <v-col>
+              <VcsSelect
+                v-if="
+                  localConfig[`${key}Configurable` as keyof typeof localConfig]
+                "
                 v-model="localConfig[`${key}List` as keyof typeof localConfig]"
+                :label="$t('export.editor.allowedValues')"
                 multiple
                 :items="
                   key === 'thematicClass'
@@ -401,27 +456,9 @@
                 "
               />
             </v-col>
-            <v-col cols="2">
-              <VcsLabel :html-for="`settings-${key}-default`">
-                {{ $t(`export.editor.default`) }}
-              </VcsLabel>
-            </v-col>
-            <v-col cols="2">
-              <VcsSelect
-                :id="`settings-${key}-default`"
-                v-model="
-                  localConfig[`${key}Default` as keyof typeof localConfig]
-                "
-                :multiple="key !== 'lod'"
-                :items="
-                  key === 'thematicClass'
-                    ? mapThematicClasses(localConfig.thematicClassList)
-                    : localConfig[`${key}List` as keyof typeof localConfig]
-                "
-              />
-            </v-col>
           </v-row>
         </div>
+
         <v-row no-gutters>
           <v-col cols="6">
             <VcsLabel html-for="settings-appearance-theme-list">
@@ -829,6 +866,17 @@
         }),
         apply,
         errorMessageDataSource,
+        updateSelection(value: boolean, key: string): void {
+          if (value) {
+            updateDefault(
+              `${key}Default` as keyof typeof localConfig.value,
+              key !== 'lod',
+              localConfig.value[
+                `${key}List` as keyof typeof localConfig.value
+              ] as string[],
+            );
+          }
+        },
       };
     },
   });

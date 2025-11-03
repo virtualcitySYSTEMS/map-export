@@ -28,9 +28,12 @@ export default (): ExportOptions => {
       'GEOPACKAGE',
       'FBX',
     ],
+    exportFormatConfigurable: true,
     exportFormatDefault: ['CityGML'],
+    lodConfigurable: true,
     lodList: ['LoD1', 'LoD2', 'LoD3', 'haLoD'],
     lodDefault: 'haLoD',
+    thematicClassConfigurable: true,
     thematicClassList: [
       '26',
       '7',

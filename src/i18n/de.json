@@ -135,6 +135,8 @@
       "cityModelSettings": "Einstellungen zum Stadtmodell",
       "exportFormatList": "Export Formate",
       "default": "Default",
+      "allowedValues": "Erlaubte Werte",
+      "userConfigurable": "Benutzer konfigurierbar",
       "lodList": "Detaillierungsgrade",
       "thematicClassList": "Thematische Klassen",
       "appearanceThemeDefault": "Default Objekttextur",

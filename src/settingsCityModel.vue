@@ -8,17 +8,19 @@
     >
       <v-col class="pa-0" cols="6">
         <VcsLabel :html-for="name + 'Select'">
-          {{ $st(mainSetting.i18n) }}
+          {{ $st(mainSetting!.i18n) }}
         </VcsLabel>
       </v-col>
       <v-col class="pa-0" cols="6">
         <VcsSelect
           :id="name + 'Select'"
           v-model="
-            settingsState[mainSetting.stateName as keyof SettingsCityModelState]
+            settingsState[
+              mainSetting!.stateName as keyof SettingsCityModelState
+            ]
           "
-          :items="mainSetting.items"
-          :multiple="mainSetting.multiple"
+          :items="mainSetting!.items"
+          :multiple="mainSetting!.multiple"
           :rules="[
             (v: string) =>
               !!v.length || $t('export.validation.selectFieldMultiple'),
@@ -189,24 +191,30 @@
 
       /** Setup for the main settings. */
       const mainSettingsSetup = {
-        exportFormat: {
-          items: props.setup.exportFormatList,
-          i18n: 'export.settingsCityModel.exportFormat',
-          multiple: true,
-          stateName: 'selectedExportFormats',
-        },
-        lod: {
-          items: props.setup.lodList,
-          i18n: 'export.settingsCityModel.lod',
-          multiple: false,
-          stateName: 'selectedLod',
-        },
-        thematicClassList: {
-          items: mapThematicClasses(props.setup.thematicClassList),
-          i18n: 'export.settingsCityModel.thematicClasses',
-          multiple: true,
-          stateName: 'selectedThematicClasses',
-        },
+        ...(props.setup.exportFormatConfigurable && {
+          exportFormat: {
+            items: props.setup.exportFormatList,
+            i18n: 'export.settingsCityModel.exportFormat',
+            multiple: true,
+            stateName: 'selectedExportFormats',
+          },
+        }),
+        ...(props.setup.lodConfigurable && {
+          lod: {
+            items: props.setup.lodList,
+            i18n: 'export.settingsCityModel.lod',
+            multiple: false,
+            stateName: 'selectedLod',
+          },
+        }),
+        ...(props.setup.thematicClassConfigurable && {
+          thematicClassList: {
+            items: mapThematicClasses(props.setup.thematicClassList),
+            i18n: 'export.settingsCityModel.thematicClasses',
+            multiple: true,
+            stateName: 'selectedThematicClasses',
+          },
+        }),
       };
 
       const terrainAppearanceOptions: Record<string, number> = {};
