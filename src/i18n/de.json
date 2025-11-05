@@ -24,6 +24,7 @@
       "currentImage": "Aktuelles Schrägluftbild",
       "drawPolygon": "Polygon zeichnen",
       "drawBBox": "Bounding Box zeichnen",
+      "fileImport": "Datei importieren",
       "objectCount": "Ausgewählte Objekte",
       "selectableLayers": "Unterstützte Ebene(n)",
       "layerNotSupportedWarning": "Objekte dieser Ebene werden für den Export nicht unterstützt.",
@@ -84,6 +85,10 @@
       "areaSelection": "Bitte zeichnen Sie eine Auswahlfläche.",
       "polygonFeature": "Die Geometrie der Flächenauswahl ist nicht valide.",
       "polygonFeatureArea": "Die maximale Größe der Auswahlfläche wurde überschritten.",
+      "importFileInvalid": "Die importierte Datei ist ungültig.",
+      "importFileNoFeatures": "Die importierte Datei enthält keine Features.",
+      "importFileNoValidGeometries": "Die importierte Datei enthält keine gültigen Geometrien.",
+      "importFileMultipleFeatures": "Die importierte Datei enthält mehrere Features. Das erste Polygon wird verwendet.",
       "negative": "Der Eingabewert muss größer als 0 sein.",
       "negativeOne": "Der Eingabewert muss mindestens -1 sein.",
       "integer": "Der Eingabewert muss ganzzahlig sein."

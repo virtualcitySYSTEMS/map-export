@@ -24,6 +24,7 @@
       "currentImage": "Current image",
       "drawPolygon": "Draw a polygon",
       "drawBBox": "Draw a bounding box",
+      "fileImport": "File import",
       "objectCount": "Object count",
       "selectableLayers": "Selectable layer(s)",
       "layerNotSupportedWarning": "Objects of this layer are not supported for export.",
@@ -84,6 +85,10 @@
       "areaSelection": "Please draw a selection area.",
       "polygonFeature": "Geometry of area selection is not valid.",
       "polygonFeatureArea": "Selection geometry exceeds maximum area.",
+      "importFileInvalid": "Imported file is invalid.",
+      "importFileNoFeatures": "Imported file contains no features.",
+      "importFileNoValidGeometries": "Imported file contains no valid geometries.",
+      "importFileMultipleFeatures": "Imported file contains multiple features. The first polygon is used.",
       "negative": "The value must be above 0.",
       "negativeOne": "The value must be at least -1.",
       "integer": "The value must be an integer."

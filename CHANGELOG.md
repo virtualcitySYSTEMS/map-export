@@ -1,3 +1,8 @@
+# v2.0.10
+
+- Add new Area Selection option: file import
+- Auto select Data selection mode when only one is available
+
 # v2.0.9
 
 - Fixed a bug where area selection would be wrongly invalid

@@ -4,7 +4,6 @@ import {
   ObliqueMap,
   TerrainLayer,
   TMSLayer,
-  VectorLayer,
   WMSLayer,
   Projection,
 } from '@vcmap/core';
@@ -64,7 +63,7 @@ export async function validatePolygonFeature(
  * Prepares query parameter and sends a post request to the fme server.
  * @param pluginConfig The setup configuration of the plugin.
  * @param pluginState The state of the plugin.
- * @param selectionLayerName The name of the vector layer for the selection area.
+ * @param selectedArea The feature representing the selected area.
  * @param app The VcsUiApp instance
  * @param additionalParams
  * @returns The promise of the fetch post request to the fme server.
@@ -72,7 +71,7 @@ export async function validatePolygonFeature(
 export async function prepareQueryAndSend(
   pluginConfig: ExportConfig,
   pluginState: ExportState,
-  selectionLayerName: string,
+  selectedArea: Feature,
   app: VcsUiApp,
   additionalParams?: Record<string, unknown>,
 ): Promise<Response> {
@@ -208,15 +207,8 @@ export async function prepareQueryAndSend(
   let sceneExport;
   if (selectedSelectionType === SelectionTypes.AREA_SELECTION) {
     query.SELECTION = 'Polygon';
-    const layer = app.layers.getByKey(selectionLayerName);
-
-    if (!layer || !(layer instanceof VectorLayer)) {
-      throw new Error('Layer for area selection does not exist.');
-    }
-
-    const feature = layer.getFeatures()[0];
     const geometry = (
-      await validatePolygonFeature(feature, app, maxSelectionArea)
+      await validatePolygonFeature(selectedArea, app, maxSelectionArea)
     ).clone();
 
     geometry.transform(
@@ -234,7 +226,7 @@ export async function prepareQueryAndSend(
       .join(';');
     const bbox = new Extent({
       projection: mercatorProjection.toJSON(),
-      coordinates: feature.getGeometry()?.getExtent(),
+      coordinates: selectedArea.getGeometry()?.getExtent(),
     });
     if (exportScene) {
       sceneExport = await collectScene(bbox, app);

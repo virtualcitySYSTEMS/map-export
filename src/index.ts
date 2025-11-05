@@ -5,8 +5,19 @@ import type {
   VcsPlugin,
   VcsUiApp,
 } from '@vcmap/ui';
-import { createToggleAction, ToolboxType, WindowSlot } from '@vcmap/ui';
-import { getDefaultProjection, vcsLayerName } from '@vcmap/core';
+import {
+  createToggleAction,
+  getDefaultPrimaryColor,
+  ToolboxType,
+  WindowSlot,
+} from '@vcmap/ui';
+import {
+  getDefaultProjection,
+  markVolatile,
+  mercatorProjection,
+  vcsLayerName,
+  VectorLayer,
+} from '@vcmap/core';
 import { reactive } from 'vue';
 import deepEqual from 'fast-deep-equal';
 import { version, name, mapVersion } from '../package.json';
@@ -34,6 +45,7 @@ import type {
   OneOfDataSourceOptions,
 } from './dataSources/abstractDataSource';
 import type AbstractDataSource from './dataSources/abstractDataSource.js';
+import { createSelectionLayerStyle } from './selectionArea.vue';
 
 export const windowId = 'export_window_id';
 
@@ -70,6 +82,7 @@ export type ExportPlugin = VcsPlugin<ExportOptions, ExportState> & {
   /** initial state for setting back state to default values */
   readonly defaultState: ExportState;
   readonly dataSource: AbstractDataSource | null;
+  readonly areaSelectionLayer: VectorLayer;
   updateDataSource: (
     vcsUiApp: VcsUiApp,
     dataSourceOptions: OneOfDataSourceOptions,
@@ -79,6 +92,8 @@ export type ExportPlugin = VcsPlugin<ExportOptions, ExportState> & {
 };
 
 export default function exportPlugin(options: ExportOptions): ExportPlugin {
+  let app: VcsUiApp | undefined;
+  let areaSelectionLayer: VectorLayer | undefined;
   let dataSource: ObliqueDataSource | GeoJSONDataSource | null = null;
   const { pluginConfig: config, pluginState } = getConfigAndState(
     options,
@@ -87,7 +102,6 @@ export default function exportPlugin(options: ExportOptions): ExportPlugin {
   const state = reactive(pluginState);
   const defaultState = JSON.parse(JSON.stringify(pluginState));
   const listeners: (() => void)[] = [];
-  let app: VcsUiApp;
 
   return {
     get name(): string {
@@ -111,6 +125,26 @@ export default function exportPlugin(options: ExportOptions): ExportPlugin {
     },
     get dataSource(): ObliqueDataSource | GeoJSONDataSource | null {
       return dataSource;
+    },
+    get areaSelectionLayer(): VectorLayer {
+      if (!areaSelectionLayer) {
+        if (!app) {
+          throw new Error(
+            'Area selection layer requested before plugin initialization',
+          );
+        }
+        const primary =
+          app.uiConfig.config.primaryColor ?? getDefaultPrimaryColor(app);
+        const style = createSelectionLayerStyle(primary);
+        areaSelectionLayer = new VectorLayer({
+          projection: mercatorProjection.toJSON(),
+          style,
+        });
+        markVolatile(areaSelectionLayer);
+        app.layers.add(areaSelectionLayer);
+      }
+      areaSelectionLayer.activate().catch(() => {});
+      return areaSelectionLayer;
     },
     initialize(vcsUiApp: VcsUiApp): void {
       app = vcsUiApp;

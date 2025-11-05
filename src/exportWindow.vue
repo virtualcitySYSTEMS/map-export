@@ -117,7 +117,9 @@
                   pluginState.selectedSelectionType ===
                   SelectionTypes.AREA_SELECTION
                 "
-                @sessionstart="handleSession($event, StepOrder.SELECTION_MODE)"
+                @feature-drawn="
+                  (f) => handleFeatureDrawn(f, StepOrder.SELECTION_MODE)
+                "
               />
               <VcsCheckbox
                 v-else-if="
@@ -281,7 +283,6 @@
                     DataSourceOptions.GEOJSON
                 "
                 v-model="pluginState.selectedResultItems"
-                :selection-layer-name="areaSelectionLayerName"
                 :selected-data-source-options="
                   pluginState.selectedDataSourceOptions
                 "
@@ -352,6 +353,7 @@
 </template>
 
 <script lang="ts">
+  import type { Ref } from 'vue';
   import {
     computed,
     defineComponent,
@@ -379,10 +381,9 @@
     VcsWizardStep,
     NotificationType,
   } from '@vcmap/ui';
-  import type { VectorLayer } from '@vcmap/core';
   import { CesiumTilesetLayer, ObliqueMap } from '@vcmap/core';
-  import type Geometry from 'ol/geom/Geometry';
-  import SelectionArea, { areaSelectionLayerName } from './selectionArea.vue';
+  import type Feature from 'ol/Feature';
+  import SelectionArea from './selectionArea.vue';
   import SelectionObjects from './selectionObjects.vue';
   import SettingsCityModel from './settingsCityModel.vue';
   import SettingsOblique from './settingsOblique.vue';
@@ -429,6 +430,10 @@
       const plugin = app.plugins.getByKey(name) as ExportPlugin;
       const pluginState = plugin.state;
       const pluginConfig = plugin.config;
+      const drawnArea = ref(plugin.areaSelectionLayer.getFeatures()[0]) as Ref<
+        Feature | undefined
+      >;
+
       const running = ref(false);
       const obliqueDownload = reactive<ObliqueDownloadState>({
         running: false,
@@ -647,6 +652,11 @@
         (items) => {
           if (items.length === 1) {
             pluginState.selectedSelectionType = items[0].value;
+          } else {
+            const enabled = items.filter((item) => !item.props?.disabled);
+            if (enabled.length === 1) {
+              pluginState.selectedSelectionType = enabled[0].value;
+            }
           }
         },
         { deep: true },
@@ -708,10 +718,7 @@
         () => pluginState.selectedSelectionType,
         (selectedSelectionType, prevSelectionType) => {
           if (prevSelectionType === SelectionTypes.AREA_SELECTION) {
-            const layer = app.layers.getByKey(
-              String(areaSelectionLayerName),
-            ) as VectorLayer;
-            layer?.removeAllFeatures();
+            plugin.areaSelectionLayer.removeAllFeatures();
           } else if (prevSelectionType === SelectionTypes.OBJECT_SELECTION) {
             pluginState.selectedObjects = [];
           }
@@ -727,23 +734,17 @@
 
       /**
        * Increases the step of VcsWizard if the feature create session was successful.
-       * @param {Promise<import("ol").Feature<import("ol/geom/Geometry").default> | null>} session The result of the area selection create feature session.
-       * @param {number} currentStep The current step of the VcsWizard.
+       * @param currentStep The current step of the VcsWizard.
        */
-      async function handleSession(
-        session: Promise<Geometry>,
-        currentStep: number,
-      ): Promise<void> {
-        const feature = await session;
-        if (feature) {
-          // if datasource is geojson no settings are availabe therefore this step has to be skipped.
-          const increaseBy =
-            pluginState.selectedDataSourceOptions?.type ===
-            DataSourceOptions.GEOJSON
-              ? currentStep + 1
-              : currentStep;
-          increaseStep(increaseBy);
-        }
+      function handleFeatureDrawn(area: Feature, currentStep: number): void {
+        drawnArea.value = area;
+        // if datasource is geojson no settings are availabe therefore this step has to be skipped.
+        const increaseBy =
+          pluginState.selectedDataSourceOptions?.type ===
+          DataSourceOptions.GEOJSON
+            ? currentStep + 1
+            : currentStep;
+        increaseStep(increaseBy);
       }
 
       /** Resets the state and all form validations. */
@@ -803,7 +804,7 @@
             promise = prepareQueryAndSend(
               pluginConfig,
               pluginState,
-              String(areaSelectionLayerName),
+              drawnArea.value!,
               app,
               plugin.additionalParams,
             );
@@ -911,6 +912,7 @@
 
       onUnmounted(() => {
         obliqueCollectionListener?.();
+        plugin.areaSelectionLayer.deactivate();
         listeners.forEach((listener) => {
           listener();
         });
@@ -996,8 +998,7 @@
         StepOrder,
         increaseStep,
         requestEnabled,
-        handleSession,
-        areaSelectionLayerName,
+        handleFeatureDrawn,
         pluginConfig,
         pluginState,
         dataSourceItems,

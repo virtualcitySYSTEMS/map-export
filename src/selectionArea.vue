@@ -9,9 +9,15 @@
         v-for="(value, name) in AllowedGeometries"
         :key="name"
         :icon="value"
-        :active="geometryState[name]"
+        :active="selectionState[name]"
         :tooltip="$st('export.selectionTypes.draw' + name)"
         @click="waitForGeometry(GeometryType[name])"
+      />
+      <VcsToolButton
+        icon="$vcsImport"
+        :active="selectionState.import"
+        :tooltip="$st('export.selectionTypes.fileImport')"
+        @click="setupFileImport"
       />
       <template #message="{ message }">
         <v-tooltip
@@ -23,27 +29,48 @@
         />
       </template>
     </v-input>
+    <v-row v-show="selectionState.import" no-gutters>
+      <VcsFileInput
+        ref="fileInput"
+        accept=".json, .geojson"
+        clearable
+        @update:model-value="uploadFile"
+      />
+    </v-row>
   </v-sheet>
 </template>
 
 <script lang="ts">
-  import { VSheet, VInput, VTooltip } from 'vuetify/components';
+  import { VSheet, VInput, VTooltip, VRow } from 'vuetify/components';
   import type { VcsUiApp } from '@vcmap/ui';
-  import { VcsToolButton, getDefaultPrimaryColor } from '@vcmap/ui';
   import {
-    VectorLayer,
+    NotificationType,
+    VcsFileInput,
+    VcsToolButton,
+    getDefaultPrimaryColor,
+  } from '@vcmap/ui';
+  import type { CreateFeatureSession } from '@vcmap/core';
+  import {
     startCreateFeatureSession,
     GeometryType,
     mercatorProjection,
     VectorStyleItem,
-    markVolatile,
+    parseGeoJSON,
+    Viewpoint,
+    Extent,
   } from '@vcmap/core';
-  import { defineComponent, inject, onMounted, reactive, ref } from 'vue';
+  import {
+    defineComponent,
+    inject,
+    onMounted,
+    onUnmounted,
+    reactive,
+    ref,
+  } from 'vue';
   import { Color } from '@vcmap-cesium/engine';
   import type Feature from 'ol/Feature.js';
-  import { windowId } from './index.js';
-
-  export const areaSelectionLayerName = Symbol('areaSelection');
+  import { name } from '../package.json';
+  import type { ExportPlugin } from './index.js';
 
   /** Allowed geometry types for area selection. Key is the a value of {@link GeometryType}, value the corresponding VCS icon. */
   enum AllowedGeometries {
@@ -51,13 +78,11 @@
     BBox = '$vcsBoundingBox',
   }
 
-  /** The state for each geometry type if create feature session is active. Key is the a value of {@link GeometryType}. */
-  const geometryState = reactive<{
-    [GeometryType.BBox]: boolean;
-    [GeometryType.Polygon]: boolean;
-  }>({
+  /** The state for each geometry type if create feature session is active. Key is the a value of {@link GeometryType} or 'import'. */
+  const selectionState = reactive({
     [GeometryType.Polygon]: false,
     [GeometryType.BBox]: false,
+    import: false,
   });
 
   export function createSelectionLayerStyle(color: string): VectorStyleItem {
@@ -67,63 +92,60 @@
           .withAlpha(0.3)
           .toCssColorString(),
       },
-      stroke: {
-        color,
-        width: 2,
-      },
+      stroke: { color, width: 2 },
     });
   }
 
   /**
    * @description Component for drawing a selection area.
-   * @vue-event {Promise<import("ol").Feature | null} sessionstart - Emits Promise that resolves with drawn feature.
+   * @vue-event {import("ol").Feature} feature - Emits the drawn feature.
    */
   export default defineComponent({
     name: 'SelectionArea',
-    components: { VcsToolButton, VSheet, VInput, VTooltip },
-    emits: ['sessionstart'],
+    components: { VcsFileInput, VcsToolButton, VInput, VRow, VSheet, VTooltip },
+    emits: ['featureDrawn'],
     setup(_, { emit }) {
       const app = inject('vcsApp') as VcsUiApp;
-      const defaultPrimaryColor = getDefaultPrimaryColor(app);
+      const { areaSelectionLayer } = app.plugins.getByKey(name) as ExportPlugin;
       /** State if there exists currently an area selection feature. */
       const featureDrawn = ref(false);
-
-      function getAreaSelectionLayer(): VectorLayer {
-        let layer = app.layers.getByKey(
-          String(areaSelectionLayerName),
-        ) as VectorLayer;
-        if (!layer) {
-          const primary =
-            app.uiConfig.config.primaryColor ?? defaultPrimaryColor;
-          const style = createSelectionLayerStyle(primary);
-          layer = new VectorLayer({
-            name: String(areaSelectionLayerName),
-            projection: mercatorProjection.toJSON(),
-            style,
-          });
-          markVolatile(layer);
-          app.layers.add(layer);
-        }
-        layer.activate().catch(() => {});
-        return layer;
-      }
+      const fileInput = ref();
+      let session: CreateFeatureSession<
+        GeometryType.Polygon | GeometryType.BBox
+      > | null = null;
 
       const listeners = [
         app.uiConfig.added.addEventListener((item) => {
           if (item?.name === 'primaryColor') {
-            getAreaSelectionLayer().setStyle(
-              createSelectionLayerStyle(item.value as string),
-            );
+            const style = createSelectionLayerStyle(item.value as string);
+            areaSelectionLayer.setStyle(style);
           }
         }),
         app.uiConfig.removed.addEventListener((item) => {
           if (item?.name === 'primaryColor') {
-            getAreaSelectionLayer().setStyle(
-              createSelectionLayerStyle(defaultPrimaryColor),
-            );
+            const defaultPrimary = getDefaultPrimaryColor(app);
+            const style = createSelectionLayerStyle(defaultPrimary);
+            areaSelectionLayer.setStyle(style);
           }
         }),
       ];
+
+      type SelectionKey = keyof typeof selectionState;
+      function resetSelectionState(
+        resetSession = false,
+        newSelection?: SelectionKey,
+      ): void {
+        if (newSelection) {
+          featureDrawn.value = false;
+        }
+        const keys = Object.keys(selectionState) as SelectionKey[];
+        keys.forEach((key) => {
+          selectionState[key] = newSelection === key;
+        });
+        if (resetSession) {
+          session?.stop();
+        }
+      }
 
       /**
        * Handles the geometry creation with the @vcmap/core editor.
@@ -132,57 +154,113 @@
       function waitForGeometry(
         geometryType: GeometryType.BBox | GeometryType.Polygon,
       ): void {
-        const layer = getAreaSelectionLayer();
-        if (layer) {
-          layer.removeAllFeatures();
-          featureDrawn.value = false;
-        }
-        const session = startCreateFeatureSession(
+        resetSelectionState(false, geometryType);
+        areaSelectionLayer.removeAllFeatures();
+        featureDrawn.value = false;
+        session = startCreateFeatureSession(
           app,
-          layer,
+          areaSelectionLayer,
           GeometryType[geometryType],
         );
 
-        emit(
-          'sessionstart',
-          new Promise((resolve) => {
-            let feature: Feature | null = null;
-            session.stopped.addEventListener(() => {
-              geometryState[geometryType] = false;
-              resolve(feature); // may be null if finished before feature was valid
-            });
-
-            session.creationFinished.addEventListener((f) => {
-              if (f) {
-                feature = f;
-                session.stop();
-                featureDrawn.value = true;
-              }
-            });
+        let feature: Feature | null = null;
+        listeners.push(
+          session.stopped.addEventListener(() => {
+            featureDrawn.value = !!feature;
+            const activeType = Object.entries(selectionState).find(
+              ([, v]) => v,
+            )?.[0];
+            if (feature && session?.geometryType === activeType) {
+              emit('featureDrawn', feature);
+            }
+            session = null;
+          }),
+          session.creationFinished.addEventListener((f) => {
+            feature = f;
+            session!.stop();
           }),
         );
-        geometryState[geometryType] = true;
+      }
+
+      async function uploadFile(file: File): Promise<void> {
+        if (!file) {
+          return;
+        }
+        try {
+          areaSelectionLayer.removeAllFeatures();
+          featureDrawn.value = false;
+          const raw = await file.text();
+          const data = parseGeoJSON(raw);
+          if (!data || !data.features) {
+            throw new Error('export.validation.importFileInvalid');
+          }
+          if (data.features.length === 0) {
+            throw new Error('export.validation.importFileNoFeatures');
+          }
+          const polygons = data.features.filter(
+            (f) => f.getGeometry()?.getType() === GeometryType.Polygon,
+          );
+          if (polygons.length === 0) {
+            throw new Error('export.validation.importFileNoValidGeometries');
+          } else {
+            if (polygons.length > 1) {
+              app.notifier.add({
+                type: NotificationType.WARNING,
+                message: app.vueI18n.t(
+                  'export.validation.importFileMultipleFeatures',
+                ),
+              });
+            }
+            const feature = polygons[0];
+            feature.setStyle();
+            areaSelectionLayer.addFeatures([feature]);
+            const extent = feature.getGeometry()?.getExtent();
+            if (extent) {
+              const mercatorExtent = new Extent({
+                coordinates: extent,
+                projection: mercatorProjection,
+              });
+              const vp = Viewpoint.createViewpointFromExtent(mercatorExtent);
+              if (vp) {
+                await app.maps.activeMap?.gotoViewpoint(vp);
+              }
+            }
+            featureDrawn.value = true;
+            resetSelectionState(true);
+            emit('featureDrawn', feature);
+          }
+        } catch (e: unknown) {
+          app.notifier.add({
+            type: NotificationType.ERROR,
+            message: app.vueI18n.t((e as Error).message),
+          });
+        }
       }
 
       onMounted(() => {
-        const layer = getAreaSelectionLayer(); // makes sure that layer exists and is active
-        featureDrawn.value = layer.getFeatures().length !== 0;
+        featureDrawn.value = areaSelectionLayer.getFeatures().length !== 0;
+      });
+      onUnmounted(() => {
+        resetSelectionState(true);
+        listeners.forEach((listener) => {
+          listener();
+        });
       });
 
-      app.windowManager.removed.addEventListener(({ id }) => {
-        if (id === windowId) {
-          getAreaSelectionLayer().deactivate();
-          listeners.forEach((listener) => {
-            listener();
-          });
-        }
-      });
       return {
         GeometryType,
         waitForGeometry,
         AllowedGeometries,
-        geometryState,
+        selectionState,
         featureDrawn,
+        fileInput,
+        uploadFile,
+        setupFileImport: (): void => {
+          resetSelectionState(true, 'import');
+          fileInput.value?.$el.childNodes[1].childNodes[1].click(); // trigger VcsFileInput window opening
+          areaSelectionLayer.removeAllFeatures();
+          featureDrawn.value = false;
+        },
       };
     },
   });
