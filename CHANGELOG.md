@@ -1,4 +1,4 @@
-# v2.0.10
+# v2.1.0
 
 - Add new Area Selection option: file import
 - Auto select Data selection mode when only one is available
