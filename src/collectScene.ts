@@ -27,6 +27,7 @@ import {
   createAbsoluteFeature,
   CesiumMap,
   getExtrusionHeightInfo,
+  getStyleOrDefaultStyle,
 } from '@vcmap/core';
 import type { VcsUiApp } from '@vcmap/ui';
 import type Geometry from 'ol/geom/Geometry';
@@ -172,38 +173,42 @@ async function exportFeatureStoreLayer(
   layer: PlanningFeatureStoreLayer,
   bbox: Extent,
 ): Promise<GeojsonExport | null> {
-  const planningVersion = app.plugins.getByKey('@vcmap/planning')!.version;
-  const range = '>=6.0.0-0';
+  try {
+    const { version } = app.plugins.getByKey('@vcmap/planning')!;
+    const range = '>=6.0.0-0';
 
-  if (satisfies(planningVersion, range, { includePrerelease: true })) {
-    const [cesiumMap] = app.maps.getByType(CesiumMap.className);
-    const scene = (cesiumMap as CesiumMap).getScene();
-    if (!scene) {
-      return null;
+    if (satisfies(version, range, { includePrerelease: true })) {
+      const [cesiumMap] = app.maps.getByType(CesiumMap.className);
+      const scene = (cesiumMap as CesiumMap).getScene();
+      if (!scene) {
+        return null;
+      }
+      const collection = await layer.fetchFeatureCollection({
+        bbox: bbox.getCoordinatesInProjection(wgs84Projection),
+        asJson: true,
+      });
+      const {
+        features: geojsonFeatures,
+        style,
+        vcsMeta,
+      } = parseGeoJSON(collection);
+      const features = await convertFeaturesToSceneFeatures(
+        geojsonFeatures,
+        layer.vectorProperties,
+        layer.style,
+        scene,
+      );
+      return {
+        features,
+        style: getStyleOrDefaultStyle(style).toJSON(),
+        vcsMeta: vcsMeta!,
+        type: LayerType.FEATURE_COLLECTION,
+      };
     }
-    const collection = await layer.fetchFeatureCollection({
-      bbox: bbox.getCoordinatesInProjection(wgs84Projection),
-      asJson: true,
-    });
-    const {
-      features: geojsonFeatures,
-      style,
-      vcsMeta,
-    } = parseGeoJSON(collection);
-    const features = await convertFeaturesToSceneFeatures(
-      geojsonFeatures,
-      layer.vectorProperties,
-      layer.style,
-      scene,
-    );
-    return {
-      features,
-      style: style!.toJSON(),
-      vcsMeta: vcsMeta!,
-      type: LayerType.FEATURE_COLLECTION,
-    };
+    return null;
+  } catch (error) {
+    return null;
   }
-  return null;
 }
 
 async function exportVectorLayer(
