@@ -5,3 +5,4 @@ include:
       - 'templates/.plugin-v1.yml'
       - 'templates/.plugin-ts-v1.yml'
       - 'templates/.publish-npm-public-v1.yml'
+      - 'templates/.publish-package-v1.yml'
