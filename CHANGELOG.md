@@ -1,3 +1,8 @@
+# v2.1.3
+
+- Adapt UI texts for exporting materials, for a clearer UX
+- Add missing configuration options to the readme file: `exportFormatConfigurable`, `lodConfigurable` and `thematicClassConfigurable`
+
 # v2.1.2
 
 - Added internal Package release
