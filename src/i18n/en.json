@@ -91,7 +91,8 @@
       "importFileMultipleFeatures": "Imported file contains multiple features. The first polygon is used.",
       "negative": "The value must be above 0.",
       "negativeOne": "The value must be at least -1.",
-      "integer": "The value must be an integer."
+      "integer": "The value must be an integer.",
+      "invalidConfig": "The config is invalid. {0}"
     },
     "context": {
       "cityModel": "Export object"

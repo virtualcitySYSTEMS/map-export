@@ -481,7 +481,7 @@
         </v-row>
         <v-row no-gutters>
           <v-col>
-            <VcsLabel html-for="settings-appearance-theme-default" required>
+            <VcsLabel html-for="settings-appearance-theme-default">
               {{ $t('export.editor.appearanceThemeDefault') }}
             </VcsLabel>
           </v-col>
@@ -490,7 +490,6 @@
               id="settings-appearance-theme-default"
               v-model="localConfig.appearanceThemeDefault"
               :items="localConfig.appearanceThemeList"
-              :rules="[(v: string) => !!v || 'components.validation.required']"
             />
           </v-col>
         </v-row>
@@ -630,11 +629,22 @@
     VcsChipArrayInput,
     VcsProjection,
   } from '@vcmap/ui';
-  import type { PropType, Ref, WritableComputedRef } from 'vue';
-  import { computed, defineComponent, ref, toRaw, watch } from 'vue';
+  import {
+    computed,
+    defineComponent,
+    ref,
+    toRaw,
+    watch,
+    type PropType,
+    type Ref,
+    type WritableComputedRef,
+  } from 'vue';
   import getDefaultOptions from './defaultOptions.js';
-  import type { ExportOptions } from './configManager.js';
-  import { DataSourceOptions, mapThematicClasses } from './configManager.js';
+  import {
+    type ExportOptions,
+    DataSourceOptions,
+    mapThematicClasses,
+  } from './configManager.js';
   import type {
     AbstractDataSourceOptions,
     OneOfDataSourceOptions,
@@ -817,7 +827,17 @@
             });
             return listDataSourceItem;
           });
-        props.setConfig(structuredClone(toRaw(localConfig.value)));
+
+        const clonedConfig: Partial<ExportOptions> = structuredClone(
+          toRaw(localConfig.value),
+        );
+
+        if (clonedConfig.appearanceThemeList?.length === 0) {
+          clonedConfig.appearanceThemeList = undefined;
+          clonedConfig.appearanceThemeDefault = undefined;
+        }
+
+        props.setConfig(clonedConfig);
       };
 
       watch(

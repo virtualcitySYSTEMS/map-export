@@ -91,7 +91,8 @@
       "importFileMultipleFeatures": "Die importierte Datei enthält mehrere Features. Das erste Polygon wird verwendet.",
       "negative": "Der Eingabewert muss größer als 0 sein.",
       "negativeOne": "Der Eingabewert muss mindestens -1 sein.",
-      "integer": "Der Eingabewert muss ganzzahlig sein."
+      "integer": "Der Eingabewert muss ganzzahlig sein.",
+      "invalidConfig": "Die Konfiguration des Export Tools ist ungültig. {0}"
     },
     "context": { "cityModel": "Objekt exportieren" },
     "resetButtons": {

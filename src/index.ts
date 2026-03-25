@@ -1,3 +1,4 @@
+import { getLogger } from '@vcsuite/logger';
 import type {
   PluginConfigEditor,
   SingleToolboxComponent,
@@ -95,12 +96,9 @@ export default function exportPlugin(options: ExportOptions): ExportPlugin {
   let app: VcsUiApp | undefined;
   let areaSelectionLayer: VectorLayer | undefined;
   let dataSource: ObliqueDataSource | GeoJSONDataSource | null = null;
-  const { pluginConfig: config, pluginState } = getConfigAndState(
-    options,
-    getDefaultOptions(),
-  );
-  const state = reactive(pluginState);
-  const defaultState = JSON.parse(JSON.stringify(pluginState));
+  let config: ExportConfig | undefined;
+  let defaultState: ExportState | undefined;
+  let state: ExportState | undefined;
   const listeners: (() => void)[] = [];
 
   return {
@@ -114,13 +112,22 @@ export default function exportPlugin(options: ExportOptions): ExportPlugin {
       return mapVersion;
     },
     get config(): ExportConfig {
+      if (!config) {
+        throw new Error('Config requested before plugin initialization');
+      }
       return config;
     },
     get state(): ExportState {
+      if (!state) {
+        throw new Error('State requested before plugin initialization');
+      }
       return state;
     },
     additionalParams: undefined,
     get defaultState(): ExportState {
+      if (!defaultState) {
+        throw new Error('State requested before plugin initialization');
+      }
       return defaultState;
     },
     get dataSource(): ObliqueDataSource | GeoJSONDataSource | null {
@@ -148,16 +155,24 @@ export default function exportPlugin(options: ExportOptions): ExportPlugin {
     },
     initialize(vcsUiApp: VcsUiApp): void {
       app = vcsUiApp;
+      const { pluginConfig, pluginState } = getConfigAndState(
+        options,
+        getDefaultOptions(),
+      );
+      config = pluginConfig;
+      defaultState = structuredClone(pluginState);
+      state = reactive<ExportState>(pluginState);
+
       listeners.push(
         vcsUiApp.moduleAdded.addEventListener(() => {
-          updateCrs(options, config, state);
+          updateCrs(options, this.config, this.state);
         }),
         vcsUiApp.moduleRemoved.addEventListener(() => {
-          updateCrs(options, config, state);
+          updateCrs(options, this.config, this.state);
         }),
       );
     },
-    onVcsAppMounted: (vcsUiApp: VcsUiApp): void => {
+    onVcsAppMounted(vcsUiApp: VcsUiApp): void {
       const { action, destroy } = createToggleAction(
         { name: 'export.name', title: 'export.tooltip', icon: '$vcsExport' },
         {
@@ -195,7 +210,7 @@ export default function exportPlugin(options: ExportOptions): ExportPlugin {
           if (
             properties?.exportWorkbench &&
             properties?.exportWorkbench ===
-              config.settingsCityModel.fmeServerUrl
+              this.config.settingsCityModel.fmeServerUrl
           ) {
             contextEntries.push({
               name: 'export.context.cityModel',
@@ -233,27 +248,44 @@ export default function exportPlugin(options: ExportOptions): ExportPlugin {
     ): void {
       dataSource = createDataSourceFromConfig(dataSourceOptions, vcsUiApp);
       if (dataSource instanceof ObliqueDataSource) {
-        dataSource.viewDirectionFilter = state.settingsOblique.directionFilter;
+        dataSource.viewDirectionFilter =
+          this.state.settingsOblique.directionFilter;
         dataSource.downloadState = downloadState;
       }
     },
-    resetState: (): void => {
-      Object.assign(state, JSON.parse(JSON.stringify(defaultState)));
+    resetState(): void {
+      Object.assign(this.state, structuredClone(defaultState));
     },
     i18n: { de, en },
     getDefaultOptions,
     toJSON(): ExportOptions {
       const defaultOptions = getDefaultOptions();
+      let usedConfig = config;
+      if (!usedConfig) {
+        try {
+          usedConfig = getConfigAndState(options, defaultOptions).pluginConfig;
+        } catch (error) {
+          getLogger(name).error(
+            `Failed to get config configuration: ${String(error)}`,
+          );
+          usedConfig = getConfigAndState(
+            defaultOptions,
+            defaultOptions,
+          ).pluginConfig;
+        }
+      }
+
       const flatConfig: ExportOptions = {
-        termsOfUse: config.termsOfUse,
-        dataSourceOptionsList: config.dataSourceOptionsList,
-        allowDescription: config.allowDescription,
-        allowEmail: config.allowEmail,
-        allowExportName: config.allowExportName,
-        maxSelectionArea: config.maxSelectionArea,
-        ...config.settingsCityModel,
-        ...config.defaults,
+        termsOfUse: usedConfig.termsOfUse,
+        dataSourceOptionsList: usedConfig.dataSourceOptionsList,
+        allowDescription: usedConfig.allowDescription,
+        allowEmail: usedConfig.allowEmail,
+        allowExportName: usedConfig.allowExportName,
+        maxSelectionArea: usedConfig.maxSelectionArea,
+        ...usedConfig.settingsCityModel,
+        ...usedConfig.defaults,
       };
+
       const customOptions = (
         Object.keys(flatConfig) as (keyof ExportOptions)[]
       ).reduce((acc, key) => {
@@ -281,6 +313,7 @@ export default function exportPlugin(options: ExportOptions): ExportPlugin {
       listeners.forEach((l) => {
         l();
       });
+      listeners.length = 0;
     },
   };
 }

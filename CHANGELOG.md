@@ -1,3 +1,7 @@
+# v2.1.4
+
+- Fixes an issue where the configuration could destroy the plugin, if not set correctly.
+
 # v2.1.3
 
 - Adapt UI texts for exporting materials, for a clearer UX

@@ -409,11 +409,9 @@ export type ConfigAndState = {
  * @param defaultOptions The default plugin options inside the source code of the plugin.
  */
 export function getConfigAndState(
-  pluginOptions: ExportOptions,
+  pluginOptions: Partial<ExportOptions>,
   defaultOptions: ExportOptions,
 ): ConfigAndState {
-  // perform validation
-
   check(
     pluginOptions.exportFormatList,
     maybe([ofLiteralType(Object.keys(exportFormats))]),
